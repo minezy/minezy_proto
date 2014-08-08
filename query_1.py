@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import datetime
 import operator
 from py2neo import neo4j, node, rel
@@ -75,14 +76,25 @@ def query_for_private_conversations(toAddr):
 	for email in sorted_rank:
 		print email + " has rank of " + str(ranks[email])
 
+	return
 
 
-print "Connect to Neo4j..."
-g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
-g_graph_index = g_graph.get_or_create_index(neo4j.Node, "Nodes")
-print "OK"
+def query1():
+	query_for_private_conversations("paul@paulquinn.com")
+	return
 
 
-query_for_private_conversations("paul@paulquinn.com")
+if __name__ == '__main__':
+	try:
+		print "Connect to Neo4j..."
+		g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
+		g_graph_index = g_graph.get_or_create_index(neo4j.Node, "Nodes")
+		print "OK"
+	except:
+		print "Failed"
+		exit(1)
 
-print "All Done"
+	query1()
+
+	print "All Done"
+

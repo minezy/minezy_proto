@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import datetime
 import operator
 import email
@@ -85,11 +86,21 @@ def show_global_stats():
 			
 	return
 
-print "Connect to Neo4j..."
-g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
-g_graph_index = g_graph.get_or_create_index(neo4j.Node, "Nodes")
-print "OK"
+def query3():
+	show_global_stats()
+	return
 
-show_global_stats()
+if __name__ == '__main__':
+	try:
+		print "Connect to Neo4j..."
+		g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
+		g_graph_index = g_graph.get_or_create_index(neo4j.Node, "Nodes")
+		print "OK"
+	except:
+		print "Failed"
+		exit(1)
+		
+	query3()
 
-print "All Done"
+	print "All Done"
+

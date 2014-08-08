@@ -1,3 +1,4 @@
+#!/usr/bin/python
 import sys
 import datetime
 import time
@@ -6,9 +7,8 @@ import email
 import email.utils
 import math
 from py2neo import neo4j, node, rel
+import neo4j_conn
 
-global g_graph;
-global g_graph_index;
 
 def average(s):
 	return sum(s) * 1.0 / len(s)
@@ -18,21 +18,20 @@ def stddev(s):
 	v = map(lambda x: (x-a)**2, s)
 	return math.sqrt(average(v))
 
-def tally_conversations(fromAddr):
-	global g_graph
+def contactInfo(fromAddr):
 
-	# Total Sent
-	query = neo4j.CypherQuery(g_graph, 
+	resultInfo = {}
+
+	query = neo4j.CypherQuery(neo4j_conn.g_graph, 
 		"MATCH (n:Contact {email:'" + fromAddr + "'})-[:Sent]->() "
 		"RETURN count(*)"
 		)
 	results = query.execute()
 
-	print fromAddr + ":"
-	print "\tSent " + str(results[0][0]) + " emails "
+	resultInfo['emailSent'] = results[0][0]
 
 	# Sent To single person
-	#query = neo4j.CypherQuery(g_graph, 
+	#query = neo4j.CypherQuery(neo4j_conn.g_graph, 
 	#	"MATCH (n:Contact {email:'paul@paulquinn.com'})-[:Sent]->(e)-[r:TO]->() "
 	#	"WITH e,count(r) as tc "
 	#	"OPTIONAL MATCH (e)-[s:CC]->() "
@@ -42,7 +41,7 @@ def tally_conversations(fromAddr):
 	#results = query.execute()
 
 	# Single TO person and who it is:
-	#query = neo4j.CypherQuery(g_graph, 
+	#query = neo4j.CypherQuery(neo4j_conn.g_graph, 
 	#	"MATCH (n:Contact {email:'paul@paulquinn.com'})-[:Sent]->(e)-[r:TO]->() "
 	#	"WITH e,count(r) as tc where tc=1 "
 	#	"OPTIONAL MATCH (e)-[s:CC]->() "
@@ -52,7 +51,7 @@ def tally_conversations(fromAddr):
 	#	)
 
 	# Collect TimeOfDay Sent
-	query = query = neo4j.CypherQuery(g_graph, 
+	query = query = neo4j.CypherQuery(neo4j_conn.g_graph, 
 		"MATCH (n:Contact {email:'" + fromAddr + "'})-[:Sent]->(e) "
 		"RETURN e ORDER BY e.timestamp desc"
 		)
@@ -74,47 +73,62 @@ def tally_conversations(fromAddr):
 		send_tz[tz] = send_tz.get(tz,0) + 1
 
 	sorted_tz = sorted(send_tz, key=send_tz.get, reverse=True)
-	print "\tLikely TimeZone: " + str(sorted_tz[0])
-	print "\t\t" + str(send_tz)
 
-	print "\tSends at hours:"
+	resultInfo['timezone'] = str(sorted_tz[0])
+	resultInfo['timezones'] = str(sorted_tz)
+
+	sendTimes = []
 	for hour,count in enumerate(send_tod):
 		if count > 0:
-			bar = '#' * count
-			print "\t\t" + str(hour) + ":00 \t" + bar + " " + str(count)
+			bar = '#' * count + ' ' + str(count)
 		else:
-			print "\t\t" + str(hour) + ":00 \t-"
+			bar = '-'
+		sendTimes.append( { 'hour': str(hour) + ":00", 'count': count, 'zzz':bar })
 
+	resultInfo['sendTimes'] = sendTimes
+
+	sendPref = []
 	avg = average(send_tod)
 	std = stddev(send_tod)
-	print "\tavg:" + str(avg)
-	print "\tstd:" + str(std)
 	start = -1
 	end = 0
-	print "\tLikes to send email between:"
 	for hour,count in enumerate(send_tod):
 		if count > (avg+(std/2)):
 			if start == -1:
 				start = hour
 			end = hour
 		elif start != -1:
-			print "\t\t" + str(start) + ":00 to " + str(end+1) + ":00"
+			sendPref.append( { 'from': str(start) + ":00", 'to': str(end+1) + ":00" })
 			start = -1
 	if start != -1:
-		print "\t\t" + str(start) + ":00 to " + str(end+1) + ":00"
+		sendPref.append( { 'from': str(start) + ":00", 'to': str(end+1) + ":00" })
 
-	return
+	resultInfo['sendPref'] = sendPref
+	return resultInfo
 
 
-print "Connect to Neo4j..."
-g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
-g_graph_index = g_graph.get_or_create_index(neo4j.Node, "Nodes")
-print "OK"
+if __name__ == '__main__':
+	if len(sys.argv) != 2:
+		print "Usage: " + sys.argv[0] + " <email>"
+		exit(1)
 
-if len(sys.argv) == 1:
-	print "\tGive email address as argument"
-else:
-	fromAddr = sys.argv[1]
-	tally_conversations(fromAddr)
+	neo4j_conn.connect()
 
-print "All Done"
+	info = contactInfo(sys.argv[1])
+	print '\t' + sys.argv[1] + ':'
+	print '\t\tSent ' + str(info['emailSent']) + ' emails'
+	print '\t\tLikely TimeZone: ' + str(info['timezone'])
+	print '\t\t\t' + str(info['timezones'])
+	print '\t\tTime of day emails sent:'
+	for st in info['sendTimes']:
+		count = int(st['count'])
+		if count > 0:
+			bar = '#' * count
+			print '\t\t\t' + st['hour'] + '\t' + bar + ' ' + str(count)
+		else:
+			print '\t\t\t' + st['hour'] + '\t' + '-'
+	print '\t\tLikes to send email between:'
+	for sp in info['sendPref']:
+		print '\t\t\t' + sp['from'] + ' to ' + sp['to']
+
+	print
