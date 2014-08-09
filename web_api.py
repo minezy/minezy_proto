@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 import query_1
 import contact_list
 import contact_info
+import email_info
 import neo4j_conn
 
 app = Flask(__name__)
@@ -62,7 +63,35 @@ def get_contact(email):
     contact = contact_info.contactInfo(email)
     return jsonify( { 'contact' : contact } )
 
+@app.route('/1/contact/<email>/sentTo/')
+def get_contact_sentTo(email):
+    resp = contact_info.contact_sentTo(email)
+    return jsonify( resp )
 
+@app.route('/1/contact/<email>/sentFrom/')
+def get_contact_sentFrom(email):
+    resp = contact_info.contact_sentFrom(email)
+    return jsonify( resp )
+
+@app.route('/1/contact/<email>/privateTo/')
+def get_contact_privateTo(email):
+    resp = contact_info.contact_privateTo(email)
+    return jsonify( resp )
+
+@app.route('/1/contact/<email>/privateFrom/')
+def get_contact_privateFrom(email):
+    resp = contact_info.contact_privateFrom(email)
+    return jsonify( resp )
+
+@app.route('/1/emails/<fromAddr>/to/<toAddr>/')
+def get_emails_conv(fromAddr, toAddr):
+    resp = email_info.email_list(fromAddr, toAddr)
+    return jsonify( resp )
+
+@app.route('/1/email/<emailId>/')
+def get_email_info(emailId):
+    resp = email_info.email_info(emailId)
+    return jsonify( resp )
 
 if __name__ == '__main__':
     global g_graph
@@ -70,6 +99,6 @@ if __name__ == '__main__':
 
     neo4j_conn.connect()
 
-    app.run(debug = True)
+    app.run(debug=True, use_reloader=False)
 
 

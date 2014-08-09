@@ -1,2 +1,6 @@
 *.swp
 *.pyc
+graph.db
+.metadata
+.pydevproject
+.project
