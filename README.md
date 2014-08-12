@@ -17,5 +17,5 @@ query_1.py
 query_3.py 
 - runnable scripts that output neat stuff from Neo4j     
 
-get_messages.py
+get_mailboxes.py
 - run script to get a listing of your gMail folders.
