@@ -194,32 +194,33 @@ def scan_email_folder(mail, folderName):
 
 
 if __name__ == '__main__':
-	if len(sys.argv) != 4:
-		print "Usage: " + sys.argv[0] + " <mailhost> <login> <password>"
-		exit(1)
+    if len(sys.argv) != 4:
+    	print "Usage: " + sys.argv[0] + " <mailhost> <login> <password>"
+    	exit(1)
 
-	print "Connect to Neo4j..."
-	g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
-	g_graph_index = g_graph.get_or_create_index(neo4j.Node, "Nodes")
-	print "OK"
+    print "Connect to Neo4j..."
+    g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
+    g_graph_index = g_graph.get_or_create_index(neo4j.Node, "Nodes")
+    print "OK"
 
-	g_email_server = sys.argv[1]
-	g_email_address = sys.argv[2]
-	g_email_password = sys.argv[3]
+    g_email_server = sys.argv[1]
+    g_email_address = sys.argv[2]
+    g_email_password = sys.argv[3]
 
-	g_names = {}
+    g_names = {}
 
-	print "Logging into " + g_email_server + ": " + g_email_address + "..."
-	mail = imaplib.IMAP4_SSL(g_email_server)
-	mail.login(g_email_address, g_email_password)
-	print mail.list()
+    print "Logging into " + g_email_server + ": " + g_email_address + "..."
+    mail = imaplib.IMAP4_SSL(g_email_server,port=443)
+    print "Connected. Sending login..."
+    mail.login(g_email_address, g_email_password)
+    print mail.list()
 
-	scan_email_folder(mail, "INBOX")
-	scan_email_folder(mail, "INBOX.Sent")
-	scan_email_folder(mail, "INBOX.old-messages")
+    scan_email_folder(mail, "INBOX")
+    scan_email_folder(mail, "INBOX.Sent")
+    scan_email_folder(mail, "INBOX.old-messages")
 
-	add_names_to_db()
+    add_names_to_db()
 
-	print "All Done"
+    print "All Done"
 
    

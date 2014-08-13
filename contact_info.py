@@ -21,7 +21,7 @@ def stddev(s):
 
 def contactInfo(fromAddr):
 
-	resultInfo = {}
+	resp = {}
 
 	query = neo4j.CypherQuery(neo4j_conn.g_graph, 
 		"MATCH (n:Contact {email:'" + fromAddr + "'}) "
@@ -31,79 +31,118 @@ def contactInfo(fromAddr):
 	results = query.execute()
 
 	if len(results) == 0:
-		resultInfo['name'] = 'Unknown Contact'
-		return resultInfo
+		resp['name'] = 'Unknown Contact'
+		return resp
 	
 	c = results[0][0]
-	resultInfo['name'] = c['name']
+	resp['name'] = c['name']
 	
 	emailSent = int(results[0][1])
-	resultInfo['emailSent'] = emailSent
+	resp['emailSent'] = emailSent
 
 	actions = {}
 	actions['sendTo'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/sentTo'
 	actions['sentFrom'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/sentFrom'
 	actions['privateTo'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/privateTo'
 	actions['privateFrom'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/privateFrom'
-	resultInfo['actions'] = actions
+	resp['actions'] = actions
 
 	# Collect TimeOfDay Sent
-	if emailSent > 0:
-		query = neo4j.CypherQuery(neo4j_conn.g_graph, 
-			"MATCH (n:Contact {email:'" + fromAddr + "'})-[:Sent]->(e) "
-			"RETURN e ORDER BY e.timestamp desc"
-			)
+	if emailSent == 0:
+		return resp
+	
+	query = neo4j.CypherQuery(neo4j_conn.g_graph, 
+		"MATCH (n:Contact {email:'" + fromAddr + "'})-[:Sent]->(e) "
+		"RETURN e ORDER BY e.timestamp desc"
+		)
 
-		send_tod = [0] * 24
-		send_tz = {}
-		for record in query.stream():
-			e = record[0]
-			tod = email.utils.parsedate_tz(e['date'])
-			hour = tod[3]
-			hour_adj = tod[3] - ((tod[9] + time.altzone) / 3600)
-			if hour_adj >= 24:
-				hour_adj -= 24
-			elif hour_adj < 0:
-				hour_adj += 24
-			#print str(tod) + "  hour: " + str(hour) + "   hourAdj: " + str(hour_adj)
-			send_tod[hour_adj] += 1
-			tz = tod[9] / 3600
-			send_tz[tz] = send_tz.get(tz,0) + 1
+	send_tod = [0] * 24
+	send_tz = {}
+	for record in query.stream():
+		e = record[0]
+		tod = email.utils.parsedate_tz(e['date'])
+		hour = tod[3]
+		hour_adj = tod[3] - ((tod[9] + time.altzone) / 3600)
+		if hour_adj >= 24:
+			hour_adj -= 24
+		elif hour_adj < 0:
+			hour_adj += 24
+		#print str(tod) + "  hour: " + str(hour) + "   hourAdj: " + str(hour_adj)
+		send_tod[hour_adj] += 1
+		tz = tod[9] / 3600
+		send_tz[tz] = send_tz.get(tz,0) + 1
 
-		sorted_tz = sorted(send_tz, key=send_tz.get, reverse=True)
-		if len(sorted_tz) > 0:
-			resultInfo['timezone'] = str(sorted_tz[0])
-			resultInfo['timezones'] = str(sorted_tz)
+	sorted_tz = sorted(send_tz, key=send_tz.get, reverse=True)
+	if len(sorted_tz) > 0:
+		resp['timezone'] = str(sorted_tz[0])
+		resp['timezones'] = str(sorted_tz)
 
-		sendTimes = []
-		for hour,count in enumerate(send_tod):
-			if count > 0:
-				bar = '#' * count + ' ' + str(count)
-			else:
-				bar = '-'
-			sendTimes.append( { 'hour': str(hour) + ":00", 'count': count, 'zzz':bar })
+	sendTimes = []
+	for hour,count in enumerate(send_tod):
+		if count > 0:
+			bar = '#' * count + ' ' + str(count)
+		else:
+			bar = '-'
+		sendTimes.append( { 'hour': str(hour) + ":00", 'count': count, 'zzz':bar })
 
-		resultInfo['sendTimes'] = sendTimes
+	resp['sendTimes'] = sendTimes
 
-		sendPref = []
-		avg = average(send_tod)
-		std = stddev(send_tod)
-		start = -1
-		end = 0
-		for hour,count in enumerate(send_tod):
-			if count > (avg+(std/2)):
-				if start == -1:
-					start = hour
-				end = hour
-			elif start != -1:
-				sendPref.append( { 'from': str(start) + ":00", 'to': str(end+1) + ":00" })
-				start = -1
-		if start != -1:
+	sendPref = []
+	avg = average(send_tod)
+	std = stddev(send_tod)
+	start = -1
+	end = 0
+	for hour,count in enumerate(send_tod):
+		if count > (avg+(std/2)):
+			if start == -1:
+				start = hour
+			end = hour
+		elif start != -1:
 			sendPref.append( { 'from': str(start) + ":00", 'to': str(end+1) + ":00" })
+			start = -1
+	if start != -1:
+		sendPref.append( { 'from': str(start) + ":00", 'to': str(end+1) + ":00" })
 
-		resultInfo['sendPref'] = sendPref
+	resp['sendPref'] = sendPref
 
-	return resultInfo
+	# determine speed of replies of toAddr to fromAddr
+	query = neo4j.CypherQuery(neo4j_conn.g_graph,
+		"MATCH (n:Contact {email:'" + fromAddr + "'})<-[:SentBy]-(e:Email)-[:InReplyTo]->(e2)-[:SentBy]->(m:Contact) " 
+		"RETURN m,collect(e),collect(e2)"
+		)
+	replyBehavior = []
+	replyDeltasTot = []
+	for record in query.stream():
+		toAddr = record[0]
+		ecReply = record[1]
+		ecSend = record[2]
+		
+		replyDeltasPer = []
+		for eSend, eReply in zip(ecSend, ecReply):
+			tsSend  = int(eSend["timestamp"])
+			tsReply = int(eReply["timestamp"])
+			replyDeltasPer.append(tsReply - tsSend)
+			replyDeltasTot.append(tsReply - tsSend)
+		
+		rb = { 
+			'href': 'http://' + request.host + '/1/emails/' + fromAddr + '/to/' + toAddr['email'] 
+			} 
+		if len(replyDeltasPer) > 0:
+			if len(replyDeltasPer) > 2:
+				replyDeltasPer.remove(min(replyDeltasPer))
+				replyDeltasPer.remove(max(replyDeltasPer))
+			seconds = int(sum(replyDeltasPer) * 1.0 / len(replyDeltasPer))
+			rb['reply_time_avg'] = str(datetime.timedelta(seconds=seconds))					
+	
+		replyBehavior.append(rb)
+
+	if len(replyDeltasTot) > 0:
+		seconds = int(sum(replyDeltasTot) * 1.0 / len(replyDeltasTot))
+		replyBehavior.append( { 'to':'all', 'reply_time_avg': str(datetime.timedelta(seconds=seconds)) } )
+
+	resp['reply_behavior'] = replyBehavior
+							 
+	return resp
 
 
 def contact_sentTo(fromAddr):

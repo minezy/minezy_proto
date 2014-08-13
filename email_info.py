@@ -22,30 +22,84 @@ def email_list(fromAddr, toAddr):
 		"WHERE NOT (e)-[:InReplyTo]->() "
 		"RETURN e ORDER BY e.timestamp desc"
 		)
-	emails = []
-	for record in query.stream():
+	results = query.execute()
+
+	count = len(results)
+	if count > 0:
+		email_first = results[-1][0]
+		email_last = results[0][0]
+		date_first = datetime.datetime.utcfromtimestamp(email_first["timestamp"])
+		date_last = datetime.datetime.utcfromtimestamp(email_last["timestamp"])
+		delta_range = date_last - date_first
+		delta_last = abs(date_last - datetime.datetime.now())
+	
+		if delta_range.days == 0:
+			freq = str(delta_range.seconds / count) + " seconds between emails"
+		elif count > delta_range.days:
+			freq = str(count / delta_range.days) + " emails per day"
+		else:
+			freq = str(delta_range.days / count) + " days between emails"
+	
+		resp['conversation_stats'] = {
+									'duration': str(delta_range.days) + ' days',
+									'first': email_first["date"],
+									'last': email_last["date"],
+									'frequency': freq,
+									'seen': str(delta_last.days) + ' days ago'
+									}
+
+	emailInit = []
+	for record in results:
 		e = record[0]
-		emails.append( {
+		emailInit.append( {
 			'subject': e['subject'], 
 			'date': e['date'], 
 			'href': 'http://' + request.host + '/1/email/' + e['id'],
 			} )
-	resp['emailsInitiated'] = emails
+	resp['emailsInitiated'] = emailInit
 
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (:Contact {email:'" + fromAddr + "'})-[:Sent]->(e)-[:TO]->(:Contact {email:'" + toAddr +"'}) "
 		"WHERE (e)-[:InReplyTo]->() "
 		"RETURN e ORDER BY e.timestamp desc"
 		)
-	emails = []
+	emailReplied = []
 	for record in query.stream():
 		e = record[0]
-		emails.append( {
+		emailReplied.append( {
 			'subject': e['subject'], 
 			'date': e['date'], 
 			'href': 'http://' + request.host + '/1/email/' + e['id'],
 			} )
-	resp['emailsReplied'] = emails
+	resp['emailsReplied'] = emailReplied
+	
+	# determine speed of replies of toAddr to fromAddr
+	query = neo4j.CypherQuery(neo4j_conn.g_graph,
+		"MATCH (n:Contact {email:'" + toAddr + "'})<-[:SentBy]-(e:Email)-[:InReplyTo]->(e2)-[:SentBy]->(m:Contact {email:'" + fromAddr + "'}) " 
+		"RETURN e,e2"
+		)
+	replyDeltas = []
+	for record in query.stream():
+		eReply = record[0]
+		eSend = record[1]
+		tsSend  = int(eSend["timestamp"])
+		tsReply = int(eReply["timestamp"])
+		replyDeltas.append(tsReply - tsSend)
+		
+	rb = { 
+		'from': 'http://' + request.host + '/1/contact/' + toAddr,
+		'to':   'http://' + request.host + '/1/contact/' + fromAddr 
+		} 
+	if len(emailInit) > 0:
+		rb['reply_percentage'] = len(emailReplied) * 100.0 / len(emailInit)		
+	if len(replyDeltas) > 0:
+		if len(replyDeltas) > 2:
+			replyDeltas.remove(min(replyDeltas))
+			replyDeltas.remove(max(replyDeltas))
+		seconds = int(sum(replyDeltas) * 1.0 / len(replyDeltas))
+		rb['reply_time_avg'] = str(datetime.timedelta(seconds=seconds))					
+
+	resp['reply_behavior'] = rb
 	
 	return resp
 
