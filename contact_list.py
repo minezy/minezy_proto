@@ -1,16 +1,15 @@
 #!/usr/bin/python
 import sys
 import json
-from flask import jsonify, request
 from py2neo import neo4j, node, rel
 import neo4j_conn
 
 
-def contactList(start, count):
+def contactList(start, count, request=None):
 
 	query = neo4j.CypherQuery(neo4j_conn.g_graph, 
-		"match (n:Contact)-[r]-() with n,count(r) as rc return n.name,n.email,rc order by rc desc skip "
-		+ str(start) + " limit " + str(count)
+		"match (n:Contact)-[r]-() with n,count(r) as rc return n.name,n.email,rc order by rc desc "
+		"skip "+ str(start) + " limit " + str(count)
 		)
 
 	contacts = []
@@ -18,9 +17,12 @@ def contactList(start, count):
 		contact = { 
 			'name':  record[0],
 			'email': record[1], 
-			'links': record[2], 
-			'href':  'http://' + request.host + '/1/contact/'+record[1]+'/' 
+			'links': record[2] 
 			} 
+		
+		if request is not None:
+			contact['href'] = 'http://' + request.host + '/1/contact/'+record[1]+'/'
+			
 		contacts.append( contact )
 
 	return contacts

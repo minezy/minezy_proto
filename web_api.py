@@ -57,42 +57,42 @@ def get_api_v1():
 
 @app.route('/1/contacts/<int:start>/<int:count>/', methods=['GET'])
 def get_contacts(start, count):
-    contacts = contact_list.contactList(start, count)
+    contacts = contact_list.contactList(start, count, request)
     return jsonify( { 'contacts' : contacts } )
 
 @app.route('/1/contact/<email>/')
 def get_contact(email):
-    contact = contact_info.contactInfo(email)
+    contact = contact_info.contactInfo(email, request)
     return jsonify( { 'contact' : contact } )
 
 @app.route('/1/contact/<email>/sentTo/')
 def get_contact_sentTo(email):
-    resp = contact_info.contact_sentTo(email)
+    resp = contact_info.contact_sentTo(email, request)
     return jsonify( resp )
 
 @app.route('/1/contact/<email>/sentFrom/')
 def get_contact_sentFrom(email):
-    resp = contact_info.contact_sentFrom(email)
+    resp = contact_info.contact_sentFrom(email, request)
     return jsonify( resp )
 
 @app.route('/1/contact/<email>/privateTo/')
 def get_contact_privateTo(email):
-    resp = contact_info.contact_privateTo(email)
+    resp = contact_info.contact_privateTo(email, request)
     return jsonify( resp )
 
 @app.route('/1/contact/<email>/privateFrom/')
 def get_contact_privateFrom(email):
-    resp = contact_info.contact_privateFrom(email)
+    resp = contact_info.contact_privateFrom(email, request)
     return jsonify( resp )
 
 @app.route('/1/emails/<fromAddr>/to/<toAddr>/')
 def get_emails_conv(fromAddr, toAddr):
-    resp = email_info.email_list(fromAddr, toAddr)
+    resp = email_info.email_list(fromAddr, toAddr, request)
     return jsonify( resp )
 
 @app.route('/1/email/<emailId>/')
 def get_email_info(emailId):
-    resp = email_info.email_info(emailId)
+    resp = email_info.email_info(emailId, request)
     return jsonify( resp )
 
 if __name__ == '__main__':

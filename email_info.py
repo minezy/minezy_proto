@@ -7,16 +7,19 @@ import email
 import email.utils
 import math
 from collections import OrderedDict
-from flask import request
 from py2neo import neo4j, node, rel
 import neo4j_conn
 
 
-def email_list(fromAddr, toAddr):
+def email_list(fromAddr, toAddr, request=None):
 	resp = {}
-	resp['from'] = { 'contact': fromAddr, 'href': 'http://' + request.host + '/1/contact/' + fromAddr }
-	resp['to']   = { 'contact': toAddr,   'href': 'http://' + request.host + '/1/contact/' + toAddr }
-
+	if request is not None:
+		resp['from'] = { 'contact': fromAddr, 'href': 'http://' + request.host + '/1/contact/' + fromAddr }
+		resp['to']   = { 'contact': toAddr,   'href': 'http://' + request.host + '/1/contact/' + toAddr }
+	else:
+		resp['from'] = { 'contact': fromAddr }
+		resp['to']   = { 'contact': toAddr }
+		
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (:Contact {email:'" + fromAddr + "'})-[:Sent]->(e)-[:TO]->(:Contact {email:'" + toAddr +"'}) "
 		"WHERE NOT (e)-[:InReplyTo]->() "
@@ -51,11 +54,17 @@ def email_list(fromAddr, toAddr):
 	emailInit = []
 	for record in results:
 		e = record[0]
-		emailInit.append( {
-			'subject': e['subject'], 
-			'date': e['date'], 
-			'href': 'http://' + request.host + '/1/email/' + e['id'],
-			} )
+		if request is not None:
+			emailInit.append( {
+				'subject': e['subject'], 
+				'date': e['date'], 
+				'href': 'http://' + request.host + '/1/email/' + e['id'],
+				} )
+		else:
+			emailInit.append( {
+				'subject': e['subject'], 
+				'date': e['date']
+				} )
 	resp['emailsInitiated'] = emailInit
 
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
@@ -66,11 +75,17 @@ def email_list(fromAddr, toAddr):
 	emailReplied = []
 	for record in query.stream():
 		e = record[0]
-		emailReplied.append( {
-			'subject': e['subject'], 
-			'date': e['date'], 
-			'href': 'http://' + request.host + '/1/email/' + e['id'],
-			} )
+		if request is not None:
+			emailReplied.append( {
+				'subject': e['subject'], 
+				'date': e['date'], 
+				'href': 'http://' + request.host + '/1/email/' + e['id'],
+				} )
+		else:
+			emailReplied.append( {
+				'subject': e['subject'], 
+				'date': e['date']
+				} )
 	resp['emailsReplied'] = emailReplied
 	
 	# determine speed of replies of toAddr to fromAddr
@@ -86,10 +101,10 @@ def email_list(fromAddr, toAddr):
 		tsReply = int(eReply["timestamp"])
 		replyDeltas.append(tsReply - tsSend)
 		
-	rb = { 
-		'from': 'http://' + request.host + '/1/contact/' + toAddr,
-		'to':   'http://' + request.host + '/1/contact/' + fromAddr 
-		} 
+	rb = {}
+	if request is not None:
+		rb['from'] = 'http://' + request.host + '/1/contact/' + toAddr
+		rb['to'] = 'http://' + request.host + '/1/contact/' + fromAddr 
 	if len(emailInit) > 0:
 		rb['reply_percentage'] = len(emailReplied) * 100.0 / len(emailInit)		
 	if len(replyDeltas) > 0:
@@ -104,7 +119,7 @@ def email_list(fromAddr, toAddr):
 	return resp
 
 
-def email_thread(emailId):
+def email_thread(emailId, request=None):
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (e:Email {id:'" + emailId + "'}) "
 		"OPTIONAL MATCH (e)-[:Reply]->(er) "
@@ -130,20 +145,23 @@ def email_thread(emailId):
 		resp = {
 			'subject': e['subject'], 
 			'date': e['date'],
-			'id': e['id'],
-			'from': 'http://' + request.host + '/1/contact/' + s['email'],
+			'id': e['id']
 			}
+		if request is not None:
+			resp['from'] = 'http://' + request.host + '/1/contact/' + s['email']
 
 		if eRep is not None:
 			resp['inreplyto'] = eRep['id']
 					
 		toList = []
 		for t in to:
-			toList.append('http://' + request.host + '/1/contact/' + t['email'])
+			if request is not None:
+				toList.append('http://' + request.host + '/1/contact/' + t['email'])
 		
 		ccList = []
 		for c in cc:
-			ccList.append('http://' + request.host + '/1/contact/' + c['email'])
+			if request is not None:
+				ccList.append('http://' + request.host + '/1/contact/' + c['email'])
 		if len(ccList) > 0:
 			toList.append( {'cc': ccList } )
 		
@@ -163,7 +181,7 @@ def email_thread(emailId):
 #		"OPTIONAL MATCH e-[:TO]->(to) "
 #		"OPTIONAL MATCH e-[:CC]->(cc) "
 	
-def email_info(emailId):
+def email_info(emailId, request=None):
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (e:Email {id:'" + emailId + "'}) "
 		"OPTIONAL MATCH (e)-[:Refs|Reply]-(er) "
@@ -187,18 +205,21 @@ def email_info(emailId):
 		resp = {
 			'subject': e['subject'], 
 			'date': e['date'],
-			'id': e['id'],
-			'from': 'http://' + request.host + '/1/contact/' + s['email']
+			'id': e['id']
 			}
+		if request is not None:
+			resp['from'] = 'http://' + request.host + '/1/contact/' + s['email']
 
 		toList = []
 		for t in to:
-			toList.append('http://' + request.host + '/1/contact/' + t['email'])
+			if request is not None:
+				toList.append('http://' + request.host + '/1/contact/' + t['email'])
 		resp['to'] = toList
 		
 		ccList = []
 		for c in cc:
-			ccList.append('http://' + request.host + '/1/contact/' + c['email'])
+			if request is not None and c['email'] is not None:
+				ccList.append('http://' + request.host + '/1/contact/' + c['email'])
 		resp['cc'] = ccList
 		
 		for er in eRefs:

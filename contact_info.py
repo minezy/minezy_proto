@@ -6,7 +6,6 @@ import operator
 import email
 import email.utils
 import math
-from flask import request
 from py2neo import neo4j, node, rel
 import neo4j_conn
 
@@ -19,7 +18,7 @@ def stddev(s):
 	v = map(lambda x: (x-a)**2, s)
 	return math.sqrt(average(v))
 
-def contactInfo(fromAddr):
+def contactInfo(fromAddr, request=None):
 
 	resp = {}
 
@@ -40,12 +39,13 @@ def contactInfo(fromAddr):
 	emailSent = int(results[0][1])
 	resp['emailSent'] = emailSent
 
-	actions = {}
-	actions['sendTo'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/sentTo'
-	actions['sentFrom'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/sentFrom'
-	actions['privateTo'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/privateTo'
-	actions['privateFrom'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/privateFrom'
-	resp['actions'] = actions
+	if request is not None:
+		actions = {}
+		actions['sendTo'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/sentTo'
+		actions['sentFrom'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/sentFrom'
+		actions['privateTo'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/privateTo'
+		actions['privateFrom'] = 'http://' + request.host + '/1/contact/' + fromAddr + '/privateFrom'
+		resp['actions'] = actions
 
 	# Collect TimeOfDay Sent
 	if emailSent == 0:
@@ -124,9 +124,10 @@ def contactInfo(fromAddr):
 			replyDeltasPer.append(tsReply - tsSend)
 			replyDeltasTot.append(tsReply - tsSend)
 		
-		rb = { 
-			'href': 'http://' + request.host + '/1/emails/' + fromAddr + '/to/' + toAddr['email'] 
-			} 
+		rb = {}
+		if request is not None:
+			rb['href'] = 'http://' + request.host + '/1/emails/' + fromAddr + '/to/' + toAddr['email'] 
+
 		if len(replyDeltasPer) > 0:
 			if len(replyDeltasPer) > 2:
 				replyDeltasPer.remove(min(replyDeltasPer))
@@ -145,7 +146,7 @@ def contactInfo(fromAddr):
 	return resp
 
 
-def contact_sentTo(fromAddr):
+def contact_sentTo(fromAddr, request=None):
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (n:Contact {email:'" + fromAddr + "'})-[:Sent]->(e)-[r:TO]->(m) "
 		"WITH m, count(r) as rc "
@@ -153,24 +154,35 @@ def contact_sentTo(fromAddr):
 		)	
 	resp = {}
 	resp['contact'] = fromAddr
-	resp['href'] = 'http://' + request.host + '/1/contact/' + fromAddr
+	if request is not None:
+		resp['href'] = 'http://' + request.host + '/1/contact/' + fromAddr
 
 	sentTo = []
 	for record in query.stream():
-		sentTo.append( {
-			'contact': record[0], 
-			'href': 'http://' + request.host + '/1/contact/' + record[0],
-			'emails':
-				{ 
-					'count': record[1],
-					'href': 'http://' + request.host + '/1/emails/' + fromAddr + '/to/' + record[0],
-				}
-			} )
+		if request is not None:
+			sentTo.append( {
+				'contact': record[0], 
+				'href': 'http://' + request.host + '/1/contact/' + record[0],
+				'emails':
+					{ 
+						'count': record[1],
+						'href': 'http://' + request.host + '/1/emails/' + fromAddr + '/to/' + record[0],
+					}
+				} )
+		else:
+			sentTo.append( {
+				'contact': record[0], 
+				'emails':
+					{ 
+						'count': record[1]
+					}
+				} )
+			
 	resp['sentTo'] = sentTo
 	return resp
 
 
-def contact_sentFrom(toAddr):
+def contact_sentFrom(toAddr, request=None):
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (n:Contact)-[:Sent]->(e)-[r:TO]-(m:Contact {email:'" + toAddr + "'}) "
 		"WITH n, count(r) as rc "
@@ -178,24 +190,35 @@ def contact_sentFrom(toAddr):
 		)	
 	resp = {}
 	resp['contact'] = toAddr
-	resp['href'] = 'http://' + request.host + '/1/contact/' + toAddr
+	if request is not None:
+		resp['href'] = 'http://' + request.host + '/1/contact/' + toAddr
 
 	sentFrom = []
 	for record in query.stream():
-		sentFrom.append( {
-			'contact': record[0], 
-			'href': 'http://' + request.host + '/1/contact/' + record[0],
-			'emails':
-				{ 
-					'count': record[1],
-					'href': 'http://' + request.host + '/1/emails/' + record[0] + '/to/' +  toAddr,
-				}
-			} )
+		if request is not None:
+			sentFrom.append( {
+				'contact': record[0], 
+				'href': 'http://' + request.host + '/1/contact/' + record[0],
+				'emails':
+					{ 
+						'count': record[1],
+						'href': 'http://' + request.host + '/1/emails/' + record[0] + '/to/' +  toAddr,
+					}
+				} )
+		else:
+			sentFrom.append( {
+				'contact': record[0], 
+				'emails':
+					{ 
+						'count': record[1]
+					}
+				} )
+			
 	resp['sentFrom'] = sentFrom
 	return resp
 
 
-def contact_privateTo(fromAddr):
+def contact_privateTo(fromAddr, request=None):
 	# Single TO person and who it is:
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (n:Contact {email:'" + fromAddr + "'})-[:Sent]->(e)-[r:TO]->() "
@@ -207,20 +230,27 @@ def contact_privateTo(fromAddr):
 		)
 	resp = {}
 	resp['contact'] = fromAddr
-	resp['href'] = 'http://' + request.host + '/1/contact/' + fromAddr
+	if request is not None:
+		resp['href'] = 'http://' + request.host + '/1/contact/' + fromAddr
 
 	privateTo = []
 	for record in query.stream():
-		privateTo.append( {
-			'contact': record[0], 
-			'count': record[1],
-			'href': 'http://' + request.host + '/1/contact/' + record[0]
-			} )
+		if request is not None:
+			privateTo.append( {
+				'contact': record[0], 
+				'count': record[1],
+				'href': 'http://' + request.host + '/1/contact/' + record[0]
+				} )
+		else:
+			privateTo.append( {
+				'contact': record[0], 
+				'count': record[1]
+				} )
 	resp['privateTo'] = privateTo
 	return resp
 
 
-def contact_privateFrom(toAddr):
+def contact_privateFrom(toAddr, request=None):
 	# Single TO person and who it is:
 	query = neo4j.CypherQuery(neo4j_conn.g_graph,
 		"MATCH (e:Email)-[r:TO|CC]->() WITH e,count(r) as tc WHERE tc=1 "
@@ -230,15 +260,22 @@ def contact_privateFrom(toAddr):
 		)
 	resp = {}
 	resp['contact'] = toAddr
-	resp['href'] = 'http://' + request.host + '/1/contact/' + toAddr
+	if request is not None:
+		resp['href'] = 'http://' + request.host + '/1/contact/' + toAddr
 
 	privateFrom = []
 	for record in query.stream():
-		privateFrom.append( {
-			'email': record[0], 
-			'count': record[1],
-			'href': 'http://' + request.host + '/1/contact/' + record[0]
-			} )
+		if request is not None:
+			privateFrom.append( {
+				'email': record[0], 
+				'count': record[1],
+				'href': 'http://' + request.host + '/1/contact/' + record[0]
+				} )
+		else:
+			privateFrom.append( {
+				'email': record[0], 
+				'count': record[1]
+				} )
 	resp['privateFrom'] = privateFrom
 	return resp
 
