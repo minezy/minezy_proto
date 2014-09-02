@@ -1,9 +1,11 @@
 import sys
+import ast
 import email
 import email.utils
 import itertools
 import neo4j_conn
 from py2neo import neo4j, node, rel
+from numpy.polynomial.polyutils import RankWarning
 
 global g_names
 global g_batch
@@ -161,19 +163,33 @@ def _get_email(msgID):
     
 def _add_names_to_db():
     global g_names
-    
+
+    print "Updating " + str(len(g_names)) + " names..."    
     # Contact Node:names[] property
     for msgEmail, msgNames in g_names.iteritems():
-        print msgEmail
-        for name, count in msgNames.iteritems():
-            print name + " : " + str(count)
-
-        bestName = max(msgNames, key=msgNames.get)
-        
         nodeList = neo4j_conn.g_graph_index.get("contact", msgEmail)
         if len(nodeList) > 0:
             n = nodeList[0]
-            n['name'] = bestName
-            n['names'] = str(msgNames)
             
-    return    
+            names = {}
+            s = n['names']
+            if s is not None and len(s) > 0:
+                names = ast.literal_eval(s) 
+
+            # Update node's name dictionary
+            for name in msgNames:
+                if len(name) > 0 and name != 'None':
+                    count_old = names.get(name, 0)
+                    count_new = msgNames.get(name, 1)
+                    names[name] = count_old + count_new
+
+            bestName = max(names, key=names.get)
+        
+            n['name'] = bestName
+            n['names'] = str(names)
+            
+    g_names.clear()
+    return
+
+    
+    
