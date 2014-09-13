@@ -1,7 +1,7 @@
 *.swp
 *.pyc
-graph.db
-enron.db
+*.db
+*.json
 .metadata
 .pydevproject
 .project
