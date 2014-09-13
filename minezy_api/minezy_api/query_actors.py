@@ -8,20 +8,25 @@ def query_actors(query_params, countResults=False):
 
     index = query_params.get('index', 0)
     limit = query_params.get('limit', 0)
+    order = query_params.get('order', 'DESC').upper()
+    field = query_params.get('field', 'TO|CC|BCC').upper()
     fromActors = query_params.get('from', [])
     toActors = query_params.get('to', [])
-
-    order = query_params.get('order', 'DESC')
-    if not order.lower() == 'asc':
-        order = 'DESC' 
-
+    
     if len(fromActors):
-        query_str = "MATCH (n:Contact)-[:Sent]->()-[r:TO|CC|BCC]->(m:Contact) WHERE "
+        query_str = "MATCH (n:Contact)-[:Sent]->()-[r:"+field+"]->(m:Contact) WHERE "
         for i, actor in enumerate(fromActors):
             if i > 0:
                 query_str += "OR "
             query_str += "n.email='"+actor+"' "
         query_str += " with m,count(r) as rc RETURN m.name,m.email,rc ORDER BY rc " + order
+    elif len(toActors):
+        query_str = "MATCH (n:Contact)-[r:Sent]->()-[:"+field+"]->(m:Contact) WHERE "
+        for i, actor in enumerate(toActors):
+            if i > 0:
+                query_str += "OR "
+            query_str += "m.email='"+actor+"' "
+        query_str += " with n,count(r) as rc RETURN n.name,n.email,rc ORDER BY rc " + order
     else:
         query_str = "MATCH (n:Contact)-[r]-() WITH n,count(r) as rc RETURN n.name,n.email,rc ORDER BY rc " + order
     if index:
@@ -35,6 +40,7 @@ def query_actors(query_params, countResults=False):
         query = neo4j.CypherQuery(neo4j_conn.g_graph, query_str)
     
         actors = []
+        count = -1
         for count,record in enumerate(query.stream()):
             actor = { 
                 'name':  record[0],
@@ -45,9 +51,12 @@ def query_actors(query_params, countResults=False):
     
         resp = {}
         resp['_count'] = count+1
+        resp['_field'] = field
+        resp['_query'] = query_str
         if index or limit:
             resp['_range'] = { 'index' : index, 'limit' : limit }
-        resp['actor'] = actors
+        if len(actors):
+            resp['actor'] = actors
 
     if len(fromActors):
         resp['_from'] = fromActors
