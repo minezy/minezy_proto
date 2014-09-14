@@ -55,8 +55,8 @@ def add_to_db(email_msg):
         msgIDParent = msgIDParent.strip("<>")
         
         # Add From Contact
-        msgFrom = email.utils.getaddresses(email_msg.get_all('From', []))
-        msgXFrom = email_msg.get_all('X-From', [])
+        msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
+        msgXFrom = email_msg.get_all('X-From', [''])
         nodeFrom = _get_contact(msgFrom[0], msgXFrom[0])
                
         # Add Email
