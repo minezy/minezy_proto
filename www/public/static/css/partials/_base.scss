@@ -4,11 +4,12 @@
 
 
 body {
-	font-family: "nimbus-sans", sans-serif;
+	font-family: "Open Sans", sans-serif;
 	-webkit-font-smoothing: antialiased;
 	overflow-x:hidden;
-	background: #161616;
-	color: white;
+	background: #f5f5f5;
+	color: #363636;
+	box-sizing: border-box;
 }
 
 strong {
@@ -69,27 +70,3 @@ a {
 
 
 }
-
-.slider {
-	overflow: hidden;
-	width:100%;
-}
-
-.slider ul {
-	position: relative;
-	font-size: 0px;
-	list-style: none;
-	padding:0;
-	z-index: 2;
-}
-
-.slider li {
-	display: inline-block;
-	position: relative;
-	overflow: hidden;
-}
-
-section.landing.pageNotFound {
-	opacity: 1;
-}
-

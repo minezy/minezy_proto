@@ -18,10 +18,10 @@
 	<meta name="apple-mobile-web-app-capable" content="yes" />
 	<meta name="format-detection" content="telephone=no">
 
-	<link href="{{ constant('STATIC_HOST') }}/dist/main.min.css" rel="stylesheet" type="text/css">
-
+	<link href="/static/dist/core.css" rel="stylesheet" type="text/css">
+	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,300' rel='stylesheet' type='text/css'>
 	<!--[if lt IE 9]>
-	<link href="{{ constant('STATIC_HOST') }}/css/legacy/ie8.css" rel="stylesheet" type="text/css">
+	<link href="/static/css/legacy/ie8.css" rel="stylesheet" type="text/css">
 	<![endif]-->
 
 	<link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
@@ -42,33 +42,118 @@
 
 	<div class="siteContainer">
 
-		<div id="pageContainer">
-			{% block content %}{% endblock content %}
+		<header>
+			<h1>Minezy</h1>
+			<div class="account">account@email.com</div>
+			<div class="accountMenu">
+				<ul>
+					<li>change account</li>
+				</ul>
+			</div>
+		</header>
+
+		<nav class="dates">
+			<div class="dateSelect">
+				<label>Start Date</label>
+				<select name="start_date_year" class="year">
+					<option value="2011">2011</option>
+					<option value="2012">2012</option>
+					<option value="2013">2013</option>
+					<option value="2014">2014</option>
+				</select>
+				<select name="start_date_month" class="month">
+					<option value="1">January</option>
+					<option value="2">February</option>
+					<option value="3">March</option>
+					<option value="4">April</option>
+					<option value="5">May</option>
+					<option value="6">June</option>
+					<option value="7">July</option>
+					<option value="8">August</option>
+					<option value="9">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+			</div>
+			<div class="dateSelect">
+				<label>End Date</label>
+				<select name="start_date_year" class="year">
+					<option value="2011">2011</option>
+					<option value="2012">2012</option>
+					<option value="2013">2013</option>
+					<option value="2014">2014</option>
+				</select>
+				<select name="start_date_month" class="month">
+					<option value="1">January</option>
+					<option value="2">February</option>
+					<option value="3">March</option>
+					<option value="4">April</option>
+					<option value="5">May</option>
+					<option value="6">June</option>
+					<option value="7">July</option>
+					<option value="8">August</option>
+					<option value="9">September</option>
+					<option value="10">October</option>
+					<option value="11">November</option>
+					<option value="12">December</option>
+				</select>
+			</div>
+		</nav>
+
+		<div class="columnContainer">
+			<div class="background"></div>
+
+			<div class="column" id="template">
+				<div class="colHeader">
+					<label>Search By</label>
+					<select name="filter">
+						<option value="actors">Actors</option>
+						<option value="actors/to">Email To</option>
+						<option value="actors/from">Email From</option>
+					</select>
+				</div>
+
+				<div class="results">
+
+					<div class="resultContainer">
+						<div class="bar"></div>
+						<div class="tally">123<span></span></div>
+						<div class="title">matt@mattquinn.ca</div>
+					</div>
+
+					<div class="resultContainer on">
+						<div class="bar"></div>
+						<div class="tally">123<span></span></div>
+						<div class="title">matt@mattquinn.ca</div>
+					</div>
+
+					<div class="resultContainer">
+						<div class="bar"></div>
+						<div class="tally">123<span></span></div>
+						<div class="title">matt@mattquinn.ca</div>
+					</div>
+
+					<div class="resultContainer">
+						<div class="bar"></div>
+						<div class="tally">123<span></span></div>
+						<div class="title">matt@mattquinn.ca</div>
+					</div>
+
+				</div>
+
+			</div>
+
 		</div>
 
 	</div>
 
-
-
-
-	<script type="text/javascript" src="{{ constant('STATIC_HOST') }}/dist/core.js"></script>
+	<script type="text/javascript" src="/static/dist/core.js"></script>
 
 	<script type="text/javascript">
 		//Boot the site
 		var website = new App.Main();
 	</script>
-	<script type="text/javascript">
-        var _gaq = _gaq || [];
-        _gaq.push(['_setAccount', '{{ constant('GOOGLE_ANALYTICS_ID') }}']);
-
-        (function() {
-			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-        })();
-	</script>
-	<script type="text/javascript" src="//use.typekit.net/xzo3amq.js"></script>
-	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
 
 </body>
 </html>

@@ -1,284 +1,41 @@
 
+nav.dates {
 
+	background: #363636;
+	color: white;
+	padding: 16px 40px;
 
-nav {
-	font-size: 14px;
-	color:$darkerGrey;
-}
-
-nav.gallery {
-	position: absolute;
-	right: 0;
-	top: -60px;
-	z-index: 90;
-	font-size: 0;
-
-	@include respond-to(medium) {
-	}
-
-	@include respond-to(large) {
-	}
-
-	a {
+	.dateSelect {
 		display: inline-block;
-		width: 50px;
-		height: 50px;
-		vertical-align: top;
-		margin-left: 2px;
-		@include hide-text;
+		width: 200px;
 
-		@include respond-to(medium) {
-			width: 40px;
-			height: 40px;
-		}
-
-		@include respond-to(large) {
-			width: 60px;
-			height: 60px;
-		}
-
-		&:hover {
-
-			@include respond-to(medium) {
-			}
-
-		}
-
-		&.disabled {
-			opacity: 0.2;
-		}
-
-		&.thumbs {
-			background: url('../images/thumbs-phone.gif') no-repeat;
-			@include retina-image('../images/thumbs-phone', 50px 50px, gif);
-
-			@include respond-to(medium) {
-				background: url('../images/thumbs.gif') no-repeat  center center;
-				@include retina-image('../images/thumbs', 60px 60px);
-
-				&:hover {
-					background-image: url('../images/thumbs-r.png');
-					@include retina-image('../images/thumbs-r', 60px 60px);
-				}
-
-			}
-
-		}
-
-		&.next {
-			background: url('../images/next-phone.gif') no-repeat;
-			@include retina-image('../images/next-phone', 50px 50px, gif);
-
-			@include respond-to(medium) {
-				background: $darkerGrey url('../images/next.png') no-repeat  center center;
-				@include retina-image('../images/next', 60px 60px);
-
-				&:hover {
-					background-image: url('../images/next-r.png');
-					@include retina-image('../images/next-r', 60px 60px);
-				}
-
-			}
-
-		}
-
-		&.prev {
-			background: url('../images/back-phone.gif') no-repeat;
-			@include retina-image('../images/back-phone', 50px 50px, gif);
-
-			@include respond-to(medium) {
-				background: $darkerGrey url('../images/back.png') no-repeat  center center;
-				@include retina-image('../images/back', 60px 60px);
-
-				&:hover {
-					background-image: url('../images/back-r.png');
-					@include retina-image('../images/back-r', 60px 60px);
-				}
-
-			}
-		}
-	}
-}
-
-nav.logo {
-	position: absolute;
-	top:-100px;
-	left:0;
-	z-index: 100;
-
-	@include respond-to(medium) {
-		top:-60px;
-	}
-
-
-	.logo {
-		display: none;
-		text-transform: uppercase;
-		height: 50px;
-		line-height: 50px;
-		width: 120px;
-		text-align: center;
-		font-size: 12px;
-		font-weight: 700;
-
-		@include respond-to(medium) {
-			height: 60px;
-			line-height: 60px;
+		label{
 			display: block;
-		}
-
-		&:hover {
-			color: $woodsGreen;
-		}
-
-	}
-
-	.navButton {
-		display: block;
-		position: fixed;
-		left:0;
-		width:99px;
-		height:50px;
-		background: url('../images/menu.png') no-repeat;
-		@include retina-image('../images/menu', 99px 50px);
-		@include hide-text;
-
-		@include respond-to(medium) {
-			display: none;
-		}
-
-	}
-
-}
-
-nav.main {
-	position: fixed;
-	top:100%;
-	height:1000px;
-	left:0;
-	width:100%;
-	z-index: 100;
-	background: rgba(0,0,0,0.9);
-	text-align: center;
-
-	padding-top: 10%;
-
-	@include respond-to(medium) {
-		position: absolute;
-		top: -60px;
-		left:50%;
-		margin-left: -140px;
-		height: auto;
-		background: transparent;
-		width: 422px;
-		padding-top: 0;
-		font-size: 0;
-	}
-
-	.drawer {
-
-		@include respond-to(medium) {
-			width: 140px;
-			height: 60px;
-			display: inline-block;
-			font-size: 0;
-			overflow-y: hidden;
-			vertical-align: top;
-			@include transition (height 300ms ease-in-out);
-
-			&:hover,&.on {
-				height:122px;
-			}
-
-		}
-
-
-	}
-
-	a {
-		display: block;
-		line-height: 50px;
-		text-transform: uppercase;
-		font-weight: 700;
-		color:white;
-		font-size: 14px;
-
-		@include respond-to(medium) {
-			display: inline-block;
-			width: 138px;
-			line-height: 60px;
-			background: $darkerGrey;
-			vertical-align: top;
 			font-size: 12px;
-			font-weight: 300;
-			margin:0 1px 2px;
+			line-height: 18px;
 		}
 
-		&.subLink {
-			margin: -10px 0 0 0;
+		select {
+			height: 28px;
+			border: solid 1px #20cc90;
+			@include appearance(none);
+			background: white;
+  			padding: 7px 10px;
+  			margin-bottom:5px;
+  			border-radius: 3px;
+  			font-weight: 700;
+  			font-size: 11px;
+			background: white url('../images/select_down.png' ) no-repeat 90% center ;
 
-			@include respond-to(medium) {
-				margin:0 1px 2px;
-			}
+  			&.month {
+  				width: 100px;
+  			}
+
+  			&.year {
+  				width: 66px;
+  			}
 		}
-
-		&.on span {
-			@include respond-to(medium) {
-				border-bottom: solid 2px #1cb08e;
-			}
-		}
-
-		&:hover, &.contact.on {
-			color: $woodsGreen;
-
-			@include respond-to(medium) {
-				background-color: $grey;
-				color: white;
-				font-weight: 700;
-			}
-
-		}
-
-		&.on {
-			color: $woodsGreen;
-
-			@include respond-to(medium) {
-				background-color: $woodsGreen;
-				color: $darkerGrey;
-				font-weight: 700;
-			}
-		}
-
-		&.contact {
-			color: $lightGrey;
-
-			@include respond-to(medium) {
-				background-color: transparent;
-			}
-
-
-		}
-
-		&:hover.contact {
-			color:white;
-		}
-
-		&.closeButton {
-			width:32px;
-			height:32px;
-			background: url('../images/close.png') no-repeat;
-			@include retina-image('../images/close', 32px 32px);
-			@include hide-text;
-			margin: 0px auto 40px;
-
-			@include respond-to(medium) {
-				display: none;
-			}
-
-		}
-
 	}
-
 
 
 

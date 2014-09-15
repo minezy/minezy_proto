@@ -1,11 +1,32 @@
 
 header {
 
+	@include linear-gradient( to bottom, rgba(47,209,154,1), rgba(23,200,137,1) );
+	width: 100%;
+	height: 80px;
+	color:white;
+	padding: 0 20px;
+	position: relative;
+	box-sizing: border-box;
 
-	@include respond-to(medium) {
+	h1 {
+		text-transform: lowercase;
+		font-size: 36px;
+		line-height: 74px;
+		font-weight: 300;
 	}
 
-	@include respond-to(large) {
+	.account {
+		position: absolute;
+		right:20px;
+		top: 0px;
+		line-height: 78px;
+		color: #363636;
+		font-size: 14px;
+	}
+
+	.accountMenu {
+		display: none;
 	}
 
 }

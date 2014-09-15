@@ -231,11 +231,12 @@ A library of transitions for revealing the loaded images
   animation-duration: 1.1s; }
 
 body {
-  font-family: "nimbus-sans", sans-serif;
+  font-family: "Open Sans", sans-serif;
   -webkit-font-smoothing: antialiased;
   overflow-x: hidden;
-  background: #161616;
-  color: white; }
+  background: #f5f5f5;
+  color: #363636;
+  box-sizing: border-box; }
 
 strong {
   font-weight: bold; }
@@ -273,273 +274,60 @@ a {
     .responsive {
       max-width: 850px; } }
 
-.slider {
-  overflow: hidden;
-  width: 100%; }
-
-.slider ul {
-  position: relative;
-  font-size: 0px;
-  list-style: none;
-  padding: 0;
-  z-index: 2; }
-
-.slider li {
-  display: inline-block;
-  position: relative;
-  overflow: hidden; }
-
-section.landing.pageNotFound {
-  opacity: 1; }
-
-nav {
-  font-size: 14px;
-  color: #252525; }
-
-nav.gallery {
-  position: absolute;
-  right: 0;
-  top: -60px;
-  z-index: 90;
-  font-size: 0; }
-  nav.gallery a {
+nav.dates {
+  background: #363636;
+  color: white;
+  padding: 16px 40px; }
+  nav.dates .dateSelect {
     display: inline-block;
-    width: 50px;
-    height: 50px;
-    vertical-align: top;
-    margin-left: 2px;
-    overflow: hidden; }
-    nav.gallery a:before {
-      content: "";
+    width: 200px; }
+    nav.dates .dateSelect label {
       display: block;
-      width: 0;
-      height: 100%; }
-    @media only screen and (min-width: 641px) {
-      nav.gallery a {
-        width: 40px;
-        height: 40px; } }
-    @media only screen and (min-width: 1025px) {
-      nav.gallery a {
-        width: 60px;
-        height: 60px; } }
-    nav.gallery a.disabled {
-      opacity: 0.2; }
-    nav.gallery a.thumbs {
-      background: url("../images/thumbs-phone.gif") no-repeat;
-      background-image: url("../images/thumbs-phone.gif"); }
-      @media only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-resolution: 125dpi), only screen and (min-resolution: 1.3dppx) {
-        nav.gallery a.thumbs {
-          background-image: url("../images/thumbs-phone_2x.gif");
-          background-size: 50px 50px; } }
-      @media only screen and (min-width: 641px) {
-        nav.gallery a.thumbs {
-          background: url("../images/thumbs.gif") no-repeat center center;
-          background-image: url("../images/thumbs.png"); } }
-  @media only screen and (min-width: 641px) and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (min--moz-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-width: 641px) and (min-resolution: 125dpi), only screen and (min-width: 641px) and (min-resolution: 1.3dppx) {
-    nav.gallery a.thumbs {
-      background-image: url("../images/thumbs_2x.png");
-      background-size: 60px 60px; } }
-      @media only screen and (min-width: 641px) {
-          nav.gallery a.thumbs:hover {
-            background-image: url("../images/thumbs-r.png");
-            background-image: url("../images/thumbs-r.png"); } }
-    @media only screen and (min-width: 641px) and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (min--moz-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-width: 641px) and (min-resolution: 125dpi), only screen and (min-width: 641px) and (min-resolution: 1.3dppx) {
-      nav.gallery a.thumbs:hover {
-        background-image: url("../images/thumbs-r_2x.png");
-        background-size: 60px 60px; } }
+      font-size: 12px;
+      line-height: 18px; }
+    nav.dates .dateSelect select {
+      height: 28px;
+      border: solid 1px #20cc90;
+      -webkit-appearance: none;
+      -moz-appearance: none;
+      -ms-appearance: none;
+      -o-appearance: none;
+      appearance: none;
+      background: white;
+      padding: 7px 10px;
+      margin-bottom: 5px;
+      border-radius: 3px;
+      font-weight: 700;
+      font-size: 11px;
+      background: white url("../images/select_down.png") no-repeat 90% center; }
+      nav.dates .dateSelect select.month {
+        width: 100px; }
+      nav.dates .dateSelect select.year {
+        width: 66px; }
 
-    nav.gallery a.next {
-      background: url("../images/next-phone.gif") no-repeat;
-      background-image: url("../images/next-phone.gif"); }
-      @media only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-resolution: 125dpi), only screen and (min-resolution: 1.3dppx) {
-        nav.gallery a.next {
-          background-image: url("../images/next-phone_2x.gif");
-          background-size: 50px 50px; } }
-      @media only screen and (min-width: 641px) {
-        nav.gallery a.next {
-          background: #252525 url("../images/next.png") no-repeat center center;
-          background-image: url("../images/next.png"); } }
-  @media only screen and (min-width: 641px) and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (min--moz-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-width: 641px) and (min-resolution: 125dpi), only screen and (min-width: 641px) and (min-resolution: 1.3dppx) {
-    nav.gallery a.next {
-      background-image: url("../images/next_2x.png");
-      background-size: 60px 60px; } }
-      @media only screen and (min-width: 641px) {
-          nav.gallery a.next:hover {
-            background-image: url("../images/next-r.png");
-            background-image: url("../images/next-r.png"); } }
-    @media only screen and (min-width: 641px) and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (min--moz-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-width: 641px) and (min-resolution: 125dpi), only screen and (min-width: 641px) and (min-resolution: 1.3dppx) {
-      nav.gallery a.next:hover {
-        background-image: url("../images/next-r_2x.png");
-        background-size: 60px 60px; } }
-
-    nav.gallery a.prev {
-      background: url("../images/back-phone.gif") no-repeat;
-      background-image: url("../images/back-phone.gif"); }
-      @media only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-resolution: 125dpi), only screen and (min-resolution: 1.3dppx) {
-        nav.gallery a.prev {
-          background-image: url("../images/back-phone_2x.gif");
-          background-size: 50px 50px; } }
-      @media only screen and (min-width: 641px) {
-        nav.gallery a.prev {
-          background: #252525 url("../images/back.png") no-repeat center center;
-          background-image: url("../images/back.png"); } }
-  @media only screen and (min-width: 641px) and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (min--moz-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-width: 641px) and (min-resolution: 125dpi), only screen and (min-width: 641px) and (min-resolution: 1.3dppx) {
-    nav.gallery a.prev {
-      background-image: url("../images/back_2x.png");
-      background-size: 60px 60px; } }
-      @media only screen and (min-width: 641px) {
-          nav.gallery a.prev:hover {
-            background-image: url("../images/back-r.png");
-            background-image: url("../images/back-r.png"); } }
-    @media only screen and (min-width: 641px) and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (min--moz-device-pixel-ratio: 1.3), only screen and (min-width: 641px) and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-width: 641px) and (min-resolution: 125dpi), only screen and (min-width: 641px) and (min-resolution: 1.3dppx) {
-      nav.gallery a.prev:hover {
-        background-image: url("../images/back-r_2x.png");
-        background-size: 60px 60px; } }
-
-nav.logo {
-  position: absolute;
-  top: -100px;
-  left: 0;
-  z-index: 100; }
-  @media only screen and (min-width: 641px) {
-    nav.logo {
-      top: -60px; } }
-  nav.logo .logo {
-    display: none;
-    text-transform: uppercase;
-    height: 50px;
-    line-height: 50px;
-    width: 120px;
-    text-align: center;
-    font-size: 12px;
-    font-weight: 700; }
-    @media only screen and (min-width: 641px) {
-      nav.logo .logo {
-        height: 60px;
-        line-height: 60px;
-        display: block; } }
-    nav.logo .logo:hover {
-      color: #19deb1; }
-  nav.logo .navButton {
-    display: block;
-    position: fixed;
-    left: 0;
-    width: 99px;
-    height: 50px;
-    background: url("../images/menu.png") no-repeat;
-    background-image: url("../images/menu.png");
-    overflow: hidden; }
-    @media only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-resolution: 125dpi), only screen and (min-resolution: 1.3dppx) {
-      nav.logo .navButton {
-        background-image: url("../images/menu_2x.png");
-        background-size: 99px 50px; } }
-    nav.logo .navButton:before {
-      content: "";
-      display: block;
-      width: 0;
-      height: 100%; }
-    @media only screen and (min-width: 641px) {
-      nav.logo .navButton {
-        display: none; } }
-
-nav.main {
-  position: fixed;
-  top: 100%;
-  height: 1000px;
-  left: 0;
+header {
+  background-color: #2fd19a;
+  background-image: -webkit-linear-gradient(top, #2fd19a, #17c889);
+  background-image: linear-gradient(to bottom,#2fd19a, #17c889);
   width: 100%;
-  z-index: 100;
-  background: rgba(0, 0, 0, 0.9);
-  text-align: center;
-  padding-top: 10%; }
-  @media only screen and (min-width: 641px) {
-    nav.main {
-      position: absolute;
-      top: -60px;
-      left: 50%;
-      margin-left: -140px;
-      height: auto;
-      background: transparent;
-      width: 422px;
-      padding-top: 0;
-      font-size: 0; } }
-  @media only screen and (min-width: 641px) {
-    nav.main .drawer {
-      width: 140px;
-      height: 60px;
-      display: inline-block;
-      font-size: 0;
-      overflow-y: hidden;
-      vertical-align: top;
-      -webkit-transition: height 300ms ease-in-out;
-      -moz-transition: height 300ms ease-in-out;
-      transition: height 300ms ease-in-out; }
-      nav.main .drawer:hover, nav.main .drawer.on {
-        height: 122px; } }
-  nav.main a {
-    display: block;
-    line-height: 50px;
-    text-transform: uppercase;
-    font-weight: 700;
-    color: white;
+  height: 80px;
+  color: white;
+  padding: 0 20px;
+  position: relative;
+  box-sizing: border-box; }
+  header h1 {
+    text-transform: lowercase;
+    font-size: 36px;
+    line-height: 74px;
+    font-weight: 300; }
+  header .account {
+    position: absolute;
+    right: 20px;
+    top: 0px;
+    line-height: 78px;
+    color: #363636;
     font-size: 14px; }
-    @media only screen and (min-width: 641px) {
-      nav.main a {
-        display: inline-block;
-        width: 138px;
-        line-height: 60px;
-        background: #252525;
-        vertical-align: top;
-        font-size: 12px;
-        font-weight: 300;
-        margin: 0 1px 2px; } }
-    nav.main a.subLink {
-      margin: -10px 0 0 0; }
-      @media only screen and (min-width: 641px) {
-        nav.main a.subLink {
-          margin: 0 1px 2px; } }
-    @media only screen and (min-width: 641px) {
-      nav.main a.on span {
-        border-bottom: solid 2px #1cb08e; } }
-    nav.main a:hover, nav.main a.contact.on {
-      color: #19deb1; }
-      @media only screen and (min-width: 641px) {
-        nav.main a:hover, nav.main a.contact.on {
-          background-color: #515151;
-          color: white;
-          font-weight: 700; } }
-    nav.main a.on {
-      color: #19deb1; }
-      @media only screen and (min-width: 641px) {
-        nav.main a.on {
-          background-color: #19deb1;
-          color: #252525;
-          font-weight: 700; } }
-    nav.main a.contact {
-      color: #a1a1a1; }
-      @media only screen and (min-width: 641px) {
-        nav.main a.contact {
-          background-color: transparent; } }
-    nav.main a:hover.contact {
-      color: white; }
-    nav.main a.closeButton {
-      width: 32px;
-      height: 32px;
-      background: url("../images/close.png") no-repeat;
-      background-image: url("../images/close.png");
-      overflow: hidden;
-      margin: 0px auto 40px; }
-      @media only screen and (-webkit-min-device-pixel-ratio: 1.3), only screen and (min--moz-device-pixel-ratio: 1.3), only screen and (-o-min-device-pixel-ratio: 1.3 / 1), only screen and (min-resolution: 125dpi), only screen and (min-resolution: 1.3dppx) {
-        nav.main a.closeButton {
-          background-image: url("../images/close_2x.png");
-          background-size: 32px 32px; } }
-      nav.main a.closeButton:before {
-        content: "";
-        display: block;
-        width: 0;
-        height: 100%; }
-      @media only screen and (min-width: 641px) {
-        nav.main a.closeButton {
-          display: none; } }
+  header .accountMenu {
+    display: none; }
 
 /*# sourceMappingURL=core.css.map */
