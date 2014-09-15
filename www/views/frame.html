@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html xml:lang="en" lang="en">
+
+<head>
+	<title>Chris Woods : Chris Woods - Photographer &amp; Director</title>
+	<meta name="description" content="{{ meta_description }}">
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+
+	<meta property="og:url" content="{{constant('SITE_HOST')}}{{ current_url }}">
+	<meta property="og:title" content="Chris Woods">
+	<meta property="og:description" content="{{ meta_description }}">
+	<meta property="og:image" content="{{constant('SITE_HOST')}}/static/images/facebook/{{ random(5) }}.jpg">
+
+	<meta name="robots" content="NOODP">
+	<meta name="robots" content="NOYDIR">
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+	<meta name="apple-mobile-web-app-capable" content="yes" />
+	<meta name="format-detection" content="telephone=no">
+
+	<link href="{{ constant('STATIC_HOST') }}/dist/main.min.css" rel="stylesheet" type="text/css">
+
+	<!--[if lt IE 9]>
+	<link href="{{ constant('STATIC_HOST') }}/css/legacy/ie8.css" rel="stylesheet" type="text/css">
+	<![endif]-->
+
+	<link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
+
+	<script type="text/javascript" src="/static/js/lib/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/static/js/lib/jquery.collagePlus.min.js"></script>
+	<script type="text/javascript" src="/static/js/lib/jquery.removeWhitespace.min.js"></script>
+	<script type="text/javascript" src="/static/js/lib/jquery.waitforimages.min.js"></script>
+
+	<!--[if lt IE 9]>
+		<script type="text/javascript" src="/static/js/hack/ie8.js"></script>
+		<script type="text/javascript" src="/static/js/lib/html5shiv.js"></script>
+		<script type="text/javascript" src="/static/js/lib/css3-mediaqueries.js"></script>
+	<![endif]-->
+
+</head>
+
+<body>
+	<!-- used to detect media query change in JS -->
+	<div id="mediaQueryChange"></div>
+
+	<div class="siteContainer">
+
+			{% include 'nav.html' %}
+
+		<div id="pageContainer">
+			{% block content %}{% endblock content %}
+		</div>
+
+	</div>
+
+
+
+
+	<script type="text/javascript" src="{{ constant('STATIC_HOST') }}/dist/core.js"></script>
+
+	<script type="text/javascript">
+		//Boot the site
+		var website = new App.Main({'page':'{{ site_section }}'});
+	</script>
+	<script type="text/javascript">
+        var _gaq = _gaq || [];
+        _gaq.push(['_setAccount', '{{ constant('GOOGLE_ANALYTICS_ID') }}']);
+
+        (function() {
+			var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+			ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+			var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+        })();
+	</script>
+	<script type="text/javascript" src="//use.typekit.net/xzo3amq.js"></script>
+	<script type="text/javascript">try{Typekit.load();}catch(e){}</script>
+
+</body>
+</html>

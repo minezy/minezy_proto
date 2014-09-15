@@ -1,0 +1,26 @@
+
+
+$light:300;
+$normal:400;
+$bold:600;
+
+$break-small: 640px;
+$break-large: 1024px;
+
+@mixin respond-to($media) {
+  @if $media == small {
+    @media only screen and (max-width: $break-small) { @content; }
+  }
+  @else if $media == medium {
+    @media only screen and (min-width: $break-small + 1) { @content; }
+  }
+  @else if $media == large {
+    @media only screen and (min-width: $break-large + 1) { @content; }
+  }
+}
+
+@mixin opacity($opacity) {
+  opacity: $opacity;
+  $opacity-ie: $opacity * 100;
+  filter: alpha(opacity=$opacity-ie); //IE8
+}

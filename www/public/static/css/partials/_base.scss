@@ -1,0 +1,95 @@
+
+@import "../modules/colours";
+@import "../modules/mixins";
+
+
+body {
+	font-family: "nimbus-sans", sans-serif;
+	-webkit-font-smoothing: antialiased;
+	overflow-x:hidden;
+	background: #161616;
+	color: white;
+}
+
+strong {
+	font-weight: bold;
+}
+
+a { 
+	color:white;
+	text-decoration: none;
+}
+
+
+// Setup the MQ JS events, make sure these match your breakpoints.
+#mediaQueryDetector {
+
+	width:320px;
+
+	@include respond-to(medium) {
+		width:640px;
+	}
+
+	@include respond-to(large) {
+		width:1024px;
+	}
+
+}
+
+.noFlick {
+	-webkit-transform:translate3d(0,0,0);
+	-moz-transform:translate3d(0,0,0);
+	-o-transform:translate3d(0,0,0);
+	-ms-transform:translate3d(0,0,0);
+	transform:translate3d(0,0,0);
+}
+
+.siteContainer {
+
+}
+
+.contentContainer{
+}
+
+#pageContainer {
+	overflow: hidden;
+}
+
+.responsive {
+	max-width: 640px;
+	margin:0 auto;
+
+	@include respond-to(medium) {
+		max-width:700px;
+	}
+
+	@include respond-to(large) {
+		max-width:850px;
+	}
+
+
+}
+
+.slider {
+	overflow: hidden;
+	width:100%;
+}
+
+.slider ul {
+	position: relative;
+	font-size: 0px;
+	list-style: none;
+	padding:0;
+	z-index: 2;
+}
+
+.slider li {
+	display: inline-block;
+	position: relative;
+	overflow: hidden;
+}
+
+section.landing.pageNotFound {
+	opacity: 1;
+}
+
