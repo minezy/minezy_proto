@@ -2,12 +2,12 @@
 <html xml:lang="en" lang="en">
 
 <head>
-	<title>Chris Woods : Chris Woods - Photographer &amp; Director</title>
+	<title>Minezy</title>
 	<meta name="description" content="{{ meta_description }}">
 	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 
 	<meta property="og:url" content="{{constant('SITE_HOST')}}{{ current_url }}">
-	<meta property="og:title" content="Chris Woods">
+	<meta property="og:title" content="Minezy">
 	<meta property="og:description" content="{{ meta_description }}">
 	<meta property="og:image" content="{{constant('SITE_HOST')}}/static/images/facebook/{{ random(5) }}.jpg">
 
@@ -27,9 +27,6 @@
 	<link rel="shortcut icon" href="/static/images/favicon.ico" type="image/x-icon">
 
 	<script type="text/javascript" src="/static/js/lib/jquery-1.11.1.min.js"></script>
-	<script type="text/javascript" src="/static/js/lib/jquery.collagePlus.min.js"></script>
-	<script type="text/javascript" src="/static/js/lib/jquery.removeWhitespace.min.js"></script>
-	<script type="text/javascript" src="/static/js/lib/jquery.waitforimages.min.js"></script>
 
 	<!--[if lt IE 9]>
 		<script type="text/javascript" src="/static/js/hack/ie8.js"></script>
@@ -45,8 +42,6 @@
 
 	<div class="siteContainer">
 
-			{% include 'nav.html' %}
-
 		<div id="pageContainer">
 			{% block content %}{% endblock content %}
 		</div>
@@ -60,7 +55,7 @@
 
 	<script type="text/javascript">
 		//Boot the site
-		var website = new App.Main({'page':'{{ site_section }}'});
+		var website = new App.Main();
 	</script>
 	<script type="text/javascript">
         var _gaq = _gaq || [];

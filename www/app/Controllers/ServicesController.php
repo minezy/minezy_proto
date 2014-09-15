@@ -61,34 +61,10 @@ class ServicesController extends Lib\ActionController implements Interfaces\Cont
 
     switch( $this->action ) {
 
-      case 'data':
-        //load sub-controller in most cases, however this action is really small/quick
-        return $this->getWoodsData();
-        break;
-
       default:
         break;
 
     }
-
-  }
-
-  private function getWoodsData() {
-
-    $cache_item = $this->cache_pool->getItem('woodsdata');
-    $cache_data = $cache_item->get();
-
-    if($cache_item->isMiss()) {
-      $cache_item->lock();
-      $wdata = new Models\WoodsData();
-      $cache_data = $wdata->getJSON();
-
-      //$cache_item->set($cache_data, $cache_TTL);
-    }
-
-
-    $this->response->addHeader('Content-Type: application/json; charset=UTF-8');
-    return $cache_data;
 
   }
 

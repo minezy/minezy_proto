@@ -65,9 +65,11 @@ Utils.canPlayh264 = function() {
   var v = document.createElement('video'),
       canPlayVideo = false;
 
-  v.canPlayType && v.canPlayType('video/mp4').replace(/no/, '') ? canPlayVideo = true : canPlayVideo = false;
+  if( v.canPlayType && v.canPlayType('video/mp4').replace(/no/, '') ) {
+    return true;
+  }
 
-  return canPlayVideo;
+  return false;
 
 };
 
@@ -83,17 +85,21 @@ Utils.hexToRBG = function(hex) {
 
 Utils.isTouch = function() {
   return 'ontouchstart' in window;
-}
+};
 
 Utils.pixelDensity = function() {
   var dpr = 1;
   if(window.devicePixelRatio !== undefined) dpr = window.devicePixelRatio;
 
   return dpr;
-}
+};
 
 Utils.hasHistoryAPI = function() {
   return !!(window.history && history.pushState);
-}
+};
 
+Utils.validEmail =function(email) {
+    var re = /^(([^<>()[\]\\.,;:\s@\"]+(\.[^<>()[\]\\.,;:\s@\"]+)*)|(\".+\"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
+    return re.test(email);
+};
 

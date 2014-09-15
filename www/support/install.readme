@@ -1,0 +1,32 @@
+
+- edit apache conf
+sudo vi /etc/apache2/extra/httpd-vhosts.conf
+
+- paste in contents of apache.conf
+edit the domain to make sense. I have a DNS record that like so for wearegrand.com
+A *.matt.wearegrand.com 192.168.1.100
+
+What this does is it points all sites to my local web server on my machine here. It'll only work for your local machine. so you could do something like *.local.paulquinn.com and then your domain in the conf file would be minezy.local.paulquinn.com. Make sure your computer has a static IP on the local network. I use 192.168.1.100 and then set my router to start giving out IPs to DHCP users at 192.168.1.101 so there is never a collision.
+
+- restart web server
+sudo apachectl restart
+
+
+- you'll need to install 'composer' which is a PHP package tool like NPM
+
+curl -sS https://getcomposer.org/installer | php
+mv composer.phar /usr/local/bin/composer
+
+- change to the minezy-proto/www/support folder
+
+- now install the php dependencies
+composer install
+
+- make the cache directory in the www/ root
+mkdir cache
+chmod 777 cache
+
+- you should be able to put the domain into your browser and load the app.
+
+
+- to get grunt working (for ui development)

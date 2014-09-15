@@ -31,14 +31,15 @@ $response = new GRAND\Lib\Response();
 $response->addHeader('X-UA-Compatible: IE=edge');
 
 $router = new GRAND\Lib\Router( array(
-	"/" => "Landing",
-	"/(director|photographer)/?(archive)?/?" => "Thumbs",
-	"/(director|photographer)/(archive)?/?([A-Za-z0-9_-]+)/?" => "Gallery",
-	"/contact/?" => "Contact",
 	"/services/[A-Za-z0-9]+" => "Services",
+	"/.*" => "Minezy"
 ));
 
+
+
 $route = $router->route($request,$response);
+
+
 
 if( $route ) {
 	$response->send( $route->createController($request, $response)->execute() );
@@ -47,5 +48,3 @@ if( $route ) {
 	$pageNotFound = new GRAND\Controllers\PageNotFoundController($request,$response);
 	$response->send( $pageNotFound->execute() );
 }
-
-
