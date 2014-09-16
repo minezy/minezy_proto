@@ -20,6 +20,7 @@
 
 	<link href="/static/dist/core.css" rel="stylesheet" type="text/css">
 	<link href='http://fonts.googleapis.com/css?family=Open+Sans:400,700,300' rel='stylesheet' type='text/css'>
+	<link rel="stylesheet" href="/static/font-awesome-4.2.0/css/font-awesome.min.css">
 	<!--[if lt IE 9]>
 	<link href="/static/css/legacy/ie8.css" rel="stylesheet" type="text/css">
 	<![endif]-->
@@ -44,12 +45,6 @@
 
 		<header>
 			<h1>Minezy</h1>
-			<div class="account">account@email.com</div>
-			<div class="accountMenu">
-				<ul>
-					<li>change account</li>
-				</ul>
-			</div>
 		</header>
 
 		<nav class="dates">
@@ -99,12 +94,28 @@
 					<option value="12">December</option>
 				</select>
 			</div>
+
+			<div class="account"><a href="javascript:;"><i class="fa fa-cog"></i>matt@wearegrand.com</a></div>
+			<div class="accountMenu">
+				<ul>
+					<li>change account</li>
+				</ul>
+			</div>
+
 		</nav>
 
-		<div class="columnContainer">
-			<div class="background"></div>
+		<section class="columnContainer">
+
+			<div id="loader">
+				<div id="d1"></div>
+				<div id="d2"></div>
+				<div id="d3"></div>
+				<div id="d4"></div>
+				<div id="d5"></div>
+			</div>
 
 			<div class="column" id="template">
+
 				<div class="colHeader">
 					<label>Search By</label>
 					<select name="filter">
@@ -118,33 +129,37 @@
 
 					<div class="resultContainer">
 						<div class="bar"></div>
-						<div class="tally">123<span></span></div>
+						<div class="tally"></div>
 						<div class="title">matt@mattquinn.ca</div>
+						<div class="arrow"><i class="fa fa-caret-right"></i></div>
 					</div>
 
 					<div class="resultContainer on">
 						<div class="bar"></div>
-						<div class="tally">123<span></span></div>
+						<div class="tally">123</div>
 						<div class="title">matt@mattquinn.ca</div>
+						<div class="arrow"><i class="fa fa-caret-right"></i></div>
 					</div>
 
 					<div class="resultContainer">
 						<div class="bar"></div>
-						<div class="tally">123<span></span></div>
+						<div class="tally">123</div>
 						<div class="title">matt@mattquinn.ca</div>
+						<div class="arrow"><i class="fa fa-caret-right"></i></div>
 					</div>
 
-					<div class="resultContainer">
+					<div class="resultContainer last">
 						<div class="bar"></div>
-						<div class="tally">123<span></span></div>
+						<div class="tally">123</div>
 						<div class="title">matt@mattquinn.ca</div>
+						<div class="arrow"><i class="fa fa-caret-right"></i></div>
 					</div>
 
 				</div>
 
 			</div>
 
-		</div>
+		</section>
 
 	</div>
 

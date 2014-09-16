@@ -2170,7 +2170,7 @@ App.Main = (function(window, document, $, App, Utils){
 
 })(window, document, jQuery, App, Utils);;
 
-App.MinezyController = ( function($,document,window, U, R) {
+App.MinezyController = ( function($,document,window, U) {
 
 
 	function MinezyController(options) {
@@ -2186,16 +2186,49 @@ App.MinezyController = ( function($,document,window, U, R) {
 			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
 		}
 
+		this.adjustColumnHeight();
+
 	}
 
 	MinezyController.prototype = {
 
+
+		getFirstColumn: function(e) {
+
+			$.ajax({
+				type: "GET",
+				url: "http://localhost:5000/1/actors/",
+				data: { limit: 10 },
+				dataType: "json"
+			})
+			.done(function( data ) {
+				var newCol = $('#template').clone();
+				var row = $('#template .resultContainer:first-child').clone();
+
+				newCol.children('.results').empty();
+
+					$('#loader').fadeOut();
+				//$.each()
+
+
+			});
+
+		},
+
+		adjustColumnHeight: function(e) {
+			var h = 0;
+
+			h = $(window).height() - $('header').outerHeight() - $('nav.dates').outerHeight();
+			console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
+			$('.columnContainer,.column').height(h);
+		},
 
 		handleScroll: function(e) {
 		},
 
 
 		handleResize: function(e) {
+			this.adjustColumnHeight();
 		},
 
 		handleMediaQueryChange: function(e,width) {
@@ -2211,7 +2244,7 @@ App.MinezyController = ( function($,document,window, U, R) {
 
 	return MinezyController;
 
-})(jQuery,document,window, Utils, Reids);;
+})(jQuery,document,window, Utils);;
 
 App.NavController = ( function( $, document, window, A, U ) {
 
@@ -2278,28 +2311,12 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 		handleScroll: function(e) {
 
-			if( $(window).scrollTop() > 0 ) {
-				$('nav.small div.background').stop();
-				$('nav.small div.background').animate({'opacity':1},500);
-			} else {
-				$('nav.small div.background').stop();
-				$('nav.small div.background').animate({'opacity':0},500);
-			}
 
 		},
 
 		handleMediaQueryChange: function(e,width) {
 
 			console.log("WIDTH: " + width);
-
-			//unset any break point related navigation
-			this.menu.unsetNav();
-
-			if( width < 640 ) {
-				this.menu.setupCompressedNav();
-			} else if( !U.isTouch() ) {
-				this.menu.setupFlyOutNav();
-			}
 
 
 		},

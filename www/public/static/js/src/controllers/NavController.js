@@ -65,28 +65,12 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 		handleScroll: function(e) {
 
-			if( $(window).scrollTop() > 0 ) {
-				$('nav.small div.background').stop();
-				$('nav.small div.background').animate({'opacity':1},500);
-			} else {
-				$('nav.small div.background').stop();
-				$('nav.small div.background').animate({'opacity':0},500);
-			}
 
 		},
 
 		handleMediaQueryChange: function(e,width) {
 
 			console.log("WIDTH: " + width);
-
-			//unset any break point related navigation
-			this.menu.unsetNav();
-
-			if( width < 640 ) {
-				this.menu.setupCompressedNav();
-			} else if( !U.isTouch() ) {
-				this.menu.setupFlyOutNav();
-			}
 
 
 		},

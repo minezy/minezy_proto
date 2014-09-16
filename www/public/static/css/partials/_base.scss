@@ -6,8 +6,8 @@
 body {
 	font-family: "Open Sans", sans-serif;
 	-webkit-font-smoothing: antialiased;
-	overflow-x:hidden;
-	background: #f5f5f5;
+//	overflow-x:hidden;
+	background: #e0e0e0;
 	color: #363636;
 	box-sizing: border-box;
 }
@@ -16,7 +16,7 @@ strong {
 	font-weight: bold;
 }
 
-a { 
+a {
 	color:white;
 	text-decoration: none;
 }
@@ -69,4 +69,60 @@ a {
 	}
 
 
+}
+
+label{
+	display: block;
+	font-size: 12px;
+	line-height: 18px;
+}
+
+select {
+	height: 32px;
+	border: solid 2px #9f9f9f;
+	@include appearance(none);
+	background: white;
+	padding: 7px 10px;
+	margin-bottom:5px;
+	border-radius: 3px;
+	font-weight: 700;
+	font-size: 11px;
+	background: white url('../images/select_down.png' ) no-repeat 90% center ;
+	outline: none;
+
+	&:hover {
+		border: solid 2px #20cc90;
+	}
+}
+
+#loader {
+  width: 100px;
+  height: 40px;
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  margin: -20px -50px;
+}
+#loader div {
+	width: 20px;
+  height: 20px;
+	background: #FFF;
+  border-radius: 50%;
+  position: absolute;
+
+}
+
+#d1 { -webkit-animation: animate 2s linear infinite; }
+#d2 { -webkit-animation: animate 2s linear infinite -.4s; }
+#d3 {-webkit-animation: animate 2s linear infinite -.8s; }
+#d4 { -webkit-animation: animate 2s linear infinite -1.2s; }
+#d5 { -webkit-animation: animate 2s linear infinite -1.6s; }
+
+@-webkit-keyframes animate {
+  0% { left: 100px; top:0}
+  80% { left: 0; top:0;}
+  85% { left: 0; top: -20px; width: 20px; height: 20px;}
+  90% { width: 40px; height: 15px; }
+  95% { left: 100px; top: -20px; width: 20px; height: 20px;}
+  100% { left: 100px; top:0; }
 }

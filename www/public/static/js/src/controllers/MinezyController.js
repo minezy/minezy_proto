@@ -1,6 +1,6 @@
 
 
-App.MinezyController = ( function($,document,window, U, R) {
+App.MinezyController = ( function($,document,window, U) {
 
 
 	function MinezyController(options) {
@@ -16,16 +16,49 @@ App.MinezyController = ( function($,document,window, U, R) {
 			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
 		}
 
+		this.adjustColumnHeight();
+
 	}
 
 	MinezyController.prototype = {
 
+
+		getFirstColumn: function(e) {
+
+			$.ajax({
+				type: "GET",
+				url: "http://localhost:5000/1/actors/",
+				data: { limit: 10 },
+				dataType: "json"
+			})
+			.done(function( data ) {
+				var newCol = $('#template').clone();
+				var row = $('#template .resultContainer:first-child').clone();
+
+				newCol.children('.results').empty();
+
+					$('#loader').fadeOut();
+				//$.each()
+
+
+			});
+
+		},
+
+		adjustColumnHeight: function(e) {
+			var h = 0;
+
+			h = $(window).height() - $('header').outerHeight() - $('nav.dates').outerHeight();
+			console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
+			$('.columnContainer,.column').height(h);
+		},
 
 		handleScroll: function(e) {
 		},
 
 
 		handleResize: function(e) {
+			this.adjustColumnHeight();
 		},
 
 		handleMediaQueryChange: function(e,width) {
@@ -41,4 +74,4 @@ App.MinezyController = ( function($,document,window, U, R) {
 
 	return MinezyController;
 
-})(jQuery,document,window, Utils, Reids);
+})(jQuery,document,window, Utils);
