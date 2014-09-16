@@ -2187,7 +2187,7 @@ App.MinezyController = ( function($,document,window, U) {
 		}
 
 		this.adjustColumnHeight();
-
+		this.getFirstColumn();
 	}
 
 	MinezyController.prototype = {
@@ -2208,7 +2208,9 @@ App.MinezyController = ( function($,document,window, U) {
 				newCol.children('.results').empty();
 
 					$('#loader').fadeOut();
-				//$.each()
+
+					console.log(data);
+
 
 
 			});
