@@ -37,7 +37,7 @@ def query_actors(query_params, countResults=False):
         query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r:"+field+"]->(n:Contact) WHERE ("
         for i, actor in enumerate(fromActors):
             if i > 0:
-                query_str += "OR "
+                query_str += " OR "
             query_str += "m.email='"+actor+"'"
         query_str += ") "
     elif len(toActors):
