@@ -32,25 +32,31 @@ def query_actors(query_params, countResults=False):
     if len(toActors):
         params['to'] = toActors
     
+    bWhere = True
     if len(fromActors):
-        query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r:"+field+"]->(n:Contact) WHERE "
+        query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r:"+field+"]->(n:Contact) WHERE ("
         for i, actor in enumerate(fromActors):
             if i > 0:
                 query_str += "OR "
-            query_str += "m.email='"+actor+"' "
-        query_str += " WITH n,e,count(r) AS rc "
+            query_str += "m.email='"+actor+"'"
+        query_str += ") "
     elif len(toActors):
-        query_str = "MATCH (n:Contact)-[r:Sent]->(e)-[:"+field+"]->(m:Contact) WHERE "
+        query_str = "MATCH (n:Contact)-[r:Sent]->(e)-[:"+field+"]->(m:Contact) WHERE ("
         for i, actor in enumerate(toActors):
             if i > 0:
-                query_str += "OR "
-            query_str += "m.email='"+actor+"' "
-        query_str += " WITH n,e,count(r) AS rc "
+                query_str += " OR "
+            query_str += "m.email='"+actor+"'"
+        query_str += ") "
+
     else:
-        query_str = "MATCH (n:Contact)-[r]-(e) WITH n,e,count(r) AS rc "
+        bWhere = False
+        query_str = "MATCH (n:Contact)-[r]-(e) "
         
     if start or end:
-        query_str += "WHERE "
+        if not bWhere:
+            query_str += "WHERE "
+        else:
+            query_str += "AND "
     if start:
         query_str += "e.timestamp >= {start} "
     if start and end:
@@ -58,6 +64,7 @@ def query_actors(query_params, countResults=False):
     if end:
         query_str += "e.timestamp <= {end} "
         
+    query_str += "WITH n,count(r) AS rc "
     query_str += "RETURN n.name,n.email,rc ORDER BY rc " + order
     
     if index or page > 1:
