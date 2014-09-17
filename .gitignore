@@ -1,7 +1,6 @@
 *.swp
 *.pyc
 *.db
-*.json
 .metadata
 .pydevproject
 .project
