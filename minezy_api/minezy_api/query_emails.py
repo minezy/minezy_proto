@@ -35,21 +35,22 @@ def query_emails(query_params, countResults=False):
         params['to'] = toActors
     
     if len(fromActors) or len(toActors):
-        query_str = "MATCH (e:Email)-[r:SentBy]->(n:Contact) WHERE "
+        query_str = ''
         if len(fromActors):
+            query_str += "MATCH (e:Email)-[r:SentBy]->(n:Actor) WHERE has(e.subject) AND ("
             for i, actor in enumerate(fromActors):
                 if i > 0:
-                    query_str += "OR "
-                query_str += "n.email='"+actor+"' "
-            query_str += " WITH DISTINCT e "
+                    query_str += " OR "
+                query_str += "n.email='"+actor+"'"
+            query_str += ") WITH DISTINCT e "
             
         if len(toActors):
-            query_str += "MATCH (e:Email)-[r:"+field+"]->(n:Contact) WHERE "
+            query_str += "MATCH (e:Email)-[r:"+field+"]->(n:Actor) WHERE has(e.subject) AND ("
             for i, actor in enumerate(toActors):
                 if i > 0:
-                    query_str += "OR "
-                query_str += "n.email='"+actor+"' "
-            query_str += " WITH DISTINCT e "
+                    query_str += " OR "
+                query_str += "n.email='"+actor+"'"
+            query_str += ") WITH DISTINCT e "
     else:
         query_str = "MATCH (e:Email) "
         

@@ -16,7 +16,7 @@ def scan_email_folder(mail, folderName):
     count = 0
     while count < len(id_list):   
         print "Fetching headers..."
-        idfetch = ','.join(id_list[count:count+100])
+        idfetch = ','.join(id_list[count:count+500])
         result, headers = mail.uid('fetch', idfetch, "(BODY.PEEK[HEADER])") 
         print "Done"
         
@@ -29,8 +29,10 @@ def scan_email_folder(mail, folderName):
                     email_message = email.message_from_string(raw_hdr)
                     neo4j_add.add_to_db(email_message)
                     count += 1
-                    print str(count) + " of " + str(len(id_list))
-
+                    if count == 1 or count % 100 == 0:
+                        print str(count) + " of " + str(len(id_list))
+            print str(count) + " of " + str(len(id_list))
+            
         except Exception, e:
             print e
             pass

@@ -34,14 +34,14 @@ def query_actors(query_params, countResults=False):
     
     bWhere = True
     if len(fromActors):
-        query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r:"+field+"]->(n:Contact) WHERE ("
+        query_str = "MATCH (m:Actor)-[:Sent]->(e)-[r:"+field+"]->(n:Actor) WHERE ("
         for i, actor in enumerate(fromActors):
             if i > 0:
                 query_str += " OR "
             query_str += "m.email='"+actor+"'"
         query_str += ") "
     elif len(toActors):
-        query_str = "MATCH (n:Contact)-[r:Sent]->(e)-[:"+field+"]->(m:Contact) WHERE ("
+        query_str = "MATCH (n:Actor)-[r:Sent]->(e)-[:"+field+"]->(m:Actor) WHERE ("
         for i, actor in enumerate(toActors):
             if i > 0:
                 query_str += " OR "
@@ -50,7 +50,7 @@ def query_actors(query_params, countResults=False):
 
     else:
         bWhere = False
-        query_str = "MATCH (n:Contact)-[r]-(e) "
+        query_str = "MATCH (n:Actor)-[r]-(e) "
         
     if start or end:
         if not bWhere:
