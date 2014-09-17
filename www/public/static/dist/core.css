@@ -415,7 +415,6 @@ section.columnContainer {
     background: white;
     box-shadow: 1px 0px 2px rgba(0, 0, 0, 0.1); }
     section.columnContainer div.column div.colHeader {
-      height: 100px;
       background: #f2f2f2;
       padding: 20px;
       box-sizing: border-box; }
@@ -423,7 +422,7 @@ section.columnContainer {
         width: 200px; }
   section.columnContainer div.results {
     box-sizing: border-box;
-    padding: 40px 0px; }
+    padding: 20px 0px; }
     section.columnContainer div.results div.resultContainer {
       position: relative;
       height: 30px;
@@ -461,16 +460,17 @@ section.columnContainer {
         height: 100%; }
       section.columnContainer div.results div.resultContainer .tally {
         position: absolute;
-        right: 20px;
+        right: 30px;
         width: 80px;
-        text-align: center;
+        text-align: right;
         font-size: 14px;
         color: #646464;
-        line-height: 30px; }
+        line-height: 30px;
+        z-index: 3; }
       section.columnContainer div.results div.resultContainer .arrow {
         position: absolute;
-        right: 5px;
-        width: 10px;
+        right: 0px;
+        width: 12px;
         top: 0;
         display: none;
         font-size: 14px;

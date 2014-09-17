@@ -2198,20 +2198,44 @@ App.MinezyController = ( function($,document,window, U) {
 			$.ajax({
 				type: "GET",
 				url: "http://localhost:5000/1/actors/",
-				data: { limit: 10 },
+				data: { limit: 30, field: 'TO' },
 				dataType: "json"
 			})
 			.done(function( data ) {
 				var newCol = $('#template').clone();
-				var row = $('#template .resultContainer:first-child').clone();
+				var resultContainer = $(newCol).children('.results');
 
-				newCol.children('.results').empty();
+				resultContainer.empty();
+				$('.columnContainer').append(newCol);
 
-					$('#loader').fadeOut();
+				$('#loader').fadeOut();
 
-					console.log(data);
+				var actors = data.actors.actor;
+				var maxVal = 0;
 
+				$.each(actors, $.proxy(function(i,v) {
+					if( v.count > maxVal )
+						maxVal = v.count;
+				},this));
 
+				console.log(maxVal);
+
+				$.each(actors, $.proxy(function(i,v) {
+					var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div></div>');
+
+					var newBar = $(newRow).children('.bar');
+					resultContainer.append(newRow);
+
+					var rowMaxWidth = $(newCol).width() - (parseInt($(newBar).css('left'))*2);
+					var size = Math.round( ( v.count / maxVal ) * rowMaxWidth );
+
+					$(newBar).css('width',size);
+					$(newRow).children('.tally').text(v.count);
+					$(newRow).children('.title').text(v.email);
+
+				},this));
+
+				$(newCol).fadeIn();
 
 			});
 
@@ -2222,7 +2246,7 @@ App.MinezyController = ( function($,document,window, U) {
 
 			h = $(window).height() - $('header').outerHeight() - $('nav.dates').outerHeight();
 			console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
-			$('.columnContainer,.column').height(h);
+			$('.columnContainer,.column').css('min-height',h);
 		},
 
 		handleScroll: function(e) {
