@@ -56,8 +56,7 @@ def load_file(file):
     
     try:
         with open(file) as f:
-            raw_email = f.read()
-            email_message = email.message_from_string(raw_email)
+            email_message = email.message_from_file(f)
             neo4j_add.add_to_db(email_message)
             
     except Exception, e:

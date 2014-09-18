@@ -3,6 +3,7 @@ import sys
 import imaplib
 import email
 import email.utils
+from email.parser import Parser
 import neo4j_add
 
 def scan_email_folder(mail, folderName):
@@ -20,18 +21,19 @@ def scan_email_folder(mail, folderName):
         result, headers = mail.uid('fetch', idfetch, "(BODY.PEEK[HEADER])") 
         print "Done"
         
-        neo4j_add.batch_start()
+        batch = neo4j_add.batch_start()
   
         try:
             for header in headers:
                 if type(header) == tuple:
                     raw_hdr = header[1]
                     email_message = email.message_from_string(raw_hdr)
-                    neo4j_add.add_to_db(email_message)
+                    neo4j_add.add_to_db(email_message, batch)
                     count += 1
                     if count == 1 or count % 100 == 0:
                         print str(count) + " of " + str(len(id_list))
-            print str(count) + " of " + str(len(id_list))
+            if count % 100 != 0:
+                print str(count) + " of " + str(len(id_list))
             
         except Exception, e:
             print e
@@ -39,7 +41,7 @@ def scan_email_folder(mail, folderName):
         
         finally:
             print "Writing batch..."
-            neo4j_add.batch_commit()
+            neo4j_add.batch_commit(batch)
             print "Done"
 
     return

@@ -8,7 +8,6 @@ from py2neo import neo4j, node, rel
 from numpy.polynomial.polyutils import RankWarning
 
 global g_names
-global g_batch
 
 def init():
     global g_names
@@ -23,24 +22,20 @@ def complete():
     return
 
 def batch_start():
-    global g_batch
-    
-    g_batch = neo4j.WriteBatch(neo4j_conn.g_graph)
-    return
+    batch = neo4j.WriteBatch(neo4j_conn.g_graph)
+    return batch
 
-def batch_commit():
-    global g_batch
-    
-    g_batch.submit()
+def batch_commit(batch):
+    batch.submit()
     _add_names_to_db()
     return
 
-def add_to_db(email_msg):
+def add_to_db(email_msg, batch):
     try:
-        msgSubject = email.Header.decode_header(email_msg['Subject'])[0][0].encode("utf8")
-        msgDate = email.Header.decode_header(email_msg['Date'])[0][0].encode("utf8")
-        msgID = email.Header.decode_header(email_msg['Message-ID'])[0][0].encode("utf8")
-        msgIDParent = email.Header.decode_header(email_msg['In-Reply-To'])[0][0].encode("utf8")
+        msgSubject = _get_decoded(email_msg['Subject'])
+        msgDate = _get_decoded(email_msg['Date'])
+        msgID = _get_decoded(email_msg['Message-ID'])
+        msgIDParent = _get_decoded(email_msg['In-Reply-To'])
         date = email.utils.parsedate_tz(msgDate)
         timestamp = email.utils.mktime_tz(date)
         
@@ -63,10 +58,13 @@ def add_to_db(email_msg):
         props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, "subject":msgSubject, "date":msgDate, "timestamp":timestamp} }
                
         # Add Email
-        cypher = "MERGE (e:Email {id:{props}.id}) ON CREATE SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
+        cypher = "MERGE (e:Email {id:{props}.id}) "
+        cypher += "ON CREATE SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
+        cypher += "ON MATCH SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
         # Add From Actor
         cypher += "MERGE (a:Actor {email:{props}.email}) "
-        cypher += "MERGE (a)-[:Sent]->(e)-[:SentBy]->(a) "
+        cypher += "MERGE (a)-[:Sent]->(e) "
+        cypher += "MERGE (e)-[:SentBy]->(a) "
         
         # Email Thread Relation
         if msgIDParent != "None":
@@ -81,7 +79,7 @@ def add_to_db(email_msg):
             msgIDRef = msgIDRef[1].strip("<>")
             refs.append(msgIDRef)
         props['refs'] = refs
-        cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {email:ref}) MERGE (e)-[:Refs]->(eRef)) "
+        cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) MERGE (e)-[:Refs]->(eRef)) "
 
         # Add TO relations
         tos = []
@@ -113,7 +111,7 @@ def add_to_db(email_msg):
         props['bccs'] = bccs
         cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Actor {email:bcc}) MERGE (e)-[:BCC]->(aBcc)) "
 
-        g_batch.append_cypher(cypher, props)
+        batch.append_cypher(cypher, props)
  
     except Exception, e:
         print e
@@ -130,14 +128,13 @@ def _collect_names(msgAddr, msgXAddr):
     
     msgEmail = str.lower(msgAddr[1])
     
-    msgName = email.Header.decode_header(msgAddr[0])[0][0]
+    msgName = _get_decoded(msgAddr[0])
     if len(msgName) == 0:
-        msgName = email.Header.decode_header(msgXAddr)[0][0]
-    msgName = msgName.lower().replace(msgEmail,'')
-    msgName = msgName.replace('()', '')
-    msgName = msgName.replace('to:', '')
-    msgName = msgName.replace('cc:', '')
-    msgName = msgName.strip(" \"',<>").title().encode("utf8")
+        msgName = _get_decoded(msgXAddr)
+            
+    msgName = msgName.lower()
+    msgName = msgName.replace(msgEmail,'').replace('()', '').replace('to:', '').replace('cc:', '')
+    msgName = msgName.strip(" \"',<>").title()
     msgName = " ".join(msgName.split())
     msgName = " ".join(msgName.split(", ")[::-1])
     
@@ -147,7 +144,7 @@ def _collect_names(msgAddr, msgXAddr):
         count = names.get(msgName, 0)
         names[msgName] = count + 1
         g_names[msgEmail] = names
-    
+
     return
 
 
@@ -191,5 +188,19 @@ def _add_names_to_db():
     batch.submit()
     return
 
+
+def _get_decoded(strIn):
+    strOut = strIn
     
-    
+    try:
+        decVal = email.Header.decode_header(strIn)
+        if not decVal[0][1] == None:
+            strOut = str.decode(decVal[0][0], decVal[0][1])
+        else:
+            strOut = decVal[0][0]
+    except Exception, e:
+        print e
+        pass    
+
+    return strOut
+

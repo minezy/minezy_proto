@@ -34,6 +34,7 @@ def query_emails(query_params, countResults=False):
     if len(toActors):
         params['to'] = toActors
     
+    bWhere = False
     if len(fromActors) or len(toActors):
         query_str = ''
         if len(fromActors):
@@ -52,10 +53,14 @@ def query_emails(query_params, countResults=False):
                 query_str += "n.email='"+actor+"'"
             query_str += ") WITH DISTINCT e "
     else:
-        query_str = "MATCH (e:Email) "
+        bWhere = True
+        query_str = "MATCH (e:Email) WHERE has(e.subject) "
         
     if start or end or keyword:
-        query_str += "WHERE "
+        if not bWhere:
+            query_str += "WHERE "
+        else:
+            query_str += "AND "
     if start:
         query_str += "e.timestamp >= {start} "
     if start and end:
