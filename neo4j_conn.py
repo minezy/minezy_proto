@@ -1,5 +1,5 @@
 import sys
-from py2neo import neo4j
+from py2neo import cypher
 
 global g_graph
 
@@ -7,10 +7,23 @@ def connect():
 	global g_graph
 
 	try:
-		print "Connect to Neo4j..."
-		g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
-		print "OK"
+		sys.stdout.write("Connect to Neo4j... ")
+		session = cypher.Session("http://localhost:7474")
+		
+		tx = session.create_transaction()
+		sys.stdout.write("actor index... ")
+		tx.append("CREATE CONSTRAINT ON (a:Actor) ASSERT a.email IS UNIQUE")
+		tx.execute()
+		sys.stdout.write("email index... ")
+		tx.append("CREATE CONSTRAINT ON (e:Email) ASSERT e.id IS UNIQUE")
+		tx.commit()
+		
+		sys.stdout.write("OK\n")
+		return session
 	except:
+		print
 		print "Error:", sys.exc_info()[1]
 		exit(1)
+		
+	return None
 

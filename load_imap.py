@@ -1,5 +1,6 @@
 #!/usr/bin/python
 import sys
+import time
 import imaplib
 import email
 import email.utils
@@ -15,14 +16,18 @@ def scan_email_folder(mail, folderName):
     id_list = ids.split() # ids is a space separated string
 
     count = 0
-    while count < len(id_list):   
-        print "Fetching headers..."
+    while count < len(id_list):
+        # next batch of headers   
+        t0 = time.time()
+        sys.stdout.write("Fetching headers... ")
+        
         idfetch = ','.join(id_list[count:count+500])
-        result, headers = mail.uid('fetch', idfetch, "(BODY.PEEK[HEADER])") 
-        print "Done"
+        result, headers = mail.uid('fetch', idfetch, "(BODY.PEEK[HEADER])")
+         
+        t1 = time.time()
+        sys.stdout.write(str(t1-t0) + " seconds\n")
         
         batch = neo4j_add.batch_start()
-  
         try:
             for header in headers:
                 if type(header) == tuple:
@@ -40,9 +45,7 @@ def scan_email_folder(mail, folderName):
             pass
         
         finally:
-            print "Writing batch..."
             neo4j_add.batch_commit(batch)
-            print "Done"
 
     return
 
@@ -64,7 +67,6 @@ if __name__ == '__main__':
     scan_email_folder(mail, "INBOX.Sent")
     scan_email_folder(mail, "INBOX.old-messages")
 
-    neo4j_add.complete()
     print "All Done"
 
    

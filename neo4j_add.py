@@ -1,32 +1,40 @@
 import sys
-import ast
+import json
+import time
 import email
 import email.utils
 import itertools
 import neo4j_conn
-from py2neo import neo4j, node, rel
+from py2neo import cypher, node, rel
 from numpy.polynomial.polyutils import RankWarning
 
 global g_names
+global g_session
 
 def init():
     global g_names
+    global g_session
     
-    neo4j_conn.connect()
+    g_session = neo4j_conn.connect()
     
     g_names = {}
     return
 
-def complete():
-    _add_names_to_db()
-    return
-
 def batch_start():
-    batch = neo4j.WriteBatch(neo4j_conn.g_graph)
-    return batch
+    global g_session
+    
+    tx = g_session.create_transaction()
+    return tx
 
-def batch_commit(batch):
-    batch.submit()
+def batch_commit(tx):
+    t0 = time.time()
+    sys.stdout.write("Writing batch... ")
+    
+    tx.commit()
+    
+    t1 = time.time()
+    sys.stdout.write(str(t1-t0) + " seconds\n")
+    
     _add_names_to_db()
     return
 
@@ -59,18 +67,15 @@ def add_to_db(email_msg, batch):
                
         # Add Email
         cypher = "MERGE (e:Email {id:{props}.id}) "
-        cypher += "ON CREATE SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
-        cypher += "ON MATCH SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
+        cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
         # Add From Actor
         cypher += "MERGE (a:Actor {email:{props}.email}) "
-        cypher += "MERGE (a)-[:Sent]->(e) "
-        cypher += "MERGE (e)-[:SentBy]->(a) "
+        cypher += "CREATE UNIQUE (a)-[:Sent]->(e), (e)-[:SentBy]->(a) "
         
         # Email Thread Relation
         if msgIDParent != "None":
             cypher += "MERGE (ePar:Email {id:{props}.parentId}) "
-            cypher += "MERGE (e)-[:InReplyTo]->(ePar) "
-            cypher += "MERGE (ePar)-[:Reply]->(e) "
+            cypher += "CREATE UNIQUE (e)-[:InReplyTo]->(ePar), (ePar)-[:Reply]->(e) "
         
         # Email Thread References
         refs = []
@@ -78,8 +83,9 @@ def add_to_db(email_msg, batch):
         for msgIDRef in msgRefs:
             msgIDRef = msgIDRef[1].strip("<>")
             refs.append(msgIDRef)
-        props['refs'] = refs
-        cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) MERGE (e)-[:Refs]->(eRef)) "
+        if len(refs):
+            props['refs'] = refs
+            cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) CREATE UNIQUE (e)-[:Refs]->(eRef)) "
 
         # Add TO relations
         tos = []
@@ -88,8 +94,9 @@ def add_to_db(email_msg, batch):
         for msg,msgX in itertools.izip_longest(msgTo,msgXTo):
             tos.append(str.lower(msg[1]))
             _collect_names(msg, msgX)
-        props['tos'] = tos
-        cypher += "FOREACH (to in {tos} | MERGE (aTo:Actor {email:to}) MERGE (e)-[:TO]->(aTo)) "
+        if len(tos):
+            props['tos'] = tos
+            cypher += "FOREACH (to in {tos} | MERGE (aTo:Actor {email:to}) CREATE UNIQUE (e)-[:TO]->(aTo)) "
 
         # Add CC relations
         ccs = []
@@ -98,8 +105,9 @@ def add_to_db(email_msg, batch):
         for msg,msgX in itertools.izip_longest(msgCC,msgXCC):
             ccs.append(str.lower(msg[1]))
             _collect_names(msg,msgX)
-        props['ccs'] = ccs
-        cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Actor {email:cc}) MERGE (e)-[:CC]->(aCc)) "
+        if len(ccs):
+            props['ccs'] = ccs
+            cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Actor {email:cc}) CREATE UNIQUE (e)-[:CC]->(aCc)) "
         
         # Add BCC relations
         bccs = []
@@ -108,10 +116,11 @@ def add_to_db(email_msg, batch):
         for msg,msgX in itertools.izip_longest(msgBCC,msgXBCC):
             bccs.append(str.lower(msg[1]))
             _collect_names(msg,msgX)
-        props['bccs'] = bccs
-        cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Actor {email:bcc}) MERGE (e)-[:BCC]->(aBcc)) "
+        if len(bccs):
+            props['bccs'] = bccs
+            cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Actor {email:bcc}) CREATE UNIQUE (e)-[:BCC]->(aBcc)) "
 
-        batch.append_cypher(cypher, props)
+        batch.append(cypher, props)
  
     except Exception, e:
         print e
@@ -151,41 +160,57 @@ def _collect_names(msgAddr, msgXAddr):
 def _add_names_to_db():
     global g_names
 
-    batch = neo4j.WriteBatch(neo4j_conn.g_graph)
+    txRead = g_session.create_transaction()
+    txWrite = g_session.create_transaction()
     
-    print "Updating " + str(len(g_names)) + " names..."    
+    t0 = time.time()
+    sys.stdout.write("Updating " + str(len(g_names)) + " names... ")
     try:
-        # actor Node:names[] property
-        query_str = "MATCH (n:Actor) WHERE n.email = {email} return n"
+        emails = []
         for msgEmail, msgNames in g_names.iteritems():
-            query = neo4j.CypherQuery(neo4j_conn.g_graph, query_str)
-            results = query.execute(email=msgEmail)
-            if len(results) > 0:
-                n = results[0][0]
-                
-                names = {}
-                s = n['names']
-                if s is not None and len(s) > 0:
-                    names = ast.literal_eval(s) 
-    
-                # Update node's name dictionary
-                for name in msgNames:
-                    if len(name) > 0 and name != 'None':
-                        count_old = names.get(name, 0)
-                        count_new = msgNames.get(name, 1)
-                        names[name] = count_old + count_new
-    
-                bestName = max(names, key=names.get)
-                batch.set_property(n, 'name', bestName)
-                batch.set_property(n, 'names', str(names))
+            emails.append(msgEmail)
+
+        # actor Node:names[] property
+        query_str = "MATCH (n:Actor) WHERE n.email IN {emails} return n"
+        txRead.append(query_str, {"emails":emails})
+        results = txRead.execute()
+            
+        for record in results[0]:
+            n = record['n']
+            
+            msgEmail = n['email']
+            msgNames = g_names[msgEmail]
+            
+            names = {}
+            s = n['names']
+            if s is not None and len(s) > 0:
+                names = json.loads(s) 
+
+            # Update node's name dictionary
+            for name in msgNames:
+                if len(name) > 0 and name != 'None':
+                    count_old = names.get(name, 0)
+                    count_new = msgNames.get(name, 1)
+                    names[name] = count_old + count_new
+
+            bestName = max(names, key=names.get)
+            jnames = json.dumps(names, ensure_ascii=False)
+            txWrite.append("MATCH (n:Actor) WHERE id(n) = {id} SET n.name={name}, n.names={names}", {"id":n._id, "name":bestName, "names":jnames})
 
         g_names.clear()
         
     except Exception, e:
         print e
         pass    
-                
-    batch.submit()
+
+    try:                
+        txWrite.commit()
+    except Exception, e:
+        print e
+        pass
+        
+    t1 = time.time()
+    sys.stdout.write(str(t1-t0) + " seconds\n")
     return
 
 
@@ -195,12 +220,12 @@ def _get_decoded(strIn):
     try:
         decVal = email.Header.decode_header(strIn)
         if not decVal[0][1] == None:
-            strOut = str.decode(decVal[0][0], decVal[0][1])
+            strOut = unicode(decVal[0][0], decVal[0][1])
         else:
-            strOut = decVal[0][0]
+            strOut = unicode(decVal[0][0], "utf-8", errors='replace')
     except Exception, e:
         print e
-        pass    
+        pass
 
     return strOut
 
