@@ -2194,6 +2194,8 @@ App.Column = ( function($,document,window, U) {
 
 		setupColumn: function() {
 
+			console.log('SETUP!');
+
 			this.element = $('#template').clone();
 			var resultContainer = $(this.element).children('.results');
 
@@ -2213,6 +2215,8 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		searchFilter: function() {
+
+			console.log(this.colName);
 
 			var val = $( this.colName + ' .searchFilter').val();
 
@@ -2294,7 +2298,7 @@ App.Column = ( function($,document,window, U) {
 
 		recievedData: function(data) {
 
-			console.log('GOT THE DATA!',data,this.active);
+			console.log('GOT THE DATA!',data,this.active, this.colName,this.element);
 
 			var actors = data.actors.actor;
 			var maxVal = 0;
@@ -2358,12 +2362,22 @@ App.Column = ( function($,document,window, U) {
 
 			row.addClass('on');
 
-			$(this).trigger('NewColumn',[action,params]);
+			$(this).trigger('NewColumn',[this.index, action,params]);
+
+		},
+
+		updateAll: function(action,params) {
+
+			this.action = action;
+			this.params = params;
+
+			this.clearData();
+			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
 
 		},
 
 		updateParams: function(params) {
-console.log('HERE!');
+
 			//merge the params
 			$.extend( this.params, params );
 
@@ -2374,7 +2388,7 @@ console.log('HERE!');
 
 		clearData: function() {
 
-			$('.resultContainer').fadeOut( 100, function(){ this.remove(); } );
+			$( this.colName + ' .resultContainer').fadeOut( 100, function(){ this.remove(); } );
 
 		},
 
@@ -2428,9 +2442,13 @@ App.ColumnController = ( function($,document,window, U) {
 
 		},
 
-		newColumnRequest: function(e,action,params) {
+		newColumnRequest: function(e,column,action,params) {
 
-			this.addColumn(action,params);
+			if( this.columns[column+1] ) {
+				this.columns[column+1].updateAll(action,params);
+			} else {
+				this.addColumn(action,params);
+			}
 
 		},
 

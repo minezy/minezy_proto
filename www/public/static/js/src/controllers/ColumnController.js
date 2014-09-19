@@ -26,9 +26,13 @@ App.ColumnController = ( function($,document,window, U) {
 
 		},
 
-		newColumnRequest: function(e,action,params) {
+		newColumnRequest: function(e,column,action,params) {
 
-			this.addColumn(action,params);
+			if( this.columns[column+1] ) {
+				this.columns[column+1].updateAll(action,params);
+			} else {
+				this.addColumn(action,params);
+			}
 
 		},
 
