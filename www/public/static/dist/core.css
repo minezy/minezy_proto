@@ -297,6 +297,40 @@ select {
   select:hover {
     border: solid 2px #20cc90; }
 
+input[type='text'] {
+  height: 32px;
+  border: solid 2px #9f9f9f;
+  background: white;
+  padding: 0px 10px;
+  margin-bottom: 5px;
+  border-radius: 3px;
+  font-weight: 700;
+  font-size: 11px;
+  outline: none; }
+  input[type='text']:hover {
+    border: solid 2px #20cc90; }
+
+a.button {
+  display: block;
+  padding: 5px 10px;
+  border: solid 2px #464646;
+  border-radius: 3px;
+  background: #363636; }
+  a.button:hover {
+    border: solid 2px #20cc90;
+    background: #5f5f5f; }
+  a.button i {
+    font-size: 18px;
+    vertical-align: middle; }
+  a.button.light {
+    border-color: #9f9f9f;
+    background: white;
+    color: #363636; }
+    a.button.light:hover {
+      background: #5f5f5f;
+      border: solid 2px #20cc90;
+      color: white; }
+
 #loader {
   width: 100px;
   height: 40px;
@@ -357,11 +391,14 @@ nav.dates {
   position: relative; }
   nav.dates .dateSelect {
     display: inline-block;
-    width: 200px; }
+    width: 185px; }
     nav.dates .dateSelect select.month {
       width: 100px; }
     nav.dates .dateSelect select.year {
       width: 66px; }
+  nav.dates .dateRefresh {
+    display: inline-block;
+    position: static; }
   nav.dates .account {
     position: absolute;
     right: 20px;
@@ -369,17 +406,8 @@ nav.dates {
     color: white;
     font-size: 14px; }
     nav.dates .account a {
-      display: block;
-      padding: 5px 10px;
-      margin-top: 28px;
-      border: solid 2px #464646; }
-      nav.dates .account a:hover {
-        border-radius: 3px;
-        border: solid 2px #20cc90;
-        background: #5f5f5f; }
+      margin-top: 28px; }
       nav.dates .account a i {
-        font-size: 18px;
-        vertical-align: middle;
         padding-right: 8px; }
   nav.dates .accountMenu {
     display: none; }
@@ -407,19 +435,33 @@ section.columnContainer {
   section.columnContainer div.column {
     position: absolute;
     left: 0;
-    top: 0;
+    top: 80px;
     z-index: 2;
     border-right: solid 1px #a0a0a0;
     min-width: 340px;
     box-sizing: border-box;
     background: white;
-    box-shadow: 1px 0px 2px rgba(0, 0, 0, 0.1); }
+    box-shadow: 1px 0px 2px rgba(0, 0, 0, 0.1);
+    -webkit-transition: top 500ms ease-out;
+    -moz-transition: top 500ms ease-out;
+    transition: top 500ms ease-out; }
     section.columnContainer div.column div.colHeader {
       background: #f2f2f2;
       padding: 20px;
       box-sizing: border-box; }
       section.columnContainer div.column div.colHeader select {
-        width: 200px; }
+        width: 150px; }
+      section.columnContainer div.column div.colHeader input {
+        margin-left: 0;
+        width: 150px;
+        box-sizing: border-box; }
+      section.columnContainer div.column div.colHeader a.searchMore {
+        color: #20cc90;
+        font-size: 14px;
+        margin-left: 10px; }
+      section.columnContainer div.column div.colHeader a.button {
+        display: inline-block;
+        font-size: 14px; }
   section.columnContainer div.results {
     box-sizing: border-box;
     padding: 20px 0px; }

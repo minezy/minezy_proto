@@ -2170,74 +2170,322 @@ App.Main = (function(window, document, $, App, Utils){
 
 })(window, document, jQuery, App, Utils);;
 
-App.MinezyController = ( function($,document,window, U) {
+App.Column = ( function($,document,window, U) {
 
 
-	function MinezyController(options) {
-		console.log('MINEZY INIT');
+	function Column(options) {
+		console.log('COLUMN INIT > ', options);
 
-		//init page based on size
-		$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
-		$(window).resize( $.proxy( this.handleResize, this ) );
+		this.API = new App.API();
+		this.index = options.index;
+		this.element = null;
+		this.active = false;
+		this.params = options.params;
+		this.action = options.action;
+		this.optionsOpen = false;
+		this.colName = '#Column';
 
-		if( !U.isTouch() ) {
-			$(window).scroll( $.proxy( this.handleScroll, this ) );
-		} else {
-			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
-		}
+		this.setupColumn();
+		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
 
-		this.adjustColumnHeight();
-		this.getFirstColumn();
 	}
 
-	MinezyController.prototype = {
+	Column.prototype = {
+
+		setupColumn: function() {
+
+			this.element = $('#template').clone();
+			var resultContainer = $(this.element).children('.results');
+
+			resultContainer.empty();
+			$('.columnContainer').append(this.element);
+
+			$(this.element).hide();
+			$(this.element).attr('id','Column'+this.index);
+			this.colName = this.colName + this.index;
+
+			$( this.colName + ' .searchMore').on('click',$.proxy( this.showMoreSearchOptions, this ) );
+			$( this.colName + ' .searchOptions').hide();
+			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			$( this.colName + ' .searchOptions input').on('focus',$.proxy( this.searchFocus, this ) );
+			$( this.colName + ' .searchOptions input').on('blur',$.proxy( this.searchBlur, this ) );
+			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
+		},
+
+		searchFilter: function() {
+
+			var val = $( this.colName + ' .searchFilter').val();
+
+			$.extend(this.params,this.parseFilter(val) );
+
+			this.updateParams();
+
+		},
+
+		parseFilter: function(val) {
+
+			var action = '';
+			var params = {};
+
+			var segs = val.split('/');
+			this.action = segs[0];
+
+			for(var i=1;i<segs.length;i++) {
+				var psegs = segs[i].split(':');
+				params[psegs[0]] = psegs[1];
+			}
+
+			return params;
+
+		},
+
+		searchColumn:function() {
 
 
-		getFirstColumn: function(e) {
+			var keyword = $( this.colName + ' .searchOptions input').val();
 
-			$.ajax({
-				type: "GET",
-				url: "http://localhost:5000/1/actors/",
-				data: { limit: 30, field: 'TO' },
-				dataType: "json"
-			})
-			.done(function( data ) {
-				var newCol = $('#template').clone();
-				var resultContainer = $(newCol).children('.results');
+			console.log('search',keyword);
 
-				resultContainer.empty();
-				$('.columnContainer').append(newCol);
+			if( keyword !== '' && keyword !== 'enter keyword' ) {
+				$( this.colName + ' .searchOptions a').off('click');
 
+				var params = {'keyword':keyword};
+				this.updateParams(params);
+			}
+
+		},
+
+		searchFocus: function(e) {
+			console.log('focus');
+			var elm = $( this.colName + ' .searchOptions input');
+			elm.removeClass('error');
+
+			if( elm.val() === 'enter keyword' ) {
+				elm.val('');
+			}
+		},
+
+		searchBlur: function(e) {
+			console.log('blur');
+			var elm = $( this.colName + ' .searchOptions input');
+
+			if( elm.val() === '' ) {
+				elm.val('enter keyword');
+			} else {
+				elm.removeClass('error');
+			}
+		},
+
+		showMoreSearchOptions: function(e) {
+
+			if(this.optionsOpen){
+				$( this.colName + ' .searchOptions').slideUp();
+				this.optionsOpen = false;
+				$( this.colName + ' .searchMore i').addClass('fa-search-plus');
+				$( this.colName + ' .searchMore i').removeClass('fa-search-minus');
+			} else{
+				$( this.colName + ' .searchOptions').slideDown();
+				this.optionsOpen = true;
+				$( this.colName + ' .searchMore i').removeClass('fa-search-plus');
+				$( this.colName + ' .searchMore i').addClass('fa-search-minus');
+			}
+
+		},
+
+		recievedData: function(data) {
+
+			console.log('GOT THE DATA!',data,this.active);
+
+			var actors = data.actors.actor;
+			var maxVal = 0;
+			var count = 0;
+			var resultContainer = $(this.element).children('.results');
+
+			$.each(actors, $.proxy(function(i,v) {
+				if( v.count > maxVal )
+					maxVal = v.count;
+			},this));
+
+			console.log(maxVal);
+
+			$(resultContainer).hide();
+
+			$.each(actors, $.proxy(function(i,v) {
+				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""></div>');
+
+				var newBar = $(newRow).children('.bar');
+				resultContainer.append(newRow);
+
+				var rowMaxWidth = $(this.element).width() - (parseInt($(newBar).css('left'))*2);
+				var size = Math.round( ( v.count / maxVal ) * rowMaxWidth );
+
+				$(newBar).css('width',size);
+				$(newRow).children('.tally').text(v.count);
+				$(newRow).children('.title').text(v.name);
+				$(newRow).children('input').val(v.email);
+				count++;
+
+			},this));
+
+			//enable row clicking
+			$( this.colName + ' .resultContainer').each($.proxy(function(i,v) {
+				$(v).on('click',$.proxy(this.newColumnRequest,this,[i]) );
+			},this));
+
+			//fade in rows
+			$(resultContainer).fadeIn();
+
+			//enable search again
+			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+
+			//update the controller if the column is new
+			if( !this.active ) {
+				this.active = true;
+				$(this).trigger('Ready');
+			}
+
+
+		},
+
+		newColumnRequest: function(index,e) {
+
+			$( this.colName + ' .resultContainer' ).removeClass('on');
+
+			var row = $( this.colName + ' .resultContainer' ).eq(index);
+			var email = row.children('input').val();
+			var action = 'actors';
+			var params = {'from':email,'start':this.params.start,'end':this.params.end,'limit':this.params.limit};
+
+			row.addClass('on');
+
+			$(this).trigger('NewColumn',[action,params]);
+
+		},
+
+		updateParams: function(params) {
+console.log('HERE!');
+			//merge the params
+			$.extend( this.params, params );
+
+			this.clearData();
+			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
+
+		},
+
+		clearData: function() {
+
+			$('.resultContainer').fadeOut( 100, function(){ this.remove(); } );
+
+		},
+
+		handleScroll: function(e) {
+		},
+
+
+		handleResize: function(e) {
+		},
+
+		handleMediaQueryChange: function(e,width) {
+
+		},
+
+		destroy: function() {
+			//do any clean up when destroying the section
+			//delete this.homePhotos;
+
+			$(this.element).remove();
+		}
+
+	};
+
+	return Column;
+
+})(jQuery,document,window, Utils);;
+
+App.ColumnController = ( function($,document,window, U) {
+
+
+	function ColumnController(options) {
+		console.log('COLUMN MANAGER INIT');
+
+		this.columns = [];
+
+		$(window).resize( $.proxy( this.handleResize, this ) );
+
+		this.adjustColumnHeight();
+
+	}
+
+	ColumnController.prototype = {
+
+		addColumn: function(action,params) {
+
+			var new_col = new App.Column({'action':action,'params':params,'index':this.columns.length});
+			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
+			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
+
+			this.columns.push( new_col );
+
+		},
+
+		newColumnRequest: function(e,action,params) {
+
+			this.addColumn(action,params);
+
+		},
+
+		displayColumn: function(params,e) {
+			var index = params[0];
+
+			if( this.columns.length > 0 ) {
 				$('#loader').fadeOut();
+			}
 
-				var actors = data.actors.actor;
-				var maxVal = 0;
+			var column = this.columns[index].element;
+			var offset = index * 340;
 
-				$.each(actors, $.proxy(function(i,v) {
-					if( v.count > maxVal )
-						maxVal = v.count;
-				},this));
+			$(column).css('left',offset);
+			$(column).hide().fadeIn();
+			$(column).css('top','0px');
 
-				console.log(maxVal);
+			this.adjustColumnHeight();
 
-				$.each(actors, $.proxy(function(i,v) {
-					var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div></div>');
+			console.log(index,column);
 
-					var newBar = $(newRow).children('.bar');
-					resultContainer.append(newRow);
+		},
 
-					var rowMaxWidth = $(newCol).width() - (parseInt($(newBar).css('left'))*2);
-					var size = Math.round( ( v.count / maxVal ) * rowMaxWidth );
+		updateDates: function(start,end) {
 
-					$(newBar).css('width',size);
-					$(newRow).children('.tally').text(v.count);
-					$(newRow).children('.title').text(v.email);
+			for(var i = 0; i < this.columns.length; i++ ) {
+				this.columns[i].updateParams({'start':start,'end':end});
+			}
 
-				},this));
+		},
 
-				$(newCol).fadeIn();
+		removeColumns: function(rootIndex) {
 
-			});
+			if(!rootIndex) {
+				rootIndex = 1;
+			}
+
+			if( this.columns.length > rootIndex ) {
+				var totalDelay = this.columns.length * 200;
+
+				for(var i = this.columns.length; i >= rootIndex; i-- ) {
+					this.removeColumn(i, totalDelay-(i*200) );
+				}
+			}
+
+
+
+		},
+
+		removeColumn: function(index,delay) {
+
+			$(this.columns[index].element).delay(delay).fadeOut( 300, $.proxy(function(){
+				this.columns[index].destroy();
+				this.columns.splice(index,1);
+			},this));
 
 		},
 
@@ -2255,6 +2503,78 @@ App.MinezyController = ( function($,document,window, U) {
 
 		handleResize: function(e) {
 			this.adjustColumnHeight();
+		},
+
+		handleMediaQueryChange: function(e,width) {
+
+		},
+
+		destroy: function() {
+			//do any clean up when destroying the section
+			//delete this.homePhotos;
+		}
+
+	};
+
+	return ColumnController;
+
+})(jQuery,document,window, Utils);;
+
+App.MinezyController = ( function($,document,window, U) {
+
+
+	function MinezyController(options) {
+		console.log('MINEZY INIT');
+
+		//init page based on size
+		$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
+		$(window).resize( $.proxy( this.handleResize, this ) );
+
+		if( !U.isTouch() ) {
+			$(window).scroll( $.proxy( this.handleScroll, this ) );
+		} else {
+			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
+		}
+
+		this.colManager = new App.ColumnController();
+		this.colManager.addColumn('actors',{'limit':20,'end': (new Date().getTime()/1000) });
+
+		$('#end_date_year').val( new Date().getFullYear() );
+		$('#end_date_month').val( new Date().getMonth()+1 );
+
+		$('#refreshDates').on('click', $.proxy(this.changeDateRange,this) );
+
+	}
+
+	MinezyController.prototype = {
+
+		changeDateRange: function() {
+
+			var sy = $('#start_date_year').val();
+			var sm = $('#start_date_month').val();
+			var ey = $('#end_date_year').val();
+			var em = $('#end_date_month').val();
+
+			var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
+			var ed = new Date(ey, em, 0, 0, 0, 0, 0);
+
+			console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
+
+			if(isNaN(sd)){
+				sd.setTime(0);
+			}
+
+			console.log(sd.getTime()/1000,ed.getTime()/1000);
+
+			this.colManager.updateDates(sd.getTime()/1000,ed.getTime()/1000);
+
+		},
+
+		handleScroll: function(e) {
+		},
+
+
+		handleResize: function(e) {
 		},
 
 		handleMediaQueryChange: function(e,width) {
@@ -2325,7 +2645,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 				}
 
 				if( route ) {
-					return route.createController({'shopify':this.shopify});
+					return route.createController();
 				} else {
 					throw new Error("Undefined route: " + window.location.pathname);
 				}
@@ -2356,7 +2676,70 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 	return NavController;
 
-})(jQuery,document,window,App,Utils);;/* MediaQuery 1.0,  Matthew Quinn, GRAND Creative Inc.  Copyright 2012
+})(jQuery,document,window,App,Utils);;
+
+App.API = ( function($,document,window, U) {
+
+
+	function API() {
+		console.log('API INIT');
+
+		this.api_root = 'http://localhost:5000';
+		this.api_version = 1;
+		this.current_call = null;
+
+	}
+
+	API.prototype = {
+
+		getData: function(action,params,callback) {
+
+			if(this.current_call) {
+				this.current_call.abort();
+				delete this.current_call;
+			}
+
+			this.current_call = $.ajax({
+				type: "GET",
+				url: this.constructURL(action,params),
+				data: params,
+				dataType: "json"
+			})
+			.done($.proxy(function( data ) {
+				callback(data);
+			},this));
+
+		},
+
+		constructURL: function(action,params) {
+
+			var url = this.api_root + '/' + this.api_version + '/' + action + '/';
+
+			/*if( typeof subaction !== "string" ) {
+				params = subaction;
+			} else {
+				url = url + '/' + subaction;
+			}*/
+
+			/*if( typeof params !== undefined ) {
+				url = url + '?' + $.param(params);
+			}*/
+
+			return url;
+
+		},
+
+
+		destroy: function() {
+			//do any clean up when destroying the section
+			//delete this.homePhotos;
+		}
+
+	};
+
+	return API;
+
+})(jQuery,document,window, Utils);;/* MediaQuery 1.0,  Matthew Quinn, GRAND Creative Inc.  Copyright 2012
  *
  *  Description:
  *    Injects a media query detector div on the page. When the div changes size via your css media queries

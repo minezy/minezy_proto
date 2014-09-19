@@ -53,7 +53,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 				}
 
 				if( route ) {
-					return route.createController({'shopify':this.shopify});
+					return route.createController();
 				} else {
 					throw new Error("Undefined route: " + window.location.pathname);
 				}

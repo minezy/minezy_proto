@@ -9,7 +9,7 @@ section.columnContainer {
 	div.column {
 		position: absolute;
 		left:0;
-		top:0;
+		top:80px;
 		z-index:2;
 		border-right: solid 1px #a0a0a0;
 		min-width:340px;
@@ -17,14 +17,35 @@ section.columnContainer {
 		background:white;
 		box-shadow: 1px 0px 2px rgba(0,0,0,0.1);
 
+		@include transition (top 500ms ease-out);
+
+
 		div.colHeader {
 			background: #f2f2f2;
 			padding:20px;
 			box-sizing: border-box;
 
 			select {
-				width: 200px;
+				width: 150px;
 			}
+
+			input {
+				margin-left:0;
+				width:150px;
+				box-sizing: border-box;
+			}
+
+			a.searchMore {
+				color: #20cc90;
+				font-size: 14px;
+				margin-left:10px;
+			}
+
+			a.button {
+				display: inline-block;
+				font-size: 14px;
+			}
+
 		}
 	}
 

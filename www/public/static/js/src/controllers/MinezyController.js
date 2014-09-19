@@ -16,67 +16,38 @@ App.MinezyController = ( function($,document,window, U) {
 			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
 		}
 
-		this.adjustColumnHeight();
-		this.getFirstColumn();
+		this.colManager = new App.ColumnController();
+		this.colManager.addColumn('actors',{'limit':20,'end': (new Date().getTime()/1000) });
+
+		$('#end_date_year').val( new Date().getFullYear() );
+		$('#end_date_month').val( new Date().getMonth()+1 );
+
+		$('#refreshDates').on('click', $.proxy(this.changeDateRange,this) );
+
 	}
 
 	MinezyController.prototype = {
 
+		changeDateRange: function() {
 
-		getFirstColumn: function(e) {
+			var sy = $('#start_date_year').val();
+			var sm = $('#start_date_month').val();
+			var ey = $('#end_date_year').val();
+			var em = $('#end_date_month').val();
 
-			$.ajax({
-				type: "GET",
-				url: "http://localhost:5000/1/actors/",
-				data: { limit: 30, field: 'TO' },
-				dataType: "json"
-			})
-			.done(function( data ) {
-				var newCol = $('#template').clone();
-				var resultContainer = $(newCol).children('.results');
+			var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
+			var ed = new Date(ey, em, 0, 0, 0, 0, 0);
 
-				resultContainer.empty();
-				$('.columnContainer').append(newCol);
+			console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
 
-				$('#loader').fadeOut();
+			if(isNaN(sd)){
+				sd.setTime(0);
+			}
 
-				var actors = data.actors.actor;
-				var maxVal = 0;
+			console.log(sd.getTime()/1000,ed.getTime()/1000);
 
-				$.each(actors, $.proxy(function(i,v) {
-					if( v.count > maxVal )
-						maxVal = v.count;
-				},this));
+			this.colManager.updateDates(sd.getTime()/1000,ed.getTime()/1000);
 
-				console.log(maxVal);
-
-				$.each(actors, $.proxy(function(i,v) {
-					var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div></div>');
-
-					var newBar = $(newRow).children('.bar');
-					resultContainer.append(newRow);
-
-					var rowMaxWidth = $(newCol).width() - (parseInt($(newBar).css('left'))*2);
-					var size = Math.round( ( v.count / maxVal ) * rowMaxWidth );
-
-					$(newBar).css('width',size);
-					$(newRow).children('.tally').text(v.count);
-					$(newRow).children('.title').text(v.email);
-
-				},this));
-
-				$(newCol).fadeIn();
-
-			});
-
-		},
-
-		adjustColumnHeight: function(e) {
-			var h = 0;
-
-			h = $(window).height() - $('header').outerHeight() - $('nav.dates').outerHeight();
-			console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
-			$('.columnContainer,.column').css('min-height',h);
 		},
 
 		handleScroll: function(e) {
@@ -84,7 +55,6 @@ App.MinezyController = ( function($,document,window, U) {
 
 
 		handleResize: function(e) {
-			this.adjustColumnHeight();
 		},
 
 		handleMediaQueryChange: function(e,width) {
