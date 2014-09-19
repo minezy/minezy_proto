@@ -63,11 +63,11 @@ if __name__ == '__main__':
     mail.login(sys.argv[2], sys.argv[3])
     print mail.list()
 
-    #scan_email_folder(mail, "INBOX")
-    #scan_email_folder(mail, "INBOX.Sent")
-    #scan_email_folder(mail, "INBOX.old-messages")
     scan_email_folder(mail, "INBOX")
-    scan_email_folder(mail, "[Gmail]/Sent Mail")
+    scan_email_folder(mail, "INBOX.Sent")
+    scan_email_folder(mail, "INBOX.old-messages")
+    #scan_email_folder(mail, "INBOX")
+    #scan_email_folder(mail, "[Gmail]/Sent Mail")
 
     print "All Done"
 
