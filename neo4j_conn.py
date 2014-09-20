@@ -1,11 +1,7 @@
 import sys
 from py2neo import cypher
 
-global g_graph
-
 def connect():
-	global g_graph
-
 	try:
 		sys.stdout.write("Connect to Neo4j... ")
 		session = cypher.Session("http://localhost:7474")

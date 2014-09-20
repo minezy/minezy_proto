@@ -24,6 +24,8 @@ def query_params(request):
     query_params['keyword'] = request.args.get('keyword',default='',type=str)
     query_params['from'] = request.args.getlist('from')
     query_params['to'] = request.args.getlist('to')
+    query_params['cc'] = request.args.getlist('cc')
+    query_params['bcc'] = request.args.getlist('bcc')
 
     query_params['page'] = request.args.get('page',default=1,type=int)
     if query_params['page'] < 1:
@@ -34,8 +36,8 @@ def query_params(request):
         query_params['order'] = 'DESC' 
     
     query_params['field'] = request.args.get('field',default='TO|CC|BCC',type=str).upper()
-    if not (query_params['field'] == 'TO' or query_params['field'] == 'CC' or query_params['field'] == 'BCC'):
-        query_params['field'] = 'TO|CC|BCC'
+    #if not (query_params['field'] == 'TO' or query_params['field'] == 'CC' or query_params['field'] == 'BCC'):
+    #    query_params['field'] = 'TO|CC|BCC'
         
     return query_params
 

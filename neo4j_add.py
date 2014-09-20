@@ -61,7 +61,7 @@ def add_to_db(email_msg, batch):
         msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
         msgXFrom = email_msg.get_all('X-From', [''])
         _collect_names(msgFrom[0], msgXFrom[0])
-
+    
         msgEmail = str.lower(msgFrom[0][1])
         props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, "subject":msgSubject, "date":msgDate, "timestamp":timestamp} }
                
@@ -86,24 +86,26 @@ def add_to_db(email_msg, batch):
         if len(refs):
             props['refs'] = refs
             cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) CREATE UNIQUE (e)-[:Refs]->(eRef)) "
-
+    
         # Add TO relations
         tos = []
-        msgTo = email.utils.getaddresses(email_msg.get_all('To', []))
-        msgXTo = email_msg.get_all('X-To', [])
-        for msg,msgX in itertools.izip_longest(msgTo,msgXTo):
-            tos.append(str.lower(msg[1]))
+        msgTo = email.utils.getaddresses(email_msg.get_all('To', ['']))
+        msgXTo = email_msg.get_all('X-To', [''])
+        for msg,msgX in itertools.izip_longest(msgTo,msgXTo,fillvalue=''):
+            if len(msg) > 0:
+                tos.append(str.lower(msg[1]))
             _collect_names(msg, msgX)
         if len(tos):
             props['tos'] = tos
             cypher += "FOREACH (to in {tos} | MERGE (aTo:Actor {email:to}) CREATE UNIQUE (e)-[:TO]->(aTo)) "
-
+    
         # Add CC relations
         ccs = []
-        msgCC = email.utils.getaddresses(email_msg.get_all('Cc', []))
-        msgXCC = email_msg.get_all('X-Cc', [])
-        for msg,msgX in itertools.izip_longest(msgCC,msgXCC):
-            ccs.append(str.lower(msg[1]))
+        msgCC = email.utils.getaddresses(email_msg.get_all('Cc', ['']))
+        msgXCC = email_msg.get_all('X-Cc', [''])
+        for msg,msgX in itertools.izip_longest(msgCC,msgXCC,fillvalue=''):
+            if len(msg) > 0:
+                ccs.append(str.lower(msg[1]))
             _collect_names(msg,msgX)
         if len(ccs):
             props['ccs'] = ccs
@@ -113,13 +115,14 @@ def add_to_db(email_msg, batch):
         bccs = []
         msgBCC = email.utils.getaddresses(email_msg.get_all('bcc', []))
         msgXBCC = email_msg.get_all('X-bcc', [])
-        for msg,msgX in itertools.izip_longest(msgBCC,msgXBCC):
-            bccs.append(str.lower(msg[1]))
+        for msg,msgX in itertools.izip_longest(msgBCC,msgXBCC,fillvalue=''):
+            if len(msg) > 0:
+                bccs.append(str.lower(msg[1]))
             _collect_names(msg,msgX)
         if len(bccs):
             props['bccs'] = bccs
             cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Actor {email:bcc}) CREATE UNIQUE (e)-[:BCC]->(aBcc)) "
-
+    
         batch.append(cypher, props)
  
     except Exception, e:
@@ -132,7 +135,7 @@ def add_to_db(email_msg, batch):
 def _collect_names(msgAddr, msgXAddr):
     global g_names
     
-    if msgAddr is None:
+    if msgAddr is None or len(msgAddr) == 0:
         return
     
     msgEmail = str.lower(msgAddr[1])

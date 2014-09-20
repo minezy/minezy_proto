@@ -1,16 +1,21 @@
 import sys
-from py2neo import neo4j
+from py2neo import cypher
 
-global g_graph
+global g_session
 
 def connect():
-	global g_graph
-
+	global g_session
+	
 	try:
-		print "Connect to Neo4j..."
-		g_graph = neo4j.GraphDatabaseService("http://localhost:7474/db/data/")
-		print "OK"
+		sys.stdout.write("Connect to Neo4j... ")
+		g_session = cypher.Session("http://localhost:7474")
+		sys.stdout.write("OK\n")
+		return g_session
+	
 	except:
+		print
 		print "Error:", sys.exc_info()[1]
 		exit(1)
+		
+	return None
 

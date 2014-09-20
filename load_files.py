@@ -26,13 +26,16 @@ def load_folder(folder):
     print "Examining folder: " + folder
     files,folders = dir_contents(folder)
     
-    neo4j_add.batch_start()
+    batch = neo4j_add.batch_start()
     count = 0
     
     try:
         for file in files:
-            load_file(file)
+            load_file(file, batch)
             count += 1
+            if count == 1 or count % 100 == 0:
+                print str(count) + " of " + str(len(files))
+        if count % 100 != 0:
             print str(count) + " of " + str(len(files))
             
     except Exception, e:
@@ -41,9 +44,7 @@ def load_folder(folder):
     
     finally:
         if count > 0:
-            print "Writing batch..."
-            neo4j_add.batch_commit()
-            print "Done"
+            neo4j_add.batch_commit(batch)
         
     for folder in folders:
         load_folder(folder)
@@ -51,13 +52,14 @@ def load_folder(folder):
     return 
 
 
-def load_file(file):
+def load_file(file, batch):
     #print "\t" + file
     
     try:
         with open(file) as f:
             email_message = email.message_from_file(f)
-            neo4j_add.add_to_db(email_message)
+            if len(email_message._headers) > 0:
+                neo4j_add.add_to_db(email_message, batch)
             
     except Exception, e:
         print e
