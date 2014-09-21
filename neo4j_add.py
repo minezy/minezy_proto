@@ -11,6 +11,52 @@ from numpy.polynomial.polyutils import RankWarning
 global g_names
 global g_session
 
+class Neo4jTransaction:
+    session = None
+    tx = None
+    opCount = 0
+    targetCount = 1000
+    
+    def __init__(self):
+        if g_session:
+            self.session = g_session
+        else:
+            self.session = neo4j_conn.connect()
+        
+    def append(self, cypher, opCount=0, props=None):
+        if self.tx is None:
+            self.tx = self.session.create_transaction()
+            
+        self.tx.append(cypher, props)
+        self.opCount += opCount
+        
+        if self.opCount > self.targetCount:
+            self.execute()
+            
+    def execute(self):
+        sys.stdout.write("Writing batch ("+str(self.opCount)+")... ")
+        t0 = time.time()
+        self.tx.execute()
+        t1 = time.time()
+        
+        # size commits so they target 1-second to write
+        dT = t1 - t0
+        if (self.opCount > self.targetCount) or (dT > 1.0): 
+            adj = (1.0 + dT) / 2
+            self.targetCount = self.opCount / adj
+            if self.targetCount < 100:
+                self.targetCount = 100
+        self.opCount = 0
+             
+        _write_time(dT)
+        
+    def commit(self):
+        self.execute()
+        self.tx.commit()
+        self.tx = None
+        _add_names_to_db()
+
+              
 def init():
     global g_names
     global g_session
@@ -20,25 +66,48 @@ def init():
     g_names = {}
     return
 
-def batch_start():
-    global g_session
-    
+def complete():
+    print "Completing:"
     tx = g_session.create_transaction()
+
+    sys.stdout.write("Processing Sent Counts... ")
+    tx.append("MATCH (n:Actor)-[r:Sent]->() WITH n,count(r) AS rc SET n.sent=rc")
+    t0 = time.time()
+    tx.execute()
+    t1 = time.time()
+    _write_time(t1-t0)
+
+    sys.stdout.write("Processing TO Counts... ")
+    tx.append("MATCH (n:Actor)<-[r:TO]-() WITH n,count(r) AS rc SET n.to=rc")
+    t0 = time.time()
+    tx.execute()
+    t1 = time.time()
+    _write_time(t1-t0)
+
+    sys.stdout.write("Processing CC Counts... ")
+    tx.append("MATCH (n:Actor)<-[r:CC]-() WITH n,count(r) AS rc SET n.cc=rc")
+    t0 = time.time()
+    tx.execute()
+    t1 = time.time()
+    _write_time(t1-t0)
+
+    sys.stdout.write("Processing BCC Counts... ")
+    tx.append("MATCH (n:Actor)<-[r:BCC]-() WITH n,count(r) AS rc SET n.bcc=rc")
+    t0 = time.time()
+    tx.commit()
+    t1 = time.time()
+    _write_time(t1-t0)
+    return
+    
+def batch_start():
+    tx = Neo4jTransaction()
     return tx
 
 def batch_commit(tx):
-    t0 = time.time()
-    sys.stdout.write("Writing batch... ")
-    
     tx.commit()
-    
-    t1 = time.time()
-    sys.stdout.write(str(t1-t0) + " seconds\n")
-    
-    _add_names_to_db()
     return
 
-def add_to_db(email_msg, batch):
+def add_to_db(email_msg, tx, count=0):
     try:
         msgSubject = _get_decoded(email_msg['Subject'])
         msgDate = _get_decoded(email_msg['Date'])
@@ -48,10 +117,10 @@ def add_to_db(email_msg, batch):
         timestamp = email.utils.mktime_tz(date)
         
         if len(msgID) == 0:
-            print "Email with no msgID skipped"
+            print "Email "+str(count)+": no msgID - skipped"
             return
         if msgID == "None":
-            print "Email with msgID=None skipped"
+            print "Email "+str(count)+": msgID=None - skipped"
             return
         
         msgID = msgID.strip("<>")
@@ -64,18 +133,22 @@ def add_to_db(email_msg, batch):
     
         msgEmail = str.lower(msgFrom[0][1])
         props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, "subject":msgSubject, "date":msgDate, "timestamp":timestamp} }
-               
+
+        opCount = 0
+                       
         # Add Email
         cypher = "MERGE (e:Email {id:{props}.id}) "
         cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
         # Add From Actor
         cypher += "MERGE (a:Actor {email:{props}.email}) "
         cypher += "CREATE UNIQUE (a)-[:Sent]->(e), (e)-[:SentBy]->(a) "
+        opCount += 3
         
         # Email Thread Relation
         if msgIDParent != "None":
             cypher += "MERGE (ePar:Email {id:{props}.parentId}) "
             cypher += "CREATE UNIQUE (e)-[:InReplyTo]->(ePar), (ePar)-[:Reply]->(e) "
+            opCount += 3
         
         # Email Thread References
         refs = []
@@ -86,6 +159,7 @@ def add_to_db(email_msg, batch):
         if len(refs):
             props['refs'] = refs
             cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) CREATE UNIQUE (e)-[:Refs]->(eRef)) "
+            opCount += 2*len(refs)
     
         # Add TO relations
         tos = []
@@ -98,6 +172,7 @@ def add_to_db(email_msg, batch):
         if len(tos):
             props['tos'] = tos
             cypher += "FOREACH (to in {tos} | MERGE (aTo:Actor {email:to}) CREATE UNIQUE (e)-[:TO]->(aTo)) "
+            opCount += 2*len(tos)
     
         # Add CC relations
         ccs = []
@@ -110,6 +185,7 @@ def add_to_db(email_msg, batch):
         if len(ccs):
             props['ccs'] = ccs
             cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Actor {email:cc}) CREATE UNIQUE (e)-[:CC]->(aCc)) "
+            opCount += 2*len(ccs)
         
         # Add BCC relations
         bccs = []
@@ -122,8 +198,9 @@ def add_to_db(email_msg, batch):
         if len(bccs):
             props['bccs'] = bccs
             cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Actor {email:bcc}) CREATE UNIQUE (e)-[:BCC]->(aBcc)) "
+            opCount += 2*len(bccs)
     
-        batch.append(cypher, props)
+        tx.append(cypher, opCount, props)
  
     except Exception, e:
         print e
@@ -151,11 +228,14 @@ def _collect_names(msgAddr, msgXAddr):
     msgName = " ".join(msgName.split(", ")[::-1])
     
     # Update name dictionary
-    if len(msgName) > 0 and msgName != 'None':
+    nameLen = len(msgName)
+    if (nameLen > 0) and (nameLen < 100) and msgName != 'None':
         names = g_names.get(msgEmail, {msgName:0})
         count = names.get(msgName, 0)
         names[msgName] = count + 1
         g_names[msgEmail] = names
+    elif nameLen >= 100:
+        nameLen = nameLen
 
     return
 
@@ -213,7 +293,7 @@ def _add_names_to_db():
         pass
         
     t1 = time.time()
-    sys.stdout.write(str(t1-t0) + " seconds\n")
+    _write_time(t1-t0)
     return
 
 
@@ -232,3 +312,6 @@ def _get_decoded(strIn):
 
     return strOut
 
+def _write_time(dT):
+    sys.stdout.write("    \t" + str(dT) + " seconds\n")
+    

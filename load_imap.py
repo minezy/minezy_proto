@@ -15,6 +15,8 @@ def scan_email_folder(mail, folderName):
     ids = data[0] # data is a list.
     id_list = ids.split() # ids is a space separated string
 
+    tx = neo4j_add.batch_start()
+
     count = 0
     while count < len(id_list):
         # next batch of headers   
@@ -25,27 +27,26 @@ def scan_email_folder(mail, folderName):
         result, headers = mail.uid('fetch', idfetch, "(BODY.PEEK[HEADER])")
          
         t1 = time.time()
-        sys.stdout.write(str(t1-t0) + " seconds\n")
+        sys.stdout.write("    \t" + str(t1-t0) + " seconds\n")
         
-        batch = neo4j_add.batch_start()
         try:
             for header in headers:
                 if type(header) == tuple:
                     raw_hdr = header[1]
                     email_message = email.message_from_string(raw_hdr)
-                    neo4j_add.add_to_db(email_message, batch)
+                    neo4j_add.add_to_db(email_message, tx, count)
                     count += 1
                     if count == 1 or count % 100 == 0:
-                        print str(count) + " of " + str(len(id_list))
+                        print "Email " + str(count) + " of " + str(len(id_list))
             if count % 100 != 0:
-                print str(count) + " of " + str(len(id_list))
+                print "Email " + str(count) + " of " + str(len(id_list))
             
         except Exception, e:
             print e
             pass
         
         finally:
-            neo4j_add.batch_commit(batch)
+            neo4j_add.batch_commit(tx)
 
     return
 
@@ -55,6 +56,7 @@ if __name__ == '__main__':
     	print "Usage: " + sys.argv[0] + " <mailhost> <login> <password>"
     	exit(1)
 
+    t0 = time.time()
     neo4j_add.init()
 
     print "Logging into " + sys.argv[1] + ": " + sys.argv[2] + "..."
@@ -69,6 +71,9 @@ if __name__ == '__main__':
     #scan_email_folder(mail, "INBOX")
     #scan_email_folder(mail, "[Gmail]/Sent Mail")
 
-    print "All Done"
+    neo4j_add.complete()
+    t1 = time.time()
+    
+    print "All Done ("+str(t1-t0) + " seconds)"
 
    

@@ -5,22 +5,9 @@ from py2neo import cypher, node, rel
 import neo4j_conn
 
 
-def query_emails(query_params, countResults=False):
+def query_emails(params, countResults=False):
 
     t0 = time.time()
-    
-    params = {}
-    params['index'] = query_params.get('index', 0)
-    params['limit'] = query_params.get('limit', 0)
-    params['page'] = query_params.get('page', 1)
-    params['order'] = query_params.get('order', 'DESC').upper()
-    params['start'] = query_params.get('start', 0)
-    params['end'] = query_params.get('end', 0)
-    params['keyword'] = query_params.get('keyword')
-    params['from'] = query_params.get('from', [])
-    params['to'] = query_params.get('to', [])
-    params['cc'] = query_params.get('cc', [])
-    params['bcc'] = query_params.get('bcc', [])
     
     if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
         query_str = ''

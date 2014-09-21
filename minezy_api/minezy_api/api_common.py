@@ -19,8 +19,8 @@ def query_params(request):
 
     query_params['index'] = request.args.get('index',default=0,type=int)
     query_params['limit'] = request.args.get('limit',default=0,type=int)
-    query_params['start'] = request.args.get('start',default=0,type=int)
-    query_params['end'] = request.args.get('end',default=0,type=int)
+    query_params['start'] = int(request.args.get('start',default=0,type=float))
+    query_params['end'] = int(request.args.get('end',default=0,type=float))
     query_params['keyword'] = request.args.get('keyword',default='',type=str)
     query_params['from'] = request.args.getlist('from')
     query_params['to'] = request.args.getlist('to')
@@ -30,6 +30,9 @@ def query_params(request):
     query_params['page'] = request.args.get('page',default=1,type=int)
     if query_params['page'] < 1:
         query_params['page'] = 1
+        
+    count = request.args.get('count',default='SENT+TO+CC+BCC',type=str).upper()
+    query_params['count'] = count.split('+')
 
     query_params['order'] = request.args.get('order',default='DESC',type=str).upper()
     if not (query_params['order'] == 'ASC' or query_params['order'] == 'DESC'):
