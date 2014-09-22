@@ -29,7 +29,10 @@ def query_actors(params, countResults=False):
 
     elif params['start'] or params['end']:
         bWhere = False
-        query_str = "MATCH (n:Actor)-[r]-(e:Email) "
+        rels = ''
+        if params['count']:
+            rels = ':' + '|'.join(params['count']).replace('SENT', 'Sent')
+        query_str = "MATCH (n:Actor)-[r"+rels+"]-(e:Email) "
     else:
         bWhere = False
         bManualCount = False
@@ -41,13 +44,13 @@ def query_actors(params, countResults=False):
                 else:
                     query_str += "+"
                 if cnt == 'SENT':
-                    query_str += "COALESCE(n.sent,0)"
+                    query_str += "n.sent"
                 elif cnt == 'TO':
-                    query_str += "COALESCE(n.to,0)"
+                    query_str += "n.to"
                 elif cnt == 'CC':
-                    query_str += "COALESCE(n.cc,0)"
+                    query_str += "n.cc"
                 elif cnt == 'BCC':
-                    query_str += "COALESCE(n.bcc,0)"
+                    query_str += "n.bcc"
             query_str += " AS count "
         
     if params['start'] or params['end']:

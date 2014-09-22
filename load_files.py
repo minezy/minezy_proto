@@ -1,11 +1,9 @@
 #!/usr/bin/python
-import os
 import os.path
 import sys
-import imaplib
+import time
 import email
-import email.utils
-import neo4j_add
+from neo4j_add import neo4jLoader
 
 
 def dir_contents(path):
@@ -22,16 +20,15 @@ def dir_contents(path):
         pass
     return files, folders
 
-def load_folder(folder):
+def load_folder(loader, folder):
     print "Examining folder: " + folder
     files,folders = dir_contents(folder)
     
-    batch = neo4j_add.batch_start()
     count = 0
     
     try:
-        for file in files:
-            load_file(file, batch)
+        for fileName in files:
+            load_file(loader, fileName)
             count += 1
             if count == 1 or count % 100 == 0:
                 print str(count) + " of " + str(len(files))
@@ -43,23 +40,22 @@ def load_folder(folder):
         pass
     
     finally:
-        if count > 0:
-            neo4j_add.batch_commit(batch)
+        loader.commit()
         
     for folder in folders:
-        load_folder(folder)
+        load_folder(loader, folder)
 
     return 
 
 
-def load_file(file, batch):
+def load_file(loader, fileName):
     #print "\t" + file
     
     try:
-        with open(file) as f:
+        with open(fileName) as f:
             email_message = email.message_from_file(f)
             if len(email_message._headers) > 0:
-                neo4j_add.add_to_db(email_message, batch)
+                loader.add(email_message)
             
     except Exception, e:
         print e
@@ -72,10 +68,13 @@ if __name__ == '__main__':
         print "Usage: " + sys.argv[0] + " <root_dir>"
         exit(1)
 
-    neo4j_add.init()
+    t0 = time.time()
+    loader = neo4jLoader()
     
-    load_folder(sys.argv[1])
+    load_folder(loader, sys.argv[1])
 
-    neo4j_add.complete()
-    print "All Done"
+    loader.complete()
+    t1 = time.time()
+    
+    print "All Done ("+str(t1-t0) + " seconds)"
     
