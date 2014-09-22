@@ -52,7 +52,7 @@ module.exports = function(grunt) {
       },
       js: {
         files: ['<%= jshint.files %>'],
-        tasks: ['jshint','concat:dist','uglify:dist']
+        tasks: ['jshint','concat:dist']
       }
     }
   });

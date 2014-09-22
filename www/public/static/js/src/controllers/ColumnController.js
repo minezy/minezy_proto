@@ -12,7 +12,7 @@ App.ColumnController = ( function($,document,window, U) {
 		this.totalColWidth = 0;
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
-$('.columnContainer').on('scroll',function(){console.log($(this).scrollLeft());});
+
 		this.adjustColumnHeight();
 
 	}
@@ -35,7 +35,7 @@ $('.columnContainer').on('scroll',function(){console.log($(this).scrollLeft());}
 
 			if( index > 0 ) {
 				$("#Column" + (index-1) + ' .loader').hide();
-				//$("#Column" + (index-1) + ' .resultContainer').eq(this.activeRow).fadeIn();
+				$("#Column" + (index-1) + ' .resultContainer').eq(this.activeRow).children('.arrow').fadeIn();
 			}
 		},
 

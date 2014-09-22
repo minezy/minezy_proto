@@ -145,35 +145,37 @@ App.Column = ( function($,document,window, U) {
 			var count = 0;
 			var resultContainer = $(this.element).children('.results');
 
-			$.each(actors, $.proxy(function(i,v) {
-				if( v.count > maxVal )
-					maxVal = v.count;
-			},this));
-
+			for(var i = 0; i < actors.length;i++) {
+				if( actors[i].count > maxVal )
+					maxVal = actors[i].count;
+			}
 			//console.log(maxVal);
 
 			$(resultContainer).hide();
 
-			$.each(actors, $.proxy(function(i,v) {
+			for(i = 0; i < actors.length;i++) {
+
 				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""><div class="loader"></div></div>');
 
 				var newBar = $(newRow).children('.bar');
 				resultContainer.append(newRow);
 
 				var rowMaxWidth = $(this.element).width() - (parseInt($(newBar).css('left'))*2);
-				var size = Math.round( ( v.count / maxVal ) * rowMaxWidth );
+				var size = Math.round( ( actors[i].count / maxVal ) * rowMaxWidth );
 
 				$(newBar).css('width',size);
-				$(newRow).children('.tally').text(v.count);
-				$(newRow).children('.title').text(v.name);
-				$(newRow).children('input').val(v.email);
+				$(newRow).children('.tally').text(actors[i].count);
+				$(newRow).children('.title').text(actors[i].name);
+				$(newRow).children('input').val(actors[i].email);
 				count++;
 
-			},this));
+			}
 
 			//enable row clicking
+			count=0;
 			$( this.colName + ' .resultContainer').each($.proxy(function(i,v) {
-				$(v).on('click',$.proxy(this.newColumnRequest,this,[i]) );
+				$(v).on('click',$.proxy(this.newColumnRequest,this,[count]) );
+				count++;
 			},this));
 
 			//fade in rows
@@ -201,7 +203,6 @@ App.Column = ( function($,document,window, U) {
 			var params = {'from':email,'start':this.params.start,'end':this.params.end,'limit':this.params.limit};
 
 			row.addClass('on');
-			row.children('.arrow').hide();
 			row.children('.loader').fadeIn(100);
 
 			$(this).trigger('NewColumn',[this.index, action,params,index]);
@@ -230,7 +231,7 @@ App.Column = ( function($,document,window, U) {
 
 		clearData: function() {
 
-			$( this.colName + ' .resultContainer').fadeOut( 100, function(){ this.remove(); } );
+			$( this.colName + ' .resultContainer').remove();
 
 		},
 
