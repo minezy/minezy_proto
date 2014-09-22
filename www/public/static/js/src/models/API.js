@@ -4,7 +4,6 @@ App.API = ( function($,document,window, U) {
 
 
 	function API() {
-		console.log('API INIT');
 
 		this.api_root = 'http://localhost:5000';
 		this.api_version = 1;

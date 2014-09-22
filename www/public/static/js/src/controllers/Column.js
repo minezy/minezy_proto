@@ -14,6 +14,7 @@ App.Column = ( function($,document,window, U) {
 		this.action = options.action;
 		this.optionsOpen = false;
 		this.colName = '#Column';
+		this.width = 340;
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -23,8 +24,6 @@ App.Column = ( function($,document,window, U) {
 	Column.prototype = {
 
 		setupColumn: function() {
-
-			console.log('SETUP!');
 
 			this.element = $('#template').clone();
 			var resultContainer = $(this.element).children('.results');
@@ -42,11 +41,21 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .searchOptions input').on('focus',$.proxy( this.searchFocus, this ) );
 			$( this.colName + ' .searchOptions input').on('blur',$.proxy( this.searchBlur, this ) );
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
+
+			//hide or show close button
+
+			if( this.index === 0 ) {
+				$(this.colName + ' a.closeButton').hide();
+			} else {
+				$(this.colName + ' a.closeButton').on( 'click', $.proxy(this.handleColumnClose,this) );
+			}
+		},
+
+		handleColumnClose: function(e) {
+			$(this).trigger('Closing',[this.index]);
 		},
 
 		searchFilter: function() {
-
-			console.log(this.colName);
 
 			var val = $( this.colName + ' .searchFilter').val();
 
@@ -78,7 +87,7 @@ App.Column = ( function($,document,window, U) {
 
 			var keyword = $( this.colName + ' .searchOptions input').val();
 
-			console.log('search',keyword);
+			//console.log('search',keyword);
 
 			if( keyword !== '' && keyword !== 'enter keyword' ) {
 				$( this.colName + ' .searchOptions a').off('click');
@@ -90,7 +99,7 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		searchFocus: function(e) {
-			console.log('focus');
+
 			var elm = $( this.colName + ' .searchOptions input');
 			elm.removeClass('error');
 
@@ -100,7 +109,7 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		searchBlur: function(e) {
-			console.log('blur');
+
 			var elm = $( this.colName + ' .searchOptions input');
 
 			if( elm.val() === '' ) {
@@ -128,7 +137,8 @@ App.Column = ( function($,document,window, U) {
 
 		recievedData: function(data) {
 
-			console.log('GOT THE DATA!',data,this.active, this.colName,this.element);
+			//console.log('GOT THE DATA!',data,this.active, this.colName,this.element);
+			$(this).trigger('DataReceived',[this.index]);
 
 			var actors = data.actors.actor;
 			var maxVal = 0;
@@ -140,12 +150,12 @@ App.Column = ( function($,document,window, U) {
 					maxVal = v.count;
 			},this));
 
-			console.log(maxVal);
+			//console.log(maxVal);
 
 			$(resultContainer).hide();
 
 			$.each(actors, $.proxy(function(i,v) {
-				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""></div>');
+				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""><div class="loader"></div></div>');
 
 				var newBar = $(newRow).children('.bar');
 				resultContainer.append(newRow);
@@ -191,8 +201,10 @@ App.Column = ( function($,document,window, U) {
 			var params = {'from':email,'start':this.params.start,'end':this.params.end,'limit':this.params.limit};
 
 			row.addClass('on');
+			row.children('.arrow').hide();
+			row.children('.loader').fadeIn(100);
 
-			$(this).trigger('NewColumn',[this.index, action,params]);
+			$(this).trigger('NewColumn',[this.index, action,params,index]);
 
 		},
 

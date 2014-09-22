@@ -2184,6 +2184,7 @@ App.Column = ( function($,document,window, U) {
 		this.action = options.action;
 		this.optionsOpen = false;
 		this.colName = '#Column';
+		this.width = 340;
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -2193,8 +2194,6 @@ App.Column = ( function($,document,window, U) {
 	Column.prototype = {
 
 		setupColumn: function() {
-
-			console.log('SETUP!');
 
 			this.element = $('#template').clone();
 			var resultContainer = $(this.element).children('.results');
@@ -2212,11 +2211,21 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .searchOptions input').on('focus',$.proxy( this.searchFocus, this ) );
 			$( this.colName + ' .searchOptions input').on('blur',$.proxy( this.searchBlur, this ) );
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
+
+			//hide or show close button
+
+			if( this.index === 0 ) {
+				$(this.colName + ' a.closeButton').hide();
+			} else {
+				$(this.colName + ' a.closeButton').on( 'click', $.proxy(this.handleColumnClose,this) );
+			}
+		},
+
+		handleColumnClose: function(e) {
+			$(this).trigger('Closing',[this.index]);
 		},
 
 		searchFilter: function() {
-
-			console.log(this.colName);
 
 			var val = $( this.colName + ' .searchFilter').val();
 
@@ -2248,7 +2257,7 @@ App.Column = ( function($,document,window, U) {
 
 			var keyword = $( this.colName + ' .searchOptions input').val();
 
-			console.log('search',keyword);
+			//console.log('search',keyword);
 
 			if( keyword !== '' && keyword !== 'enter keyword' ) {
 				$( this.colName + ' .searchOptions a').off('click');
@@ -2260,7 +2269,7 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		searchFocus: function(e) {
-			console.log('focus');
+
 			var elm = $( this.colName + ' .searchOptions input');
 			elm.removeClass('error');
 
@@ -2270,7 +2279,7 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		searchBlur: function(e) {
-			console.log('blur');
+
 			var elm = $( this.colName + ' .searchOptions input');
 
 			if( elm.val() === '' ) {
@@ -2298,7 +2307,8 @@ App.Column = ( function($,document,window, U) {
 
 		recievedData: function(data) {
 
-			console.log('GOT THE DATA!',data,this.active, this.colName,this.element);
+			//console.log('GOT THE DATA!',data,this.active, this.colName,this.element);
+			$(this).trigger('DataReceived',[this.index]);
 
 			var actors = data.actors.actor;
 			var maxVal = 0;
@@ -2310,12 +2320,12 @@ App.Column = ( function($,document,window, U) {
 					maxVal = v.count;
 			},this));
 
-			console.log(maxVal);
+			//console.log(maxVal);
 
 			$(resultContainer).hide();
 
 			$.each(actors, $.proxy(function(i,v) {
-				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""></div>');
+				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""><div class="loader"></div></div>');
 
 				var newBar = $(newRow).children('.bar');
 				resultContainer.append(newRow);
@@ -2361,8 +2371,10 @@ App.Column = ( function($,document,window, U) {
 			var params = {'from':email,'start':this.params.start,'end':this.params.end,'limit':this.params.limit};
 
 			row.addClass('on');
+			row.children('.arrow').hide();
+			row.children('.loader').fadeIn(100);
 
-			$(this).trigger('NewColumn',[this.index, action,params]);
+			$(this).trigger('NewColumn',[this.index, action,params,index]);
 
 		},
 
@@ -2423,9 +2435,12 @@ App.ColumnController = ( function($,document,window, U) {
 		console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
+		this.activeColumn = -1;
+		this.activeRow = -1;
+		this.totalColWidth = 0;
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
-
+$('.columnContainer').on('scroll',function(){console.log($(this).scrollLeft());});
 		this.adjustColumnHeight();
 
 	}
@@ -2437,18 +2452,33 @@ App.ColumnController = ( function($,document,window, U) {
 			var new_col = new App.Column({'action':action,'params':params,'index':this.columns.length});
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
 			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
+			$(new_col).on('Closing', $.proxy( this.closingColumn, this ) );
+			$(new_col).on('DataReceived', $.proxy( this.columnDataRecieved, this ) );
 
 			this.columns.push( new_col );
 
 		},
 
-		newColumnRequest: function(e,column,action,params) {
+		columnDataRecieved: function(e,index) {
+
+			if( index > 0 ) {
+				$("#Column" + (index-1) + ' .loader').hide();
+				//$("#Column" + (index-1) + ' .resultContainer').eq(this.activeRow).fadeIn();
+			}
+		},
+
+		newColumnRequest: function(e,column,action,params,rowIndex) {
 
 			if( this.columns[column+1] ) {
+				if( this.columns.length > column+1 ) {
+					this.removeColumns(column+2);
+				}
 				this.columns[column+1].updateAll(action,params);
 			} else {
 				this.addColumn(action,params);
 			}
+
+			this.activeRow = rowIndex;
 
 		},
 
@@ -2460,15 +2490,27 @@ App.ColumnController = ( function($,document,window, U) {
 			}
 
 			var column = this.columns[index].element;
-			var offset = index * 340;
+			var offset = index * this.columns[index].width;
 
+			this.totalColWidth += this.columns[index].width;
+
+			$(column).css('left',offset-80);
+			$(column).hide().fadeIn(300,$.proxy(function() { 
+
+				if( this.totalColWidth > $(window).width() ) {
+					var sl = this.totalColWidth - $(window).width();
+					$('.columnContainer').animate({scrollLeft:sl},300);
+				}
+
+			},this));
 			$(column).css('left',offset);
-			$(column).hide().fadeIn();
-			$(column).css('top','0px');
 
 			this.adjustColumnHeight();
 
-			console.log(index,column);
+			this.activeColumn = index;
+
+			console.log(this.totalColWidth, $('.columnContainer').innerWidth());
+			
 
 		},
 
@@ -2482,20 +2524,19 @@ App.ColumnController = ( function($,document,window, U) {
 
 		removeColumns: function(rootIndex) {
 
-			if(!rootIndex) {
-				rootIndex = 1;
-			}
-
 			if( this.columns.length > rootIndex ) {
-				var totalDelay = this.columns.length * 200;
+				var totalDelay = ( this.columns.length - rootIndex ) * 100;
 
-				for(var i = this.columns.length; i >= rootIndex; i-- ) {
-					this.removeColumn(i, totalDelay-(i*200) );
+				for(var i = this.columns.length-1; i >= rootIndex; i-- ) {
+					this.removeColumn(i, totalDelay-(i*100) );
 				}
 			}
 
+		},
 
-
+		closingColumn: function(e,index) {
+			//console.log('CLOSE COLUMN: ',index);
+			this.removeColumns(index);
 		},
 
 		removeColumn: function(index,delay) {
@@ -2511,7 +2552,7 @@ App.ColumnController = ( function($,document,window, U) {
 			var h = 0;
 
 			h = $(window).height() - $('header').outerHeight() - $('nav.dates').outerHeight();
-			console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
+			//console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
 			$('.columnContainer,.column').css('min-height',h);
 		},
 
@@ -2700,7 +2741,6 @@ App.API = ( function($,document,window, U) {
 
 
 	function API() {
-		console.log('API INIT');
 
 		this.api_root = 'http://localhost:5000';
 		this.api_version = 1;

@@ -5,6 +5,7 @@ from flask import jsonify, request
 from __builtin__ import str
 
 
+
 @app.route('/1/actors/', methods=['GET'])
 @support_jsonp
 def actors():
