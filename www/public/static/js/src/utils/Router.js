@@ -49,7 +49,7 @@ Utils.Router = (function($,U) {
 			$.each(this.routes, function(i,route) {
 
 				if( route.controller === controllerName ) {
-					console.log('GMR FOUND ROUTE: ' + route);
+					//console.log('GMR FOUND ROUTE: ' + route);
 					foundRoute = route;
 				}
 			});
@@ -62,7 +62,7 @@ Utils.Router = (function($,U) {
 
 			$.each(this.routes, function(i,route) {
 				if( route.match(window.location.pathname) && !foundRoute ) {
-					console.log('FOUND ROUTE: ' + route);
+					//console.log('FOUND ROUTE: ' + route);
 					foundRoute = route;
 				}
 			});

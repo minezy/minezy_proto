@@ -2287,24 +2287,54 @@ App.Main = (function(window, document, $, App, Utils){
 
 })(window, document, jQuery, App, Utils);;
 
+App.ActionTreeController = ( function($,document,window, U) {
+
+
+	function ActionTreeController(options) {
+		console.log('ACTION TREE CONTROLLER INIT');
+
+		this.at = new App.ActionTree();
+
+	}
+
+	ActionTreeController.prototype = {
+
+
+		destroy: function() {
+			//do any clean up when destroying the section
+			//delete this.homePhotos;
+		}
+
+	};
+
+	return ActionTreeController;
+
+})(jQuery,document,window, Utils);;
+
 App.Column = ( function($,document,window, U) {
 
 
 	function Column(options) {
-		console.log('COLUMN INIT > ', options);
+		//console.log('COLUMN INIT > ', options);
 
 		this.API = new App.API();
+		this.at = new App.ActionTree();
 		this.index = options.index;
 		this.element = null;
 		this.active = false;
-		this.params = options.params;
+		this.params = $.extend({},options.params);
 		this.action = options.action;
+		this.subaction = options.subaction;
+		this.columnActions = options.columnActions;
+		this.path = options.path;
 		this.optionsOpen = false;
 		this.colName = '#Column';
 		this.width = 340;
+		this.childOptions = this.at.getActions(this.path);
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
+
 
 	}
 
@@ -2324,32 +2354,80 @@ App.Column = ( function($,document,window, U) {
 
 			$( this.colName + ' .searchMore').on('click',$.proxy( this.showMoreSearchOptions, this ) );
 			$( this.colName + ' .searchOptions').hide();
-			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
-			$( this.colName + ' .searchOptions input').on('focus',$.proxy( this.searchFocus, this ) );
-			$( this.colName + ' .searchOptions input').on('blur',$.proxy( this.searchBlur, this ) );
+			$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
+			$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
 
-			//hide or show close button
+			this.setColumnActions();
 
+			//hide or show close button
 			if( this.index === 0 ) {
 				$(this.colName + ' a.closeButton').hide();
 			} else {
 				$(this.colName + ' a.closeButton').on( 'click', $.proxy(this.handleColumnClose,this) );
 			}
+
+		},
+
+		updateUI: function(data) {
+
+			$( this.colName + ' .searchAction').text(this.action);
+			$( this.colName + ' .searchParams').empty();
+
+			for (var key in this.params) {
+				if( key !== 'end' && key !== 'limit' && key !== 'start' ) {
+					var filter = $('#template .searchParams span').clone();
+					var param = this.params[key];
+
+					$(filter).children('strong').text(key+": ");
+					$(filter).children('em').text(param);
+
+					$( this.colName + ' .searchParams').append(filter);
+				}
+			}
+
 		},
 
 		handleColumnClose: function(e) {
 			$(this).trigger('Closing',[this.index]);
 		},
 
+		setColumnActions: function() {
+
+			$( this.colName + ' .searchFilter').empty();
+
+			for(var i = 0; i<this.columnActions.length;i++) {
+				var option = '<option value="'+this.columnActions[i]+'">'+this.columnActions[i]+'</option>';
+				$( this.colName + ' .searchFilter').append(option);
+			}
+
+		},
+
 		searchFilter: function() {
 
 			var val = $( this.colName + ' .searchFilter').val();
+			var options;
 
-			$.extend(this.params,this.parseFilter(val) );
+			$( this.colName + ' .additionalOptions a').off('click');
 
-			this.updateParams();
+			if( val === 'actors' ) {
+				options = $('#template .searchOptionWidgets .actors').clone();
 
+				$( this.colName + ' .additionalOptions').empty();
+				$( this.colName + ' .additionalOptions').append(options);
+			} else if( val === 'emails' ) {
+				options = $('#template .searchOptionWidgets .emails').clone();
+
+				$( this.colName + ' .additionalOptions').empty();
+				$( this.colName + ' .additionalOptions').append(options);
+			} else if( val === 'dates' ) {
+				options = $('#template .searchOptionWidgets .dates').clone();
+
+				$( this.colName + ' .additionalOptions').empty();
+				$( this.colName + ' .additionalOptions').append(options);
+			}
+
+			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
 		},
 
 		parseFilter: function(val) {
@@ -2371,23 +2449,55 @@ App.Column = ( function($,document,window, U) {
 
 		searchColumn:function() {
 
+			var params = {};
 
-			var keyword = $( this.colName + ' .searchOptions input').val();
 
-			//console.log('search',keyword);
+			if( this.action !== $( this.colName + ' .searchFilter').val() ) {
+				this.action = $( this.colName + ' .searchFilter').val();
+			}
 
-			if( keyword !== '' && keyword !== 'enter keyword' ) {
-				$( this.colName + ' .searchOptions a').off('click');
+			//field
+			if( this.action == 'actors') {
 
-				var params = {'keyword':keyword};
-				this.updateParams(params);
+				var keyword = $( this.colName + ' .additionalOptions .keyword').val();
+
+				if( keyword !== '' && keyword !== 'enter keyword' ) {
+					$( this.colName + ' .searchOptions a').off('click');
+
+					params.keyword = keyword;
+				}
+
+				var field = '';
+				if( $( this.colName + ' .additionalOptions .field-to').is(':checked') )
+					field += 'to|';
+				if( $( this.colName + ' .additionalOptions .field-cc').is(':checked') )
+					field += 'cc|';
+				if( $( this.colName + ' .additionalOptions .field-bcc').is(':checked') )
+					field += 'bcc|';
+
+				field = field.substring(0, field.length - 1);
+				//console.log('FIELD: '+field,$( this.colName + ' .field-to'));
+				if( field !== 'to|cc|bbc')
+					params.field = field;
+			} else if( this.action == 'emails' ) {
+
+			} else if( this.action == 'dates' ) {
+
+			}
+
+			if( !$.isEmptyObject(params) ) {
+				$( this.colName + ' .additionalOptions a').off('click');
+				params.limit = 20;
+				params.start = this.params.start;
+				params.end = this.params.end;
+				this.updateAll(this.action,params);
 			}
 
 		},
 
 		searchFocus: function(e) {
 
-			var elm = $( this.colName + ' .searchOptions input');
+			var elm = $( this.colName + ' .keyword');
 			elm.removeClass('error');
 
 			if( elm.val() === 'enter keyword' ) {
@@ -2397,7 +2507,7 @@ App.Column = ( function($,document,window, U) {
 
 		searchBlur: function(e) {
 
-			var elm = $( this.colName + ' .searchOptions input');
+			var elm = $( this.colName + ' .keyword');
 
 			if( elm.val() === '' ) {
 				elm.val('enter keyword');
@@ -2411,13 +2521,13 @@ App.Column = ( function($,document,window, U) {
 			if(this.optionsOpen){
 				$( this.colName + ' .searchOptions').slideUp();
 				this.optionsOpen = false;
-				$( this.colName + ' .searchMore i').addClass('fa-search-plus');
-				$( this.colName + ' .searchMore i').removeClass('fa-search-minus');
+				$( this.colName + ' .searchMore i').addClass('fa-plus');
+				$( this.colName + ' .searchMore i').removeClass('fa-minus');
 			} else{
 				$( this.colName + ' .searchOptions').slideDown();
 				this.optionsOpen = true;
-				$( this.colName + ' .searchMore i').removeClass('fa-search-plus');
-				$( this.colName + ' .searchMore i').addClass('fa-search-minus');
+				$( this.colName + ' .searchMore i').removeClass('fa-plus');
+				$( this.colName + ' .searchMore i').addClass('fa-minus');
 			}
 
 		},
@@ -2427,20 +2537,31 @@ App.Column = ( function($,document,window, U) {
 			//console.log('GOT THE DATA!',data,this.active, this.colName,this.element);
 			$(this).trigger('DataReceived',[this.index]);
 
-			var actors = data.actors.actor;
+			var rows = {};
 			var maxVal = 0;
 			var count = 0;
 			var resultContainer = $(this.element).children('.results');
 
-			for(var i = 0; i < actors.length;i++) {
-				if( actors[i].count > maxVal )
-					maxVal = actors[i].count;
+			if( this.action == 'actors' ) {
+				rows = data.actors.actor;
+			} else if( this.action == 'dates' ) {
+				rows = data;
+			} else if( this.action == 'emails' ) {
+				rows = data;
+			} else {
+				return;
+			}
+
+
+			for(var i = 0; i < rows.length;i++) {
+				if( rows[i].count > maxVal )
+					maxVal = rows[i].count;
 			}
 			//console.log(maxVal);
 
 			$(resultContainer).hide();
 
-			for(i = 0; i < actors.length;i++) {
+			for(i = 0; i < rows.length;i++) {
 
 				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""><div class="loader"></div></div>');
 
@@ -2448,15 +2569,17 @@ App.Column = ( function($,document,window, U) {
 				resultContainer.append(newRow);
 
 				var rowMaxWidth = $(this.element).width() - (parseInt($(newBar).css('left'))*2);
-				var size = Math.round( ( actors[i].count / maxVal ) * rowMaxWidth );
+				var size = Math.round( ( rows[i].count / maxVal ) * rowMaxWidth );
 
 				$(newBar).css('width',size);
-				$(newRow).children('.tally').text(actors[i].count);
-				$(newRow).children('.title').text(actors[i].name);
-				$(newRow).children('input').val(actors[i].email);
+				$(newRow).children('.tally').text(rows[i].count);
+				$(newRow).children('.title').text(rows[i].name);
+				$(newRow).children('input').val(rows[i].email);
 				count++;
 
 			}
+
+			this.updateUI();
 
 			//enable row clicking
 			count=0;
@@ -2469,7 +2592,7 @@ App.Column = ( function($,document,window, U) {
 			$(resultContainer).fadeIn();
 
 			//enable search again
-			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
 
 			//update the controller if the column is new
 			if( !this.active ) {
@@ -2485,21 +2608,41 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .resultContainer' ).removeClass('on');
 
 			var row = $( this.colName + ' .resultContainer' ).eq(index);
-			var email = row.children('input').val();
-			var action = 'actors';
-			var params = {'from':email,'start':this.params.start,'end':this.params.end,'limit':this.params.limit};
+			var keyVal = row.children('input').val();
+
+			var actionParam = this.childOptions[0].split('-');
+			var action = '';
+			var key = '';
+
+			//console.log('AP:',actionParam);
+
+			if( actionParam.length > 1 ) {
+				action = actionParam[0];
+				key = actionParam[1];
+			}
+
+
+			var new_params = {};
+
+			if( key !== '' ) {
+				new_params[key] = keyVal;
+			}
+
+			var params = $.extend(this.params,new_params);
+
+			//console.log(this.index,'P-A:',params,action);
 
 			row.addClass('on');
 			row.children('.loader').fadeIn(100);
 
-			$(this).trigger('NewColumn',[this.index, action,params,index]);
+			$(this).trigger('NewColumn',[this.index, action, params, index]);
 
 		},
 
 		updateAll: function(action,params) {
 
 			this.action = action;
-			this.params = params;
+			this.params = $.extend( {}, params );
 
 			this.clearData();
 			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -2509,7 +2652,7 @@ App.Column = ( function($,document,window, U) {
 		updateParams: function(params) {
 
 			//merge the params
-			$.extend( this.params, params );
+			this.params = $.extend( this.params, params );
 
 			this.clearData();
 			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -2550,12 +2693,14 @@ App.ColumnController = ( function($,document,window, U) {
 
 
 	function ColumnController(options) {
-		console.log('COLUMN MANAGER INIT');
+		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
 		this.activeColumn = -1;
 		this.activeRow = -1;
 		this.totalColWidth = 0;
+		this.path = ['root'];
+		this.at = new App.ActionTree();
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
@@ -2567,7 +2712,12 @@ App.ColumnController = ( function($,document,window, U) {
 
 		addColumn: function(action,params) {
 
-			var new_col = new App.Column({'action':action,'params':params,'index':this.columns.length});
+			var ops = this.at.getActions(this.path);
+			//var action = ops[0].split('-'); //default action is the first node
+
+			this.path.push(ops[0]);
+
+			var new_col = new App.Column( { 'action':action,'params':params,'index':this.columns.length,'path':this.path,'columnActions':ops } );
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
 			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
 			$(new_col).on('Closing', $.proxy( this.closingColumn, this ) );
@@ -2598,6 +2748,8 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.activeRow = rowIndex;
 
+			console.log(this.path);
+
 		},
 
 		displayColumn: function(params,e) {
@@ -2627,8 +2779,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.activeColumn = index;
 
-			console.log(this.totalColWidth, $('.columnContainer').innerWidth());
-			
+			//console.log(this.totalColWidth, $('.columnContainer').innerWidth());
 
 		},
 
@@ -2647,6 +2798,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 				for(var i = this.columns.length-1; i >= rootIndex; i-- ) {
 					this.removeColumn(i, totalDelay-(i*100) );
+					this.path.pop();
 				}
 			}
 
@@ -2735,13 +2887,13 @@ App.MinezyController = ( function($,document,window, U) {
 			var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
 			var ed = new Date(ey, em, 0, 0, 0, 0, 0);
 
-			console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
+			//console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
 
 			if(isNaN(sd)){
 				sd.setTime(0);
 			}
 
-			console.log(sd.getTime()/1000,ed.getTime()/1000);
+			//console.log(sd.getTime()/1000,ed.getTime()/1000);
 
 			this.colManager.updateDates(sd.getTime()/1000,ed.getTime()/1000);
 
@@ -2800,6 +2952,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 			this.router.addRoutes([
 				{ 'path' : '/', 'controller' : 'MinezyController' },
+				{ 'path' : '/ActionTree', 'controller' : 'ActionTreeController' },
 				{ 'path' : '.*', 'controller' : 'PageNotFoundController' }
 			]);
 
@@ -2812,7 +2965,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 				this.pageNotFound = true;
 			}
 
-			try {
+			//try {
 				var route = {};
 
 				if( !this.pageNotFound ) {
@@ -2826,9 +2979,9 @@ App.NavController = ( function( $, document, window, A, U ) {
 				} else {
 					throw new Error("Undefined route: " + window.location.pathname);
 				}
-			} catch(err) {
-				console.error(err);
-			}
+			//} catch(err) {
+			//	console.error(err);
+			//}
 
 		},
 
@@ -2839,7 +2992,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 		handleMediaQueryChange: function(e,width) {
 
-			console.log("WIDTH: " + width);
+			//console.log("WIDTH: " + width);
 
 
 		},
@@ -2914,6 +3067,107 @@ App.API = ( function($,document,window, U) {
 	};
 
 	return API;
+
+})(jQuery,document,window, Utils);;
+
+App.ActionTree = ( function($,document,window, U) {
+
+	var tree = {
+		'root' : {
+			'actors' : {
+				'actors-from': {
+					'actors-to' : {
+						'dates-month': {
+							'dates-day': {
+								'emails-list': {
+									'emails-meta' : false
+								},
+							},
+							'emails-list': {
+								'emails-meta' : false
+							},
+						},
+						'emails-list': {
+							'emails-meta' : false
+						},
+					},
+					'dates-month': {
+						'dates-day': {
+							'emails-list': {
+								'emails-meta' : false
+							},
+						},
+						'emails-list': {
+							'emails-meta' : false
+						},
+					},
+					'emails-list': {
+						'emails-meta' : false
+					},
+
+				},
+				'dates-month': {
+					'dates-day': {
+						'emails-list': {
+							'emails-meta' : false
+						},
+					},
+					'emails-list': {
+						'emails-meta' : false
+					},
+				},
+				'emails-list': {
+					'emails-meta' : false
+				}
+			},
+			'dates': {
+			}
+		}
+	};
+
+
+	function ActionTree() {
+		//console.log('ACTION TREE INIT');
+	}
+
+	ActionTree.prototype = {
+
+		getActions: function(node) {
+
+			var nodeCopy = node.slice(0);
+			var optTree = this.traverse(tree,nodeCopy);
+			var ops = [];
+
+			for( var key in optTree ) {
+				ops.push(key);
+			}
+
+			nodeCopy = null;
+
+			//console.log('AT-OPS: ', ops);
+			return ops;
+
+		},
+
+		traverse: function(smallerTree,node) {
+			var branch;
+
+			if( node.length == 1 ) {
+				return smallerTree[node.shift()];
+			}
+
+			branch = node.shift();
+			return this.traverse(smallerTree[branch],node);
+		},
+
+		destroy: function() {
+			//do any clean up when destroying the section
+			//delete this.homePhotos;
+		}
+
+	};
+
+	return ActionTree;
 
 })(jQuery,document,window, Utils);;/* MediaQuery 1.0,  Matthew Quinn, GRAND Creative Inc.  Copyright 2012
  *
@@ -3151,7 +3405,7 @@ Utils.Route = (function() {
 			var re = new RegExp( '^/?' + this.path + '/?$' );
 			var matches = uri.match( re );
 
-console.log('URI: ' + uri, matches, re);
+			//console.log('URI: ' + uri, matches, re);
 
 			if( matches !== null ) {
 				return true;
@@ -3225,7 +3479,7 @@ Utils.Router = (function($,U) {
 			$.each(this.routes, function(i,route) {
 
 				if( route.controller === controllerName ) {
-					console.log('GMR FOUND ROUTE: ' + route);
+					//console.log('GMR FOUND ROUTE: ' + route);
 					foundRoute = route;
 				}
 			});
@@ -3238,7 +3492,7 @@ Utils.Router = (function($,U) {
 
 			$.each(this.routes, function(i,route) {
 				if( route.match(window.location.pathname) && !foundRoute ) {
-					console.log('FOUND ROUTE: ' + route);
+					//console.log('FOUND ROUTE: ' + route);
 					foundRoute = route;
 				}
 			});

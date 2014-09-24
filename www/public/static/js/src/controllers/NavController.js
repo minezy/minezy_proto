@@ -31,6 +31,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 			this.router.addRoutes([
 				{ 'path' : '/', 'controller' : 'MinezyController' },
+				{ 'path' : '/ActionTree', 'controller' : 'ActionTreeController' },
 				{ 'path' : '.*', 'controller' : 'PageNotFoundController' }
 			]);
 
@@ -43,7 +44,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 				this.pageNotFound = true;
 			}
 
-			try {
+			//try {
 				var route = {};
 
 				if( !this.pageNotFound ) {
@@ -57,9 +58,9 @@ App.NavController = ( function( $, document, window, A, U ) {
 				} else {
 					throw new Error("Undefined route: " + window.location.pathname);
 				}
-			} catch(err) {
-				console.error(err);
-			}
+			//} catch(err) {
+			//	console.error(err);
+			//}
 
 		},
 
@@ -70,7 +71,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 		handleMediaQueryChange: function(e,width) {
 
-			console.log("WIDTH: " + width);
+			//console.log("WIDTH: " + width);
 
 
 		},

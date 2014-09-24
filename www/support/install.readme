@@ -1,4 +1,4 @@
-
+	
 - edit apache conf
 sudo vi /etc/apache2/extra/httpd-vhosts.conf
 

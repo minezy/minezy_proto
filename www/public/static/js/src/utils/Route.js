@@ -36,7 +36,7 @@ Utils.Route = (function() {
 			var re = new RegExp( '^/?' + this.path + '/?$' );
 			var matches = uri.match( re );
 
-console.log('URI: ' + uri, matches, re);
+			//console.log('URI: ' + uri, matches, re);
 
 			if( matches !== null ) {
 				return true;

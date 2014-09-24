@@ -38,13 +38,13 @@ App.MinezyController = ( function($,document,window, U) {
 			var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
 			var ed = new Date(ey, em, 0, 0, 0, 0, 0);
 
-			console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
+			//console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
 
 			if(isNaN(sd)){
 				sd.setTime(0);
 			}
 
-			console.log(sd.getTime()/1000,ed.getTime()/1000);
+			//console.log(sd.getTime()/1000,ed.getTime()/1000);
 
 			this.colManager.updateDates(sd.getTime()/1000,ed.getTime()/1000);
 

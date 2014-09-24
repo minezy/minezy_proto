@@ -1,0 +1,51 @@
+
+	var tree = {
+			"Contacts" : {
+				"Contacts|From": {
+					"Contacts|To" : {
+						"Dates|Month": {
+							"Dates|Day": {
+								"Emails|List": {
+									"Emails|Meta" : false
+								},
+							},
+							"Emails|List": {
+								"Emails|Meta" : false
+							},
+						},
+						"Emails|List": {
+							"Emails|Meta" : false
+						},
+					},
+					"Dates|Month": {
+						"Dates|Day": {
+							"Emails|List": {
+								"Emails|Meta" : false
+							},
+						},
+						"Emails|List": {
+							"Emails|Meta" : false
+						},
+					},
+					"Emails|List": {
+						"Emails|Meta" : false
+					},
+
+				},
+				"Dates|Month": {
+					"Dates|Day": {
+						"Emails|List": {
+							"Emails|Meta" : false
+						},
+					},
+					"Emails|List": {
+						"Emails|Meta" : false
+					},
+				},
+				"Emails|List": {
+					"Emails|Meta" : false
+				}
+			}
+
+
+	};

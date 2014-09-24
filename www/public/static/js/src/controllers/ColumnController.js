@@ -4,12 +4,14 @@ App.ColumnController = ( function($,document,window, U) {
 
 
 	function ColumnController(options) {
-		console.log('COLUMN MANAGER INIT');
+		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
 		this.activeColumn = -1;
 		this.activeRow = -1;
 		this.totalColWidth = 0;
+		this.path = ['root'];
+		this.at = new App.ActionTree();
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
@@ -21,7 +23,12 @@ App.ColumnController = ( function($,document,window, U) {
 
 		addColumn: function(action,params) {
 
-			var new_col = new App.Column({'action':action,'params':params,'index':this.columns.length});
+			var ops = this.at.getActions(this.path);
+			//var action = ops[0].split('-'); //default action is the first node
+
+			this.path.push(ops[0]);
+
+			var new_col = new App.Column( { 'action':action,'params':params,'index':this.columns.length,'path':this.path,'columnActions':ops } );
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
 			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
 			$(new_col).on('Closing', $.proxy( this.closingColumn, this ) );
@@ -52,6 +59,8 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.activeRow = rowIndex;
 
+			console.log(this.path);
+
 		},
 
 		displayColumn: function(params,e) {
@@ -81,8 +90,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.activeColumn = index;
 
-			console.log(this.totalColWidth, $('.columnContainer').innerWidth());
-			
+			//console.log(this.totalColWidth, $('.columnContainer').innerWidth());
 
 		},
 
@@ -101,6 +109,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 				for(var i = this.columns.length-1; i >= rootIndex; i-- ) {
 					this.removeColumn(i, totalDelay-(i*100) );
+					this.path.pop();
 				}
 			}
 
