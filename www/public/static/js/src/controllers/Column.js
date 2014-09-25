@@ -137,7 +137,7 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		searchColumn:function() {
-console.log('SEARCHING!');
+
 			var params = {};
 
 
@@ -158,17 +158,17 @@ console.log('SEARCHING!');
 
 				var field = '';
 				if( $( this.colName + ' .additionalOptions .field-to').is(':checked') )
-					field += 'to+';
+					field += 'to|';
 				if( $( this.colName + ' .additionalOptions .field-cc').is(':checked') )
-					field += 'cc+';
+					field += 'cc|';
 				if( $( this.colName + ' .additionalOptions .field-bcc').is(':checked') )
-					field += 'bcc+';
+					field += 'bcc|';
 				if( $( this.colName + ' .additionalOptions .field-sent').is(':checked') )
-					field += 'sent+';
+					field += 'sent|';
 
 				field = field.substring(0, field.length - 1);
 				//console.log('FIELD: '+field,$( this.colName + ' .field-to'));
-				if( field !== 'to+cc+bbc+sent')
+				if( field !== 'to|cc|bbc|sent')
 					params.count = field;
 			} else if( this.action == 'emails' ) {
 
