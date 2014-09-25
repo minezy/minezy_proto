@@ -28,14 +28,23 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.path.push(ops[0]);
 
-			var new_col = new App.Column( { 'action':action,'params':params,'index':this.columns.length,'path':this.path,'columnActions':ops } );
+			var new_col = new App.Column( { 'action':action,'params':params,'index':this.columns.length,'path':this.path,'columnActions':ops,'nodeName':ops[0] } );
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
 			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
 			$(new_col).on('Closing', $.proxy( this.closingColumn, this ) );
 			$(new_col).on('DataReceived', $.proxy( this.columnDataRecieved, this ) );
+			$(new_col).on('RefreshingData', $.proxy( this.updatePath, this ) );
 
 			this.columns.push( new_col );
 
+		},
+
+		updatePath: function(e,index,nodeName) {
+			console.log(this.path);
+			this.path[index+1] = nodeName;
+			console.log(this.path);
+			if( this.columns.length > index )
+				this.removeColumns(index+1);
 		},
 
 		columnDataRecieved: function(e,index) {
@@ -132,7 +141,7 @@ App.ColumnController = ( function($,document,window, U) {
 		adjustColumnHeight: function(e) {
 			var h = 0;
 
-			h = $(window).height() - $('header').outerHeight() - $('nav.dates').outerHeight();
+			h = $(window).height() - $('header').outerHeight();
 			//console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
 			$('.columnContainer,.column').css('min-height',h);
 		},

@@ -2,6 +2,8 @@
 
 App.Column = ( function($,document,window, U) {
 
+	var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+	var numDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
 
 	function Column(options) {
 		//console.log('COLUMN INIT > ', options);
@@ -20,6 +22,7 @@ App.Column = ( function($,document,window, U) {
 		this.colName = '#Column';
 		this.width = 340;
 		this.childOptions = this.at.getActions(this.path);
+		this.nodeName = options.nodeName;
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -64,15 +67,13 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .searchParams').empty();
 
 			for (var key in this.params) {
-				if( key !== 'end' && key !== 'limit' && key !== 'start' ) {
-					var filter = $('#template .searchParams span').clone();
-					var param = this.params[key];
+				var filter = $('#template .searchParams span').clone();
+				var param = this.params[key];
 
-					$(filter).children('strong').text(key+": ");
-					$(filter).children('em').text(param);
+				$(filter).children('strong').text(key+": ");
+				$(filter).children('em').text(param);
 
-					$( this.colName + ' .searchParams').append(filter);
-				}
+				$( this.colName + ' .searchParams').append(filter);
 			}
 
 		},
@@ -86,6 +87,7 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .searchFilter').empty();
 
 			for(var i = 0; i<this.columnActions.length;i++) {
+				var opParam = this.columnActions[i].split('-');
 				var option = '<option value="'+this.columnActions[i]+'">'+this.columnActions[i]+'</option>';
 				$( this.colName + ' .searchFilter').append(option);
 			}
@@ -94,7 +96,11 @@ App.Column = ( function($,document,window, U) {
 
 		searchFilter: function() {
 
-			var val = $( this.colName + ' .searchFilter').val();
+
+			this.nodeName = $( this.colName + ' .searchFilter').val();
+			var opParam = this.nodeName.split('-');
+
+			var val = opParam[0];
 			var options;
 
 			$( this.colName + ' .additionalOptions a').off('click');
@@ -114,35 +120,25 @@ App.Column = ( function($,document,window, U) {
 
 				$( this.colName + ' .additionalOptions').empty();
 				$( this.colName + ' .additionalOptions').append(options);
+
+				$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
+				$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
+
 			}
 
 			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
 		},
 
-		parseFilter: function(val) {
-
-			var action = '';
-			var params = {};
-
-			var segs = val.split('/');
-			this.action = segs[0];
-
-			for(var i=1;i<segs.length;i++) {
-				var psegs = segs[i].split(':');
-				params[psegs[0]] = psegs[1];
-			}
-
-			return params;
-
-		},
-
 		searchColumn:function() {
 
-			var params = {};
+			console.log('SEARCHING!',this.params);
 
+			var params = $.extend({},this.params);
+			this.nodeName = $( this.colName + ' .searchFilter').val();
+			var opParam = this.nodeName.split('-');
 
-			if( this.action !== $( this.colName + ' .searchFilter').val() ) {
-				this.action = $( this.colName + ' .searchFilter').val();
+			if( this.action !== this.nodeName ) {
+				this.action = opParam[0];
 			}
 
 			//field
@@ -173,15 +169,49 @@ App.Column = ( function($,document,window, U) {
 			} else if( this.action == 'emails' ) {
 
 			} else if( this.action == 'dates' ) {
+				var sy = $( this.colName + ' .start_date_year').val();
+				var sm = $( this.colName + ' .start_date_month').val();
+				var ey = $( this.colName + ' .end_date_year').val();
+				var em = $( this.colName + ' .end_date_month').val();
+
+				var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
+				var ed = new Date(ey, em, 0, 0, 0, 0, 0);
+
+				console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
+
+				if( sd.getTime() < 0){
+					sd.setTime(0);
+				}
+
+				console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
+
+				params.start = sd.getTime()/1000;
+				params.end = ed.getTime()/1000;
+				params.count = 'MONTH';
+
+				if(opParam.length > 1) {
+					params.count = opParam[1];
+				}
 
 			}
 
 			if( !$.isEmptyObject(params) ) {
 				$( this.colName + ' .additionalOptions a').off('click');
 				params.limit = 20;
-				params.start = this.params.start;
-				params.end = this.params.end;
+				if(!params.start)
+					params.start = this.params.start;
+
+				if(!params.end)
+					params.end = this.params.end;
+
+				params.key = this.params.key;
+				params.lock = this.params.lock;
+				params.fromAction = this.params.fromAction;
 				this.updateAll(this.action,params);
+
+				$(this).trigger('RefreshingData',[this.index,this.nodeName]);
+				this.path[this.index+1] = this.nodeName;
+				this.childOptions = this.at.getActions(this.path);
 			}
 
 		},
@@ -236,7 +266,7 @@ App.Column = ( function($,document,window, U) {
 			if( this.action == 'contacts' ) {
 				rows = data.contacts.contact;
 			} else if( this.action == 'dates' ) {
-				rows = data;
+				rows = data.dates.dates;
 			} else if( this.action == 'emails' ) {
 				rows = data;
 			} else {
@@ -264,8 +294,28 @@ App.Column = ( function($,document,window, U) {
 
 				$(newBar).css('width',size);
 				$(newRow).children('.tally').text(rows[i].count);
-				$(newRow).children('.title').text(rows[i].name);
-				$(newRow).children('input').val(rows[i].email);
+
+				if( this.action == 'contacts' ) {
+
+					$(newRow).children('.title').text(rows[i].name);
+					$(newRow).children('input').val(rows[i].email);
+
+				} else if( this.action == 'dates' ) {
+					var sd,ed;
+
+					if( data.dates._params.count[0] === 'MONTH' ) {
+						sd = new Date(rows[i].year, rows[i].month-1, 1, 0, 0, 0, 0);
+						ed = new Date(rows[i].year, rows[i].month-1, numDaysInMonth[rows[i].month-1], 23, 59, 59, 0);
+					} else if( data.dates._params.count[0] === 'DAY' ) {
+						sd = new Date(rows[i].year, rows[i].month-1, rows[i].day, 0, 0, 0, 0);
+						ed = new Date(rows[i].year, rows[i].month-1, rows[i].day, 23, 59, 59, 999);
+					}
+
+					$(newRow).children('.title').text( months[rows[i].month] + ', ' + rows[i].year);
+					$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
+
+				}
+
 				count++;
 
 			}
@@ -299,34 +349,57 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .resultContainer' ).removeClass('on');
 
 			var row = $( this.colName + ' .resultContainer' ).eq(index);
-			var keyVal = row.children('input').val();
 
-			var actionParam = this.childOptions[0].split('-');
+			var key = row.children('input').val();
+			var actionLock = this.childOptions[0].split('-');
 			var action = '';
-			var key = '';
+			var lock = '';
 
-			//console.log('AP:',actionParam);
+			action = actionLock[0];
 
-			if( actionParam.length > 1 ) {
-				action = actionParam[0];
-				key = actionParam[1];
+			if( actionLock.length > 1 ) {
+				lock = actionLock[1];
 			}
 
+			var new_params = $.extend({},this.params);
 
-			var new_params = {};
+			if( action === 'contacts' ) {
+				new_params[lock] = key;
+				new_params.count = 'to|cc|bcc|sent';
 
-			if( key !== '' ) {
-				new_params[key] = keyVal;
+			} else if( action === 'dates' ) {
+				if( this.action == 'dates' ) {
+					console.log('here',key);
+					new_params.start = key.split('-')[0];
+					new_params.end = key.split('-')[1];
+				} else if( this.action == 'contacts' ) {
+					new_params[lock] = key;
+				}
+
+				new_params.count = 'month';
+
+				if( lock == 'day' ) 
+					new_params.count = 'day';
 			}
 
-			var params = $.extend(this.params,new_params);
+			/*var fromLock = '';
+			if( this.params.lock ) {
+				fromLock = '-' + this.params.lock;
 
-			//console.log(this.index,'P-A:',params,action);
+			}*/
+
+			//new_params.fromAction = this.action + fromLock;
+			//new_params.key = key;
+			//new_params.lock = lock;
+			//new_params.limit = 20;
+
+
+			console.log(this.index,'P-A:',new_params,action);
 
 			row.addClass('on');
 			row.children('.loader').fadeIn(100);
 
-			$(this).trigger('NewColumn',[this.index, action, params, index]);
+			$(this).trigger('NewColumn',[this.index, action, new_params, index]);
 
 		},
 

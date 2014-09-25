@@ -19,10 +19,8 @@ App.MinezyController = ( function($,document,window, U) {
 		this.colManager = new App.ColumnController();
 		this.colManager.addColumn('contacts',{'limit':20,'end': (new Date().getTime()/1000) });
 
-		$('#end_date_year').val( new Date().getFullYear() );
-		$('#end_date_month').val( new Date().getMonth()+1 );
 
-		$('#refreshDates').on('click', $.proxy(this.changeDateRange,this) );
+		//$('#refreshDates').on('click', $.proxy(this.changeDateRange,this) );
 
 	}
 

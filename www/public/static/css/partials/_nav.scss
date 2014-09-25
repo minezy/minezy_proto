@@ -1,6 +1,7 @@
 
 nav.dates {
 
+	display:none;
 	background: #363636;
 	color: white;
 	padding: 16px 20px;
@@ -27,26 +28,7 @@ nav.dates {
 		position: static;
 	}
 
-	.account {
-		position: absolute;
-		right:20px;
-		top: 0px;
-		color: white;
-		font-size: 14px;
 
-		a {
-			margin-top: 28px;
-
-			i {
-				padding-right: 8px;
-			}
-		}
-
-	}
-
-	.accountMenu {
-		display: none;
-	}
 
 
 

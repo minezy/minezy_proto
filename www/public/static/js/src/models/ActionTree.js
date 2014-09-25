@@ -5,8 +5,8 @@ App.ActionTree = ( function($,document,window, U) {
 	var tree = {
 		'root' : {
 			'contacts' : {
-				'contacts-contact1': {
-					'dates-month': {
+				'contacts-from': {
+					'dates-to': {
 						'dates-day': {
 							'emails-list': {
 								'emails-meta' : false
@@ -19,15 +19,14 @@ App.ActionTree = ( function($,document,window, U) {
 					'emails-list': {
 						'emails-meta' : false
 					},
-
 				},
-				'dates-month': {
+				'dates': {
 					'dates-day': {
 						'emails-list': {
 							'emails-meta' : false
 						},
 					},
-					'contacts-contact1': {
+					'contacts-from': {
 						'dates-day': {
 							'emails-list': {
 								'emails-meta' : false
@@ -45,9 +44,9 @@ App.ActionTree = ( function($,document,window, U) {
 					'emails-meta' : false
 				}
 			},
-			'dates-month': {
+			'dates': {
 				'contacts' : {
-					'contacts-contact1': {
+					'contacts-from': {
 						'dates-day': {
 							'emails-list': {
 								'emails-meta' : false
@@ -68,7 +67,7 @@ App.ActionTree = ( function($,document,window, U) {
 				},
 				'dates-day': {
 					'contacts' : {
-						'contacts-contact1': {
+						'contacts-from': {
 							'emails-list': {
 								'emails-meta' : false
 							},
