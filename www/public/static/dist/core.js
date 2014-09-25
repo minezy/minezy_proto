@@ -2543,7 +2543,7 @@ App.Column = ( function($,document,window, U) {
 			var resultContainer = $(this.element).children('.results');
 
 			if( this.action == 'actors' ) {
-				rows = data.actors.actor;
+				rows = data.contacts.contact;
 			} else if( this.action == 'dates' ) {
 				rows = data;
 			} else if( this.action == 'emails' ) {
@@ -3074,9 +3074,9 @@ App.ActionTree = ( function($,document,window, U) {
 
 	var tree = {
 		'root' : {
-			'actors' : {
-				'actors-from': {
-					'actors-to' : {
+			'contacts' : {
+				'contacts-from': {
+					'contacts-to' : {
 						'dates-month': {
 							'dates-day': {
 								'emails-list': {

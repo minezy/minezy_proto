@@ -4,9 +4,9 @@ App.ActionTree = ( function($,document,window, U) {
 
 	var tree = {
 		'root' : {
-			'actors' : {
-				'actors-from': {
-					'actors-to' : {
+			'contacts' : {
+				'contacts-from': {
+					'contacts-to' : {
 						'dates-month': {
 							'dates-day': {
 								'emails-list': {
