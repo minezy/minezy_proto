@@ -2448,7 +2448,7 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		searchColumn:function() {
-
+console.log('SEARCHING!');
 			var params = {};
 
 
@@ -2457,7 +2457,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			//field
-			if( this.action == 'actors') {
+			if( this.action == 'contacts') {
 
 				var keyword = $( this.colName + ' .additionalOptions .keyword').val();
 
@@ -2469,16 +2469,18 @@ App.Column = ( function($,document,window, U) {
 
 				var field = '';
 				if( $( this.colName + ' .additionalOptions .field-to').is(':checked') )
-					field += 'to|';
+					field += 'to+';
 				if( $( this.colName + ' .additionalOptions .field-cc').is(':checked') )
-					field += 'cc|';
+					field += 'cc+';
 				if( $( this.colName + ' .additionalOptions .field-bcc').is(':checked') )
-					field += 'bcc|';
+					field += 'bcc+';
+				if( $( this.colName + ' .additionalOptions .field-sent').is(':checked') )
+					field += 'sent+';
 
 				field = field.substring(0, field.length - 1);
 				//console.log('FIELD: '+field,$( this.colName + ' .field-to'));
-				if( field !== 'to|cc|bbc')
-					params.field = field;
+				if( field !== 'to+cc+bbc+sent')
+					params.count = field;
 			} else if( this.action == 'emails' ) {
 
 			} else if( this.action == 'dates' ) {
@@ -3076,21 +3078,6 @@ App.ActionTree = ( function($,document,window, U) {
 		'root' : {
 			'contacts' : {
 				'contacts-from': {
-					'contacts-to' : {
-						'dates-month': {
-							'dates-day': {
-								'emails-list': {
-									'emails-meta' : false
-								},
-							},
-							'emails-list': {
-								'emails-meta' : false
-							},
-						},
-						'emails-list': {
-							'emails-meta' : false
-						},
-					},
 					'dates-month': {
 						'dates-day': {
 							'emails-list': {
