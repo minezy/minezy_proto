@@ -99,7 +99,7 @@ App.Column = ( function($,document,window, U) {
 
 			$( this.colName + ' .additionalOptions a').off('click');
 
-			if( val === 'actors' ) {
+			if( val === 'contacts' ) {
 				options = $('#template .searchOptionWidgets .actors').clone();
 
 				$( this.colName + ' .additionalOptions').empty();
@@ -231,7 +231,7 @@ App.Column = ( function($,document,window, U) {
 			var count = 0;
 			var resultContainer = $(this.element).children('.results');
 
-			if( this.action == 'actors' ) {
+			if( this.action == 'contacts' ) {
 				rows = data.contacts.contact;
 			} else if( this.action == 'dates' ) {
 				rows = data;
