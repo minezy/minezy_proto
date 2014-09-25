@@ -6,21 +6,21 @@ from py2neo import cypher, node, rel
 import neo4j_conn
 
 
-def query_actors(params, countResults=False):
+def query_contacts(params, countResults=False):
 
     t0 = time.time()
     
     bWhere = True
     bManualCount = True
     if len(params['from']):
-        query_str = "MATCH (m:Actor)-[:Sent]->(e)-[r:"+params['field']+"]->(n:Actor) WHERE ("
+        query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r:"+params['field']+"]->(n:Contact) WHERE ("
         for i, actor in enumerate(params['from']):
             if i > 0:
                 query_str += " OR "
             query_str += "m.email='"+actor+"'"
         query_str += ") "
     elif len(params['to']):
-        query_str = "MATCH (n:Actor)-[r:Sent]->(e)-[:"+params['field']+"]->(m:Actor) WHERE ("
+        query_str = "MATCH (n:Contact)-[r:Sent]->(e)-[:"+params['field']+"]->(m:Contact) WHERE ("
         for i, actor in enumerate(params['to']):
             if i > 0:
                 query_str += " OR "
@@ -32,11 +32,11 @@ def query_actors(params, countResults=False):
         rels = ''
         if params['count']:
             rels = ':' + '|'.join(params['count']).replace('SENT', 'Sent')
-        query_str = "MATCH (n:Actor)-[r"+rels+"]-(e:Email) "
+        query_str = "MATCH (n:Contact)-[r"+rels+"]-(e:Email) "
     else:
         bWhere = False
         bManualCount = False
-        query_str = "MATCH (n:Actor) "
+        query_str = "MATCH (n:Contact) "
         if len(params['count']):
             for i,cnt in enumerate(params['count']):
                 if i == 0:
@@ -81,23 +81,23 @@ def query_actors(params, countResults=False):
         tx.append(query_str, params)
         results = tx.commit()
     
-        actors = []
+        contacts = []
         count = -1
         for count,record in enumerate(results[0]):
-            actor = { 
+            contact = { 
                 'name':  record[0],
                 'email': record[1],
                 'count': record[2]
                 } 
             
-            actors.append(actor)
+            contacts.append(contact)
     
         resp = {}
         resp['_count'] = count+1
         resp['_params'] = params
         resp['_query'] = query_str
-        if len(actors):
-            resp['actor'] = actors
+        if len(contacts):
+            resp['contact'] = contacts
 
     t1 = time.time()
     resp['_query_time'] = t1-t0
