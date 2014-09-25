@@ -3,6 +3,7 @@ from minezy_api import app
 from flask import jsonify, request
 
 @app.route('/1/', methods=['GET'])
+@app.route('/v1/', methods=['GET'])
 def get_api_v1():
     apis_v1 = [
         {
@@ -25,15 +26,6 @@ def get_api_v1():
             'api': '/1/dates/',
             'description': 'List dates emails occurred',
             'href': 'http://' + request.host + '/1/dates?limit=10'
-        },
-        {
-            'api': '/1/cliques',
-            'description': 'List cliques of contacts',
-            'href': 'http://' + request.host + '/1/cliques?limit=10'
-        },
-        {
-            'api': '/1/traits/<email>/',
-            'description': 'Get actor details'
         }
     ]
     return jsonify( { 'apis' : apis_v1 } )

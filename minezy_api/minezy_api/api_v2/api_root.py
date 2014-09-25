@@ -5,10 +5,11 @@ from minezy_api.api_v2.api_common import support_jsonp, query_params, path_parse
 
 
 @app.route('/2/', methods=['GET'])
+@app.route('/v2/', methods=['GET'])
 def get_api_v2():
     apis_v1 = [
         {
-            'api': '/2/<object>/[<params>][/<object>/[params]]?globalparams',
+            'api': '/2/<object>[<params>][/<object>[params]]?globalparams',
             'description': 'Use a path of objects and parameters. Sub-objects utilize the data from the previous object in the path.'
         },
 
@@ -16,25 +17,17 @@ def get_api_v2():
         {
             'api': '/2/contacts/',
             'description': 'List contacts',
-            'href': 'http://' + request.host + '/2/contacts/limit=10'
-        },
-        {
-            'api': '/2/contacts/from=<email>;limit=10',
-            'description': 'List contacts receiving emails from email address, limit to 10',
+            'href': 'http://' + request.host + '/2/contacts;limit=10'
         },
         {
             'api': '/2/emails/',
             'description': 'List emails',
-            'href': 'http://' + request.host + '/2/emails/limit=10'
+            'href': 'http://' + request.host + '/2/emails;limit=10'
         },
         {
             'api': '/2/dates/',
             'description': 'List dates emails occurred',
-            'href': 'http://' + request.host + '/2/dates/limit=10'
-        },
-        {
-            'api': '/2/traits/<email>/',
-            'description': 'Get actor details'
+            'href': 'http://' + request.host + '/2/dates;limit=10'
         }
     ]
     return jsonify( { 'apis' : apis_v1 } )
