@@ -69,7 +69,7 @@ class neo4jLoader:
                 opCount += 1
         
         cypher = "FOREACH (item in {props} | "
-        cypher +=  "MERGE (a:Actor {email:item.email}) "
+        cypher +=  "MERGE (a:Contact {email:item.email}) "
         cypher +=  "MERGE (n:Name {name:item.name}) "
         cypher +=  "MERGE (a)-[r:Name]->(n) ON CREATE SET r.count=item.count ON MATCH SET r.count=r.count+item.count) "
                  
@@ -109,7 +109,7 @@ class neo4jLoader:
             msgID = msgID.strip("<>")
             msgIDParent = msgIDParent.strip("<>")
             
-            # Add From actor
+            # Add From Contact
             msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
             msgXFrom = email_msg.get_all('X-From', [''])
             self._collect_name(msgFrom[0], msgXFrom[0])
@@ -122,8 +122,8 @@ class neo4jLoader:
             # Add Email
             cypher = "MERGE (e:Email {id:{props}.id}) "
             cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, e.year={props}.year, e.month={props}.month, e.day={props}.day "
-            # Add From Actor
-            cypher += "MERGE (a:Actor {email:{props}.email}) "
+            # Add From Contact
+            cypher += "MERGE (a:Contact {email:{props}.email}) "
             cypher += "CREATE UNIQUE (a)-[:Sent]->(e), (e)-[:SentBy]->(a) "
             opCount += 4
             
@@ -155,7 +155,7 @@ class neo4jLoader:
             if len(tos):
                 props['tos'] = tos
                 cypher += "FOREACH (to IN {tos} | "
-                cypher += "MERGE (aTo:Actor {email:to}) MERGE (e)-[:TO]->(aTo)) "
+                cypher += "MERGE (aTo:Contact {email:to}) MERGE (e)-[:TO]->(aTo)) "
                 opCount += 2*len(tos)
         
             # Add CC relations
@@ -168,7 +168,7 @@ class neo4jLoader:
                 self._collect_name(msg,msgX)
             if len(ccs):
                 props['ccs'] = ccs
-                cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Actor {email:cc}) CREATE UNIQUE (e)-[:CC]->(aCc)) "
+                cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Contact {email:cc}) CREATE UNIQUE (e)-[:CC]->(aCc)) "
                 opCount += 2*len(ccs)
             
             # Add BCC relations
@@ -181,7 +181,7 @@ class neo4jLoader:
                 self._collect_name(msg,msgX)
             if len(bccs):
                 props['bccs'] = bccs
-                cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Actor {email:bcc}) CREATE UNIQUE (e)-[:BCC]->(aBcc)) "
+                cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Contact {email:bcc}) CREATE UNIQUE (e)-[:BCC]->(aBcc)) "
                 opCount += 2*len(bccs)
         
             self._append(cypher, props, opCount)
@@ -199,7 +199,7 @@ class neo4jLoader:
         tx = self.session.create_transaction()
         
         sys.stdout.write("Processing Names... ")
-        cypher =  "MATCH (a:Actor) WITH a "
+        cypher =  "MATCH (a:Contact) WITH a "
         cypher += "MATCH (a)-[r:Name]->() WITH a,MAX(r.count) as nmax " 
         cypher += "MATCH (a)-[r:Name]->(n:Name) WHERE r.count = nmax "
         cypher += "SET a.name=n.name"
@@ -210,32 +210,32 @@ class neo4jLoader:
         _write_time(t1-t0)
         
         sys.stdout.write("Processing Sent Counts... ")
-        tx.append("MATCH (n:Actor)-[r:Sent]->() WITH n,count(r) AS rc SET n.sent=rc")
-        tx.append("MATCH (n:Actor) WHERE NOT (n)-[:Sent]->() SET n.sent=0")
+        tx.append("MATCH (n:Contact)-[r:Sent]->() WITH n,count(r) AS rc SET n.sent=rc")
+        tx.append("MATCH (n:Contact) WHERE NOT (n)-[:Sent]->() SET n.sent=0")
         t0 = time.time()
         tx.execute()
         t1 = time.time()
         _write_time(t1-t0)
     
         sys.stdout.write("Processing TO Counts... ")
-        tx.append("MATCH (n:Actor)<-[r:TO]-() WITH n,count(r) AS rc SET n.to=rc")
-        tx.append("MATCH (n:Actor) WHERE NOT (n)<-[:TO]-() SET n.to=0")
+        tx.append("MATCH (n:Contact)<-[r:TO]-() WITH n,count(r) AS rc SET n.to=rc")
+        tx.append("MATCH (n:Contact) WHERE NOT (n)<-[:TO]-() SET n.to=0")
         t0 = time.time()
         tx.execute()
         t1 = time.time()
         _write_time(t1-t0)
     
         sys.stdout.write("Processing CC Counts... ")
-        tx.append("MATCH (n:Actor)<-[r:CC]-() WITH n,count(r) AS rc SET n.cc=rc")
-        tx.append("MATCH (n:Actor) WHERE NOT (n)<-[:CC]-() SET n.cc=0")
+        tx.append("MATCH (n:Contact)<-[r:CC]-() WITH n,count(r) AS rc SET n.cc=rc")
+        tx.append("MATCH (n:Contact) WHERE NOT (n)<-[:CC]-() SET n.cc=0")
         t0 = time.time()
         tx.execute()
         t1 = time.time()
         _write_time(t1-t0)
     
         sys.stdout.write("Processing BCC Counts... ")
-        tx.append("MATCH (n:Actor)<-[r:BCC]-() WITH n,count(r) AS rc SET n.bcc=rc")
-        tx.append("MATCH (n:Actor) WHERE NOT (n)<-[:BCC]-() SET n.bcc=0")
+        tx.append("MATCH (n:Contact)<-[r:BCC]-() WITH n,count(r) AS rc SET n.bcc=rc")
+        tx.append("MATCH (n:Contact) WHERE NOT (n)<-[:BCC]-() SET n.bcc=0")
         t0 = time.time()
         tx.commit()
         t1 = time.time()

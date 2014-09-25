@@ -75,8 +75,7 @@ def query_emails(params, countResults=False):
         resp['_count'] = count+1
         resp['_params'] = params
         resp['_query'] = query_str
-        if len(emails):
-            resp['email'] = emails
+        resp['email'] = emails
 
     t1 = time.time()
     resp['_query_time'] = t1-t0
@@ -86,13 +85,13 @@ def query_emails(params, countResults=False):
 
 def _query_count(query_str, params):
     count_str = query_str[0:query_str.find("RETURN")]
-    count_str += "RETURN count(*) AS count"
+    count_str += "RETURN count(*)"
     
     tx = neo4j_conn.g_session.create_transaction()
     tx.append(count_str, params)
     results = tx.commit()
     
-    resp = {'count': results[0][0]['count'] }
+    resp = {'count': results[0][0][0] }
     resp['_params'] = params
     resp['_query'] = count_str
     return resp

@@ -96,8 +96,7 @@ def query_contacts(params, countResults=False):
         resp['_count'] = count+1
         resp['_params'] = params
         resp['_query'] = query_str
-        if len(contacts):
-            resp['contact'] = contacts
+        resp['contact'] = contacts
 
     t1 = time.time()
     resp['_query_time'] = t1-t0

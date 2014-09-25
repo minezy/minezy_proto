@@ -82,8 +82,7 @@ def query_dates(params, countResults=False):
         resp['_count'] = count+1
         resp['_params'] = params
         resp['_query'] = query_str
-        if len(dates):
-            resp['dates'] = dates
+        resp['dates'] = dates
 
     t1 = time.time()
     resp['_query_time'] = t1-t0
