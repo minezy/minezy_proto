@@ -38,30 +38,24 @@ def path_parse(fullpath):
     
     components = fullpath.split('/')
     
-    prevObj = {}
-    for i, comp in enumerate(components):
+    for comp in components:
         comp = comp.lower()
         
-        params = {}
-        if comp == 'contacts' or comp == 'emails' or comp == 'dates':
-            if len(prevObj) > 0:
-                input.append(prevObj)
-            prevObj = { 'object': comp }
-        else:
-            kvList = comp.split(';')
-            for kv in kvList:
-                l = kv.split('=')
+        params = comp.split(';')
+        for i, param in enumerate(params):
+            if i == 0:
+                obj = { 'object': param, 'params': {} }
+            else:
+                l = param.split('=')
                 k = None
                 v = None
                 if len(l) > 0:
                     k = l[0]
                 if len(l) > 1:
                     v = l[1]
-                params[k] = v
-            prevObj['params'] = params
+                obj['params'][k] = v
+                    
+        input.append(obj)
 
-    if len(prevObj) > 0:
-        input.append(prevObj)
-        
     return input
 
