@@ -115,13 +115,13 @@ class neo4jLoader:
             self._collect_name(msgFrom[0], msgXFrom[0])
         
             msgEmail = str.lower(msgFrom[0][1])
-            props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, "subject":msgSubject, "date":msgDate, "timestamp":timestamp} }
+            props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, "subject":msgSubject, "date":msgDate, "timestamp":timestamp, "year":date[0], "month":date[1], "day":date[2] } }
     
             opCount = 0
             
             # Add Email
             cypher = "MERGE (e:Email {id:{props}.id}) "
-            cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp "
+            cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, e.year={props}.year, e.month={props}.month, e.day={props}.day "
             # Add From Actor
             cypher += "MERGE (a:Actor {email:{props}.email}) "
             cypher += "CREATE UNIQUE (a)-[:Sent]->(e), (e)-[:SentBy]->(a) "

@@ -58,9 +58,15 @@ def query_emails(params, countResults=False):
         for count,record in enumerate(results[0]):
             email = {
                 '_ord': ordinal + count,
-                'date':  record[0]['date'],
                 'subject': record[0]['subject'],
-                'timestamp': record[0]['timestamp']
+                'date':  {
+                        "date":  record[0]['date'],
+                        "year":  record[0]['year'],
+                        "month": record[0]['month'],
+                        "day":   record[0]['day'],
+                        "utc":   record[0]['timestamp']
+                          
+                    }
                 } 
             
             emails.append(email)
@@ -80,13 +86,13 @@ def query_emails(params, countResults=False):
 
 def _query_count(query_str, params):
     count_str = query_str[0:query_str.find("RETURN")]
-    count_str += "RETURN count(*)"
+    count_str += "RETURN count(*) AS count"
     
     tx = neo4j_conn.g_session.create_transaction()
     tx.append(count_str, params)
     results = tx.commit()
     
-    resp = {'count': results[0][0] }
+    resp = {'count': results[0][0]['count'] }
     resp['_params'] = params
     resp['_query'] = count_str
     return resp

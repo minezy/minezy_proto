@@ -11,3 +11,12 @@ def dates():
     params = query_params(request)
     resp = query_dates(params)
     return jsonify( { 'dates' : resp } )
+
+@app.route('/1/dates/count/', methods=['GET'])
+@support_jsonp
+def dates_count():
+    params = query_params(request)
+    resp = query_dates(params, countResults=True)
+    return jsonify( { 'dates' : resp } )
+    
+    

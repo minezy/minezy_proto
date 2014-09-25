@@ -2,8 +2,6 @@
 *.pyc
 *.db
 .metadata
-.pydevproject
-.project
 www/vendor
 www/support/node_modules
 www/cache

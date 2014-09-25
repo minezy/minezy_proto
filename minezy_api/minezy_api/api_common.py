@@ -27,6 +27,9 @@ def query_params(request):
     query_params['to'] = request.args.getlist('to')
     query_params['cc'] = request.args.getlist('cc')
     query_params['bcc'] = request.args.getlist('bcc')
+    query_params['year'] = request.args.get('year',default=0,type=int)
+    query_params['month'] = request.args.get('month',default=0,type=int)
+    query_params['day'] = request.args.get('day',default=0,type=int)
 
     query_params['page'] = request.args.get('page',default=1,type=int)
     if query_params['page'] < 1:
