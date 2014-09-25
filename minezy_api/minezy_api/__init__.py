@@ -5,6 +5,5 @@ app = Flask(__name__)
 cors = CORS(app)
 
 import api_root
-import api_contacts
-import api_emails
-import api_dates
+import api_v1
+import api_v2

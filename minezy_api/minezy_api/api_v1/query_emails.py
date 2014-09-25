@@ -2,7 +2,7 @@ import sys
 import json
 import time
 from py2neo import cypher, node, rel
-import neo4j_conn
+from minezy_api import neo4j_conn
 
 
 def query_emails(params, countResults=False):
