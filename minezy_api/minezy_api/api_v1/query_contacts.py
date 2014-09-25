@@ -29,16 +29,16 @@ def query_contacts(params, countResults=False):
 
     elif params['start'] or params['end']:
         bWhere = False
-        rels = ''
-        if params['count']:
-            rels = ':' + '|'.join(params['count']).replace('SENT', 'Sent')
+        rels = ':' + params['field']
+        #if params['count']:
+            #rels = ':' + '|'.join(params['count']).replace('SENT', 'Sent')
         query_str = "MATCH (n:Contact)-[r"+rels+"]-(e:Email) "
     else:
         bWhere = False
         bManualCount = False
         query_str = "MATCH (n:Contact) "
-        if len(params['count']):
-            for i,cnt in enumerate(params['count']):
+        if len(params['field']):
+            for i,cnt in enumerate(params['field']):
                 if i == 0:
                     query_str += "WITH n,"
                 else:
