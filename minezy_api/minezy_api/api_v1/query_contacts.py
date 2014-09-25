@@ -9,18 +9,22 @@ from minezy_api import neo4j_conn
 def query_contacts(params, countResults=False):
 
     t0 = time.time()
+
+    rels = ''
+    if len(params['count']):
+        rels = ':' + '|'.join(params['count']).replace('SENT', 'Sent')
     
     bWhere = True
     bManualCount = True
     if len(params['from']):
-        query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r:"+params['field']+"]->(n:Contact) WHERE ("
+        query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r"+rels+"]->(n:Contact) WHERE ("
         for i, actor in enumerate(params['from']):
             if i > 0:
                 query_str += " OR "
             query_str += "m.email='"+actor+"'"
         query_str += ") "
     elif len(params['to']):
-        query_str = "MATCH (n:Contact)-[r:Sent]->(e)-[:"+params['field']+"]->(m:Contact) WHERE ("
+        query_str = "MATCH (n:Contact)-[r:Sent]->(e)-["+rels+"]->(m:Contact) WHERE ("
         for i, actor in enumerate(params['to']):
             if i > 0:
                 query_str += " OR "
@@ -29,16 +33,13 @@ def query_contacts(params, countResults=False):
 
     elif params['start'] or params['end']:
         bWhere = False
-        rels = ':' + params['field']
-        #if params['count']:
-            #rels = ':' + '|'.join(params['count']).replace('SENT', 'Sent')
         query_str = "MATCH (n:Contact)-[r"+rels+"]-(e:Email) "
     else:
         bWhere = False
         bManualCount = False
         query_str = "MATCH (n:Contact) "
-        if len(params['field']):
-            for i,cnt in enumerate(params['field']):
+        if len(params['count']):
+            for i,cnt in enumerate(params['count']):
                 if i == 0:
                     query_str += "WITH n,"
                 else:

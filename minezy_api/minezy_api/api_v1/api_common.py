@@ -35,16 +35,14 @@ def query_params(request):
     if query_params['page'] < 1:
         query_params['page'] = 1
         
-    count = request.args.get('count',default='SENT+TO+CC+BCC',type=str).upper()
+    field = request.args.get('field',default='SENT|TO|CC|BCC',type=str).upper()
+    count = request.args.get('count',default=field,type=str).upper()
+    count = count.replace('|','+').replace(' ','+')
     query_params['count'] = count.split('+')
 
     query_params['order'] = request.args.get('order',default='DESC',type=str).upper()
     if not (query_params['order'] == 'ASC' or query_params['order'] == 'DESC'):
         query_params['order'] = 'DESC' 
     
-    query_params['field'] = request.args.get('field',default='TO|CC|BCC',type=str).upper()
-    #if not (query_params['field'] == 'TO' or query_params['field'] == 'CC' or query_params['field'] == 'BCC'):
-    #    query_params['field'] = 'TO|CC|BCC'
-        
     return query_params
 
