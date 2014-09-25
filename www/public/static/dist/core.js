@@ -3077,7 +3077,7 @@ App.ActionTree = ( function($,document,window, U) {
 	var tree = {
 		'root' : {
 			'contacts' : {
-				'contacts-from': {
+				'contacts-contact1': {
 					'dates-month': {
 						'dates-day': {
 							'emails-list': {
@@ -3099,6 +3099,16 @@ App.ActionTree = ( function($,document,window, U) {
 							'emails-meta' : false
 						},
 					},
+					'contacts-contact1': {
+						'dates-day': {
+							'emails-list': {
+								'emails-meta' : false
+							},
+						},
+						'emails-list': {
+							'emails-meta' : false
+						},
+					},
 					'emails-list': {
 						'emails-meta' : false
 					},
@@ -3107,7 +3117,42 @@ App.ActionTree = ( function($,document,window, U) {
 					'emails-meta' : false
 				}
 			},
-			'dates': {
+			'dates-month': {
+				'contacts' : {
+					'contacts-contact1': {
+						'dates-day': {
+							'emails-list': {
+								'emails-meta' : false
+							},
+						},
+						'emails-list': {
+							'emails-meta' : false
+						},
+					},
+					'dates-day': {
+						'emails-list': {
+							'emails-meta' : false
+						},
+					},
+					'emails-list': {
+						'emails-meta' : false
+					}
+				},
+				'dates-day': {
+					'contacts' : {
+						'contacts-contact1': {
+							'emails-list': {
+								'emails-meta' : false
+							},
+						},
+						'emails-list': {
+							'emails-meta' : false
+						}
+					},
+					'emails-list': {
+						'emails-meta' : false
+					},
+				}
 			}
 		}
 	};
