@@ -2427,13 +2427,15 @@ App.Column = ( function($,document,window, U) {
 				$( this.colName + ' .additionalOptions').empty();
 				$( this.colName + ' .additionalOptions').append(options);
 			} else if( val === 'dates' ) {
-				options = $('#template .searchOptionWidgets .dates').clone();
+				if( !opParam[1] ) {
+					options = $('#template .searchOptionWidgets .dates').clone();
 
-				$( this.colName + ' .additionalOptions').empty();
-				$( this.colName + ' .additionalOptions').append(options);
+					$( this.colName + ' .additionalOptions').empty();
+					$( this.colName + ' .additionalOptions').append(options);
 
-				$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
-				$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
+					$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
+					$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
+				}
 
 			}
 
@@ -2480,30 +2482,33 @@ App.Column = ( function($,document,window, U) {
 			} else if( this.action == 'emails' ) {
 
 			} else if( this.action == 'dates' ) {
-				var sy = $( this.colName + ' .start_date_year').val();
-				var sm = $( this.colName + ' .start_date_month').val();
-				var ey = $( this.colName + ' .end_date_year').val();
-				var em = $( this.colName + ' .end_date_month').val();
+				if( !opParam[1] ) {
+					var sy = $( this.colName + ' .start_date_year').val();
+					var sm = $( this.colName + ' .start_date_month').val();
+					var ey = $( this.colName + ' .end_date_year').val();
+					var em = $( this.colName + ' .end_date_month').val();
 
-				var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
-				var ed = new Date(ey, em, 0, 0, 0, 0, 0);
+					var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
+					var ed = new Date(ey, em, 0, 0, 0, 0, 0);
 
-				console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
+					console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
 
-				if( sd.getTime() < 0){
-					sd.setTime(0);
-				}
+					if( sd.getTime() < 0){
+						sd.setTime(0);
+					}
 
-				console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
+					console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
 
-				params.start = sd.getTime()/1000;
-				params.end = ed.getTime()/1000;
-				params.count = 'MONTH';
-
-				if(opParam.length > 1) {
+					params.start = sd.getTime()/1000;
+					params.end = ed.getTime()/1000;
+					params.count = 'MONTH';
+				} else {
+					params.start = this.params.start;
+					params.end = this.params.end;
 					params.count = opParam[1];
 				}
 
+				
 			}
 
 			if( !$.isEmptyObject(params) ) {
@@ -2617,12 +2622,15 @@ App.Column = ( function($,document,window, U) {
 					if( data.dates._params.count[0] === 'MONTH' ) {
 						sd = new Date(rows[i].year, rows[i].month-1, 1, 0, 0, 0, 0);
 						ed = new Date(rows[i].year, rows[i].month-1, numDaysInMonth[rows[i].month-1], 23, 59, 59, 0);
+
+						$(newRow).children('.title').text( months[rows[i].month-1] + ', ' + rows[i].year);
 					} else if( data.dates._params.count[0] === 'DAY' ) {
 						sd = new Date(rows[i].year, rows[i].month-1, rows[i].day, 0, 0, 0, 0);
 						ed = new Date(rows[i].year, rows[i].month-1, rows[i].day, 23, 59, 59, 999);
+
+						$(newRow).children('.title').text( months[rows[i].month-1] + ' ' + rows[i].day +', ' + rows[i].year);
 					}
 
-					$(newRow).children('.title').text( months[rows[i].month] + ', ' + rows[i].year);
 					$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
 
 				}
@@ -2675,7 +2683,13 @@ App.Column = ( function($,document,window, U) {
 			var new_params = $.extend({},this.params);
 
 			if( action === 'contacts' ) {
-				new_params[lock] = key;
+				if( this.action == 'dates' ) {
+					new_params.start = key.split('-')[0];
+					new_params.end = key.split('-')[1];
+				} else {
+					new_params[lock] = key;
+				}
+
 				new_params.count = 'to|cc|bcc|sent';
 
 			} else if( action === 'dates' ) {
@@ -2950,7 +2964,7 @@ App.MinezyController = ( function($,document,window, U) {
 		}
 
 		this.colManager = new App.ColumnController();
-		this.colManager.addColumn('contacts',{'limit':20,'end': (new Date().getTime()/1000) });
+		this.colManager.addColumn('contacts',{'limit':20});
 
 
 		//$('#refreshDates').on('click', $.proxy(this.changeDateRange,this) );

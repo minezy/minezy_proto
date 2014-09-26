@@ -583,5 +583,21 @@ section.columnContainer {
         height: 30px;
         top: 0;
         display: none; }
+  section.columnContainer a.showMore {
+    display: none;
+    width: 120px;
+    height: 26px;
+    line-height: 26px;
+    padding: 5px 10px;
+    border-radius: 3px;
+    background: #20cc90;
+    color: white;
+    margin: 0 auto;
+    text-align: center;
+    margin-bottom: 20px; }
+    section.columnContainer a.showMore:hover {
+      opacity: 0.5; }
+    section.columnContainer a.showMore i {
+      padding-right: 8px; }
 
 /*# sourceMappingURL=core.css.map */
