@@ -19,7 +19,20 @@ def query_dates(params, countResults=False):
             bMonth = True
             bDay = True
     
-    query_str = "MATCH (e:Email) WHERE has(e.timestamp) "
+    if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
+        if len(params['from']):
+            query_str = "MATCH (n:Contact)-[:SENT]->(e:Email) WHERE n.email IN {from} AND has(e.timestamp) "
+        else:
+            query_str = "MATCH (e:Email) WHERE has(e.timestamp) "
+            
+        for to in params['to']:
+            query_str += "AND (e)-[:TO]->(:Contact {email:'"+to+"'}) "
+        for cc in params['cc']:
+            query_str += "AND (e)-[:CC]->(:Contact {email:'"+cc+"'}) "
+        for bcc in params['bcc']:
+            query_str += "AND (e)-[:BCC]->(:Contact {email:'"+bcc+"'}) "
+    else:
+        query_str = "MATCH (e:Email) WHERE has(e.timestamp) "
     
     if params['year']:
         query_str += "AND e.year={year} "
@@ -28,6 +41,11 @@ def query_dates(params, countResults=False):
     if params['day']:
         query_str += "AND e.day={day} "
 
+    if params['start']:
+        query_str += "AND e.timestamp >= {start} "
+    if params['end']:
+        query_str += "AND e.timestamp <= {end} "
+        
     query_str += "WITH e.year AS year, "
     
     if bMonth:
@@ -42,12 +60,12 @@ def query_dates(params, countResults=False):
     if bDay:
         query_str += "day,"
 
-    query_str += "count ORDER BY year DESC"
+    query_str += "count ORDER BY year " + params['order']
     
     if bMonth:
-        query_str += ", month ASC"
+        query_str += ", month " + params['order']
     if bDay:
-        query_str += ", day ASC"
+        query_str += ", day " + params['order']
         
     if params['index'] or params['page'] > 1:
         query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))

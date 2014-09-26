@@ -12,23 +12,23 @@ def query_contacts(params, countResults=False):
 
     rels = ''
     if len(params['count']):
-        rels = ':' + '|'.join(params['count']).replace('SENT', 'Sent')
+        rels = ':' + '|'.join(params['count'])
     
     bWhere = True
     bManualCount = True
     if len(params['from']):
-        query_str = "MATCH (m:Contact)-[:Sent]->(e)-[r"+rels+"]->(n:Contact) WHERE ("
-        for i, actor in enumerate(params['from']):
+        query_str = "MATCH (m:Contact)-[:SENT]->(e)-[r"+rels+"]->(n:Contact) WHERE ("
+        for i, contact in enumerate(params['from']):
             if i > 0:
                 query_str += " OR "
-            query_str += "m.email='"+actor+"'"
+            query_str += "m.email='"+contact+"'"
         query_str += ") "
     elif len(params['to']):
-        query_str = "MATCH (n:Contact)-[r:Sent]->(e)-["+rels+"]->(m:Contact) WHERE ("
-        for i, actor in enumerate(params['to']):
+        query_str = "MATCH (n:Contact)-[r:SENT]->(e)-["+rels+"]->(m:Contact) WHERE ("
+        for i, contact in enumerate(params['to']):
             if i > 0:
                 query_str += " OR "
-            query_str += "m.email='"+actor+"'"
+            query_str += "m.email='"+contact+"'"
         query_str += ") "
 
     elif params['start'] or params['end']:
@@ -57,6 +57,7 @@ def query_contacts(params, countResults=False):
     if params['start'] or params['end']:
         if not bWhere:
             query_str += "WHERE "
+            bWhere = True
         else:
             query_str += "AND "
         if params['start']:
@@ -65,6 +66,14 @@ def query_contacts(params, countResults=False):
             query_str += "AND "
         if params['end']:
             query_str += "e.timestamp <= {end} "
+        
+    if params['keyword']:
+        if not bWhere:
+            query_str += "WHERE "
+            bWhere = True
+        else:
+            query_str += "AND "
+        query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
         
     if bManualCount:
         query_str += "WITH n,count(r) AS count "

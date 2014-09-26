@@ -10,18 +10,17 @@ def query_emails(params, countResults=False):
     t0 = time.time()
     
     if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
-        query_str = ''
         if len(params['from']):
-            query_str += "MATCH (n:Actor)-[:Sent]->(e:Email) WHERE n.email IN {from} AND has(e.subject) "
+            query_str = "MATCH (n:Contact)-[:SENT]->(e:Email) WHERE n.email IN {from} AND has(e.subject) "
         else:
-            query_str += "MATCH (e:Email) WHERE has(e.subject) "
+            query_str = "MATCH (e:Email) WHERE has(e.subject) "
             
         for to in params['to']:
-            query_str += "AND (e)-[:TO]->(:Actor {email:'"+to+"'}) "
+            query_str += "AND (e)-[:TO]->(:Contact {email:'"+to+"'}) "
         for cc in params['cc']:
-            query_str += "AND (e)-[:CC]->(:Actor {email:'"+cc+"'}) "
+            query_str += "AND (e)-[:CC]->(:Contact {email:'"+cc+"'}) "
         for bcc in params['bcc']:
-            query_str += "AND (e)-[:BCC]->(:Actor {email:'"+bcc+"'}) "
+            query_str += "AND (e)-[:BCC]->(:Contact {email:'"+bcc+"'}) "
     else:
         query_str = "MATCH (e:Email) WHERE has(e.subject) "
         
