@@ -55,36 +55,6 @@ class neo4jLoader:
         _write_time(dT)
         return
         
-    def _write_names(self):
-        sys.stdout.write("Writing names ("+str(len(self.names))+")... ")
-        t0 = time.time()
-        
-        # transform names dict to lists of lists so cypher can consume
-        props = []
-        opCount = 0
-        for e in self.names:
-            names = self.names[e]
-            for name in names:
-                props.append( { 'email':e, 'name':name, 'count':names[name] } )
-                opCount += 1
-        
-        cypher = "FOREACH (item in {props} | "
-        cypher +=  "MERGE (a:Contact {email:item.email}) "
-        cypher +=  "MERGE (n:Name {name:item.name}) "
-        cypher +=  "MERGE (a)-[r:Name]->(n) ON CREATE SET r.count=item.count ON MATCH SET r.count=r.count+item.count) "
-                 
-        try:
-            self.tx.append(cypher, { "props" : props })
-            self.tx.execute()
-            self.names.clear()
-        except Exception, e:
-            print e
-            pass
-        
-        t1 = time.time()
-        _write_time(t1-t0)
-        return
-    
     def commit(self):
         if not self.tx is None:
             self._write_batch()
@@ -124,14 +94,14 @@ class neo4jLoader:
             cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, e.year={props}.year, e.month={props}.month, e.day={props}.day "
             # Add From Contact
             cypher += "MERGE (a:Contact {email:{props}.email}) "
-            cypher += "CREATE UNIQUE (a)-[:Sent]->(e), (e)-[:SentBy]->(a) "
+            cypher += "CREATE UNIQUE (a)-[:SENT]->(e) "
             opCount += 4
             
             # Email Thread Relation
             if msgIDParent != "None":
                 cypher += "MERGE (ePar:Email {id:{props}.parentId}) "
-                cypher += "CREATE UNIQUE (e)-[:InReplyTo]->(ePar), (ePar)-[:Reply]->(e) "
-                opCount += 3
+                cypher += "CREATE UNIQUE (e)-[:INREPLYTO]->(ePar) "
+                opCount += 2
             
             # Email Thread References
             refs = []
@@ -141,7 +111,7 @@ class neo4jLoader:
                 refs.append(msgIDRef)
             if len(refs):
                 props['refs'] = refs
-                cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) CREATE UNIQUE (e)-[:Refs]->(eRef)) "
+                cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) CREATE UNIQUE (e)-[:REFS]->(eRef)) "
                 opCount += 2*len(refs)
         
             # Add TO relations
@@ -200,8 +170,8 @@ class neo4jLoader:
         
         sys.stdout.write("Processing Names... ")
         cypher =  "MATCH (a:Contact) WITH a "
-        cypher += "MATCH (a)-[r:Name]->() WITH a,MAX(r.count) as nmax " 
-        cypher += "MATCH (a)-[r:Name]->(n:Name) WHERE r.count = nmax "
+        cypher += "MATCH (a)-[r:NAME]->() WITH a,MAX(r.count) as nmax " 
+        cypher += "MATCH (a)-[r:NAME]->(n:Name) WHERE r.count = nmax "
         cypher += "SET a.name=n.name"
         tx.append(cypher)
         t0 = time.time()
@@ -210,8 +180,8 @@ class neo4jLoader:
         _write_time(t1-t0)
         
         sys.stdout.write("Processing Sent Counts... ")
-        tx.append("MATCH (n:Contact)-[r:Sent]->() WITH n,count(r) AS rc SET n.sent=rc")
-        tx.append("MATCH (n:Contact) WHERE NOT (n)-[:Sent]->() SET n.sent=0")
+        tx.append("MATCH (n:Contact)-[r:SENT]->() WITH n,count(r) AS rc SET n.sent=rc")
+        tx.append("MATCH (n:Contact) WHERE NOT (n)-[:SENT]->() SET n.sent=0")
         t0 = time.time()
         tx.execute()
         t1 = time.time()
@@ -264,6 +234,36 @@ class neo4jLoader:
             names = self.names.setdefault(msgEmail, {})
             names[msgName] = names.get(msgName,0)+1
 
+        return
+    
+    def _write_names(self):
+        sys.stdout.write("Writing names ("+str(len(self.names))+")... ")
+        t0 = time.time()
+        
+        # transform names dict to lists of lists so cypher can consume
+        props = []
+        opCount = 0
+        for e in self.names:
+            names = self.names[e]
+            for name in names:
+                props.append( { 'email':e, 'name':name, 'count':names[name] } )
+                opCount += 1
+        
+        cypher = "FOREACH (item in {props} | "
+        cypher +=  "MERGE (a:Contact {email:item.email}) "
+        cypher +=  "MERGE (n:Name {name:item.name}) "
+        cypher +=  "MERGE (a)-[r:NAME]->(n) ON CREATE SET r.count=item.count ON MATCH SET r.count=r.count+item.count) "
+                 
+        try:
+            self.tx.append(cypher, { "props" : props })
+            self.tx.execute()
+            self.names.clear()
+        except Exception, e:
+            print e
+            pass
+        
+        t1 = time.time()
+        _write_time(t1-t0)
         return
     
     
