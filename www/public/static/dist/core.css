@@ -547,7 +547,8 @@ section.columnContainer {
         position: relative;
         z-index: 2;
         width: 245px;
-        overflow: hidden; }
+        overflow: hidden;
+        white-space: nowrap; }
       section.columnContainer div.results div.resultContainer .bar {
         position: absolute;
         left: 20px;

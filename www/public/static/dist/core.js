@@ -2357,11 +2357,10 @@ App.Column = ( function($,document,window, U) {
 
 			$( this.colName + ' .searchMore').on('click',$.proxy( this.showMoreSearchOptions, this ) );
 			$( this.colName + ' .searchOptions').hide();
-			$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
-			$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
 
 			this.setColumnActions();
+			this.searchFilter();
 
 			//hide or show close button
 			if( this.index === 0 ) {
@@ -2399,7 +2398,11 @@ App.Column = ( function($,document,window, U) {
 
 			for(var i = 0; i<this.columnActions.length;i++) {
 				var opParam = this.columnActions[i].split('-');
-				var option = '<option value="'+this.columnActions[i]+'">'+this.columnActions[i]+'</option>';
+				var selected = '';
+				if(i===0){
+					selected = ' selected';
+				}
+				var option = '<option value="'+this.columnActions[i]+'" '+selected+'>'+this.columnActions[i]+'</option>';
 				$( this.colName + ' .searchFilter').append(option);
 			}
 
@@ -2417,15 +2420,20 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .additionalOptions a').off('click');
 
 			if( val === 'contacts' ) {
-				options = $('#template .searchOptionWidgets .actors').clone();
+				options = $('#template .searchOptionWidgets .contacts').clone();
 
 				$( this.colName + ' .additionalOptions').empty();
 				$( this.colName + ' .additionalOptions').append(options);
+				$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
+				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
+
 			} else if( val === 'emails' ) {
 				options = $('#template .searchOptionWidgets .emails').clone();
 
 				$( this.colName + ' .additionalOptions').empty();
 				$( this.colName + ' .additionalOptions').append(options);
+				$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
+				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 			} else if( val === 'dates' ) {
 				if( !opParam[1] ) {
 					options = $('#template .searchOptionWidgets .dates').clone();
@@ -2447,6 +2455,7 @@ App.Column = ( function($,document,window, U) {
 			console.log('SEARCHING!',this.params);
 
 			var params = $.extend({},this.params);
+
 			this.nodeName = $( this.colName + ' .searchFilter').val();
 			var opParam = this.nodeName.split('-');
 
@@ -2459,10 +2468,12 @@ App.Column = ( function($,document,window, U) {
 
 				var keyword = $( this.colName + ' .additionalOptions .keyword').val();
 
-				if( keyword !== '' && keyword !== 'enter keyword' ) {
+				if( keyword !== '' && keyword !== 'enter keyword' && keyword !== this.params.keyword ) {
 					$( this.colName + ' .searchOptions a').off('click');
 
 					params.keyword = keyword;
+				} else {
+					delete params.keyword;
 				}
 
 				var field = '';
@@ -2584,7 +2595,7 @@ App.Column = ( function($,document,window, U) {
 			} else if( this.action == 'dates' ) {
 				rows = data.dates.dates;
 			} else if( this.action == 'emails' ) {
-				rows = data;
+				rows = data.emails.email;
 			} else {
 				return;
 			}
@@ -2633,6 +2644,13 @@ App.Column = ( function($,document,window, U) {
 
 					$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
 
+				} else if( this.action == 'emails' ) {
+						$(newBar).css('width',rowMaxWidth);
+
+						var date = new Date();
+						date.setTime(rows[i].date.utc * 1000);
+						$(newRow).children('.title').text( date.toLocaleTimeString() + ' ' + rows[i].subject );
+
 				}
 
 				count++;
@@ -2658,6 +2676,8 @@ App.Column = ( function($,document,window, U) {
 			if( !this.active ) {
 				this.active = true;
 				$(this).trigger('Ready');
+			} else {
+				$(this).trigger('Updated');
 			}
 
 
@@ -2681,6 +2701,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			var new_params = $.extend({},this.params);
+			delete new_params.keyword;
 
 			if( action === 'contacts' ) {
 				if( this.action == 'dates' ) {
@@ -2693,18 +2714,33 @@ App.Column = ( function($,document,window, U) {
 				new_params.count = 'to|cc|bcc|sent';
 
 			} else if( action === 'dates' ) {
+
 				if( this.action == 'dates' ) {
 					console.log('here',key);
+					new_params.start = key.split('-')[0];
+					new_params.end = key.split('-')[1];
+				} else if( this.action == 'contacts' ) {
+					if(this.params.from)
+						new_params.to = key;
+				}
+
+				new_params.count = 'month';
+
+				if( lock == 'day' ) {
+					new_params.count = 'day';
+					lock = '';
+				}
+
+			} else if( action === 'emails' ) {
+
+				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
 				} else if( this.action == 'contacts' ) {
 					new_params[lock] = key;
 				}
 
-				new_params.count = 'month';
 
-				if( lock == 'day' ) 
-					new_params.count = 'day';
 			}
 
 			/*var fromLock = '';
@@ -2808,6 +2844,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 			var new_col = new App.Column( { 'action':action,'params':params,'index':this.columns.length,'path':this.path,'columnActions':ops,'nodeName':ops[0] } );
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
+			$(new_col).on('Updated', $.proxy( this.updatedColumn, this ) );
 			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
 			$(new_col).on('Closing', $.proxy( this.closingColumn, this ) );
 			$(new_col).on('DataReceived', $.proxy( this.columnDataRecieved, this ) );
@@ -2817,12 +2854,17 @@ App.ColumnController = ( function($,document,window, U) {
 
 		},
 
+		updatedColumn: function(e) {
+			this.adjustColumnHeight();
+		},
+
 		updatePath: function(e,index,nodeName) {
-			console.log(this.path);
+
 			this.path[index+1] = nodeName;
-			console.log(this.path);
+
 			if( this.columns.length > index )
 				this.removeColumns(index+1);
+
 		},
 
 		columnDataRecieved: function(e,index) {
@@ -2918,10 +2960,22 @@ App.ColumnController = ( function($,document,window, U) {
 
 		adjustColumnHeight: function(e) {
 			var h = 0;
+			var maxh = 0;
 
 			h = $(window).height() - $('header').outerHeight();
 			//console.log($(window).height(),$('header').outerHeight(),$('nav.dates').outerHeight());
-			$('.columnContainer,.column').css('min-height',h);
+			$('.columnContainer').css('height',h);
+
+			var cols = $('.column');
+			$('.column').css('height','');
+
+			for(var i =0;i<cols.length;i++){
+				if( $(cols[i]).height() > maxh )
+					maxh = $(cols[i]).height();
+				console.log( 'maxh', maxh );
+			}
+
+			$('.column').css('height',maxh);
 		},
 
 		handleScroll: function(e) {
