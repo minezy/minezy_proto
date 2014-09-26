@@ -7,8 +7,8 @@ def connect():
 		session = cypher.Session("http://localhost:7474")
 		
 		tx = session.create_transaction()
-		sys.stdout.write("actor index... ")
-		tx.append("CREATE CONSTRAINT ON (a:Actor) ASSERT a.email IS UNIQUE")
+		sys.stdout.write("contacts index... ")
+		tx.append("CREATE CONSTRAINT ON (c:Contact) ASSERT c.email IS UNIQUE")
 		tx.execute()
 		sys.stdout.write("email index... ")
 		tx.append("CREATE CONSTRAINT ON (e:Email) ASSERT e.id IS UNIQUE")
