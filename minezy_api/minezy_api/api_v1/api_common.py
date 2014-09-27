@@ -17,7 +17,6 @@ def support_jsonp(f):
 def query_params(request):
     query_params = {}
 
-    print "Query received..."
     query_params['index'] = request.args.get('index',default=0,type=int)
     query_params['limit'] = request.args.get('limit',default=0,type=int)
     query_params['start'] = int(request.args.get('start',default=0,type=float))

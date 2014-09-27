@@ -87,6 +87,9 @@ def query_contacts(params, countResults=False):
     if countResults:
         resp = _query_count(query_str, params)
     else:
+        # for debugging
+        print query_str
+        
         tx = neo4j_conn.g_session.create_transaction()
         tx.append(query_str, params)
         results = tx.commit()
@@ -117,6 +120,9 @@ def query_contacts(params, countResults=False):
 def _query_count(query_str, params):
     count_str = query_str[0:query_str.find("RETURN")]
     count_str += "RETURN count(*)"
+    
+    # for debugging
+    print count_str
     
     tx = neo4j_conn.g_session.create_transaction()
     tx.append(count_str, params)
