@@ -12,6 +12,9 @@ def connect():
 		tx.execute()
 		sys.stdout.write("email index... ")
 		tx.append("CREATE CONSTRAINT ON (e:Email) ASSERT e.id IS UNIQUE")
+		tx.execute()
+		sys.stdout.write("names index... ")
+		tx.append("CREATE CONSTRAINT ON (n:Name) ASSERT n.name IS UNIQUE")
 		tx.commit()
 		
 		sys.stdout.write("OK\n")

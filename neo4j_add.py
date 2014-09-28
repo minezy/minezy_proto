@@ -5,32 +5,79 @@ import email
 import email.utils
 import itertools
 import neo4j_conn
+import Queue
+import threading
 from py2neo import cypher, node, rel
-
 
 class neo4jLoader:
     session = None
     tx = None
     opCount = 0
-    targetCount = 1000
+    batchTarget = 1000
+    namesTarget = 1000
     names = {}
     unknownMsgId = 1
+    q = None
+    t = None
     
     def __init__(self):
         self.session = neo4j_conn.connect()
+        self.q = Queue.Queue(10000)
+        self.t = threading.Thread(target=self._writer_thread)
+        self.t.start()
         return
     
-    def _append(self, cypher, props=None, opCount=0):
-        if self.tx is None:
-            self.tx = self.session.create_transaction()
+    def _writer_thread(self):
+        bComplete = False
+        while not (bComplete and self.q.empty()):
+            item = self.q.get()
             
-        self.tx.append(cypher, props)
-        self.opCount += opCount
+            if item[0] == 'commit' or item[0] == 'complete':
+                if item[0] == 'complete':
+                    bComplete = True
+                    print "Completing..."
+                if not self.tx is None:
+                    self._write_batch()
+                    self._write_names()
+                    self.tx.commit()
+                    self.tx = None
+                    
+            elif item[0] == 'name':
+                msgEmail = item[1]
+                msgName = item[2]
+                names = self.names.setdefault(msgEmail, {})
+                names[msgName] = names.get(msgName,0)+1
+                
+            elif item[0] == 'msg':
+                print item[1]
+                
+            else:
+                if self.tx is None:
+                    self.tx = self.session.create_transaction()
+                    
+                self.tx.append(item[0], item[1])
+                self.opCount += item[2]
+                
+                bCommit = False
+                if self.opCount > self.batchTarget:
+                    self._write_batch()
+                    bCommit = True
+                if len(self.names) > self.namesTarget:
+                    self._write_names()
+                    bCommit = True
+                
+                if bCommit:
+                    self.tx.commit()
+                    self.tx = None
+                
+            self.q.task_done()
+            
+        return
+    
         
-        if self.opCount > self.targetCount:
-            self._write_batch()
-        if len(self.names) > 500:
-            self._write_names()
+    def _append(self, cypher, props=None, opCount=0):
+        item = (cypher, props, opCount)
+        self.q.put(item)
         return
     
     def _write_batch(self):
@@ -45,25 +92,21 @@ class neo4jLoader:
         # size commits so they target 1-second to write
         t1 = time.time()
         dT = t1 - t0
-        if (self.opCount > self.targetCount) or (dT > 1.0): 
+        if (self.opCount > self.batchTarget) or (dT > 1.0): 
             adj = (1.0 + dT) / 2
-            self.targetCount = self.opCount / adj
-            if self.targetCount < 100:
-                self.targetCount = 100
+            self.batchTarget = self.opCount / adj
+            if self.batchTarget < 100:
+                self.batchTarget = 100
         self.opCount = 0
              
         _write_time(dT)
         return
         
     def commit(self):
-        if not self.tx is None:
-            self._write_batch()
-            self._write_names()
-            self.tx.commit()
-            self.tx = None
+        self.q.put( ('commit',None,0) )
         return
 
-    def add(self, email_msg, count=0):
+    def add(self, email_msg, emailLink=None):
         try:
             msgSubject = _get_decoded(email_msg['Subject'])
             msgDate = _get_decoded(email_msg['Date'])
@@ -81,17 +124,24 @@ class neo4jLoader:
             
             # Add From Contact
             msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
-            msgXFrom = email_msg.get_all('X-From', [''])
-            self._collect_name(msgFrom[0], msgXFrom[0])
+            msgFromX = email_msg.get_all('X-From', [''])
+            self._collect_name(msgFrom[0], msgFromX[0])
         
             msgEmail = str.lower(msgFrom[0][1])
-            props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, "subject":msgSubject, "date":msgDate, "timestamp":timestamp, "year":date[0], "month":date[1], "day":date[2] } }
+            props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, 
+                                "subject":msgSubject, "date":msgDate, "timestamp":timestamp, 
+                                "year":date[0], "month":date[1], "day":date[2],
+                                "link":emailLink
+                                }
+                      }
     
             opCount = 0
             
             # Add Email
             cypher = "MERGE (e:Email {id:{props}.id}) "
-            cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, e.year={props}.year, e.month={props}.month, e.day={props}.day "
+            cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, "
+            cypher +=   "e.year={props}.year, e.month={props}.month, e.day={props}.day, "
+            cypher +=   "e.link={props}.link "
             # Add From Contact
             cypher += "MERGE (a:Contact {email:{props}.email}) "
             cypher += "CREATE UNIQUE (a)-[:SENT]->(e) "
@@ -117,8 +167,13 @@ class neo4jLoader:
             # Add TO relations
             tos = []
             msgTo = email.utils.getaddresses(email_msg.get_all('To', ['']))
-            msgXTo = email_msg.get_all('X-To', [''])
-            for msg,msgX in itertools.izip_longest(msgTo,msgXTo,fillvalue=''):
+            msgToX = email_msg.get('X-To','').split('>,')
+            if len(msgToX) != len(msgTo):
+                msgToX = email_msg.get('X-To','').split(',')
+                if len(msgToX) != len(msgTo):
+                    msgToX = []
+                
+            for msg,msgX in itertools.izip_longest(msgTo,msgToX,fillvalue=''):
                 if len(msg) > 0:
                     tos.append(str.lower(msg[1]))
                 self._collect_name(msg, msgX)
@@ -130,9 +185,14 @@ class neo4jLoader:
         
             # Add CC relations
             ccs = []
-            msgCC = email.utils.getaddresses(email_msg.get_all('Cc', ['']))
-            msgXCC = email_msg.get_all('X-Cc', [''])
-            for msg,msgX in itertools.izip_longest(msgCC,msgXCC,fillvalue=''):
+            msgCc = email.utils.getaddresses(email_msg.get_all('Cc', ['']))
+            msgCcX = email_msg.get('X-cc','').split('>,')
+            if len(msgCcX) != len(msgCc):
+                msgCcX = email_msg.get('X-cc','').split(',')
+                if len(msgCcX) != len(msgCc):
+                    msgCcX = []
+                    
+            for msg,msgX in itertools.izip_longest(msgCc,msgCcX,fillvalue=''):
                 if len(msg) > 0:
                     ccs.append(str.lower(msg[1]))
                 self._collect_name(msg,msgX)
@@ -143,9 +203,14 @@ class neo4jLoader:
             
             # Add BCC relations
             bccs = []
-            msgBCC = email.utils.getaddresses(email_msg.get_all('bcc', []))
-            msgXBCC = email_msg.get_all('X-bcc', [])
-            for msg,msgX in itertools.izip_longest(msgBCC,msgXBCC,fillvalue=''):
+            msgBcc = email.utils.getaddresses(email_msg.get_all('bcc', []))
+            msgBccX = email_msg.get('X-bcc','').split('>,')
+            if len(msgBccX) != len(msgBcc):
+                msgBccX = email_msg.get('X-bcc','').split(',')
+                if len(msgBccX) != len(msgBcc):
+                    msgBccX = []
+
+            for msg,msgX in itertools.izip_longest(msgBcc,msgBccX,fillvalue=''):
                 if len(msg) > 0:
                     bccs.append(str.lower(msg[1]))
                 self._collect_name(msg,msgX)
@@ -162,10 +227,16 @@ class neo4jLoader:
     
         return
               
-    def complete(self):
-        print "Completing:"
+              
+    def msg(self, msg):
+        self.q.put( ('msg',msg,0) )
+        return
     
-        self.commit()
+    
+    def complete(self):
+        self.q.put( ('complete',None,0) )
+        self.q.join()
+        
         tx = self.session.create_transaction()
         
         sys.stdout.write("Processing Names... ")
@@ -223,16 +294,67 @@ class neo4jLoader:
         if len(msgName) == 0:
             msgName = _get_decoded(msgXAddr)
                 
+        # trim out this kinda crap </O=ENRON/OU=NA/CN=RECIPIENTS/CN=RALVARE2>
+        start = msgName.find("</")
+        if start != -1:
+            cleanName = '' 
+            while start != -1:
+                end = msgName.find(">",start)
+                if end != -1:
+                    cleanName += msgName[:start] + '\t' + msgName[end+1:]
+                else:
+                    cleanName += msgName[:start] + '\t'
+                start = msgName.find("</", end)
+                if start != -1:
+                    start = start
+            msgName = cleanName
+
+        # obvious cleanup
         msgName = msgName.lower()
-        msgName = msgName.replace(msgEmail,'').replace('()', '').replace('to:', '').replace('cc:', '')
+        msgName = msgName.replace(msgEmail,'').replace('<>', '').replace('()', '').replace('.', ' ').replace('to:', '').replace('cc:', '')
+        
+        # take between leading quotes
+        while len(msgName) > 2:
+            end = -1
+            start = msgName.find('\"')
+            if start == 0:
+                end = msgName.find('\"',1)
+            else:
+                start = msgName.find('\'')
+                if start == 0:
+                    end = msgName.find('\'',1)
+            if end > start:
+                msgName = msgName[1:end]
+            else:
+                break
+                
+        # trim cleanup
+        msgName = msgName.strip(" \"',<>")
+        
+        # trim out between < > 
+        start = msgName.find("<")
+        if start != -1:
+            cleanName = '' 
+            while start != -1:
+                end = msgName.find(">",start)
+                if end != -1:
+                    cleanName += msgName[:start] + msgName[end+1:]
+                else:
+                    cleanName += msgName[:start]
+                start = msgName.find("<", end)
+                if start != -1:
+                    start = start
+            msgName = cleanName
+        
         msgName = msgName.strip(" \"',<>").title()
         msgName = " ".join(msgName.split())
         msgName = " ".join(msgName.split(", ")[::-1])
-        
+
         nameLen = len(msgName)
         if (nameLen > 0) and (nameLen < 100) and not (msgName == 'None'):
-            names = self.names.setdefault(msgEmail, {})
-            names[msgName] = names.get(msgName,0)+1
+            self.q.put( ('name',msgEmail,msgName) )
+        elif nameLen >= 100:
+            nameLen = nameLen
 
         return
     
@@ -263,7 +385,14 @@ class neo4jLoader:
             pass
         
         t1 = time.time()
-        _write_time(t1-t0)
+        dT = t1 - t0
+        if (opCount > self.namesTarget) or (dT > 1.0): 
+            adj = (1.0 + dT) / 2
+            self.namesTarget = opCount / adj
+            if self.namesTarget < 100:
+                self.namesTarget = 100
+        
+        _write_time(dT)
         return
     
     
