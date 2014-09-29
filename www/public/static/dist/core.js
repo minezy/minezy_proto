@@ -2336,6 +2336,7 @@ App.Column = ( function($,document,window, U) {
 		this.nodeName = options.nodeName;
 		this.minTime = options.minTime;
 		this.maxTime = options.maxTime;
+		this.page = 1;
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -2356,10 +2357,13 @@ App.Column = ( function($,document,window, U) {
 			$(this.element).hide();
 			$(this.element).attr('id','Column'+this.index);
 			this.colName = this.colName + this.index;
+			$( this.colName + ' .loader').hide();
+			$( this.colName + ' .showMore').hide();
 
 			$( this.colName + ' .searchMore').on('click',$.proxy( this.showMoreSearchOptions, this ) );
 			//$( this.colName + ' .searchOptions').hide();
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
+			$( this.colName + ' .showMore').on('click',$.proxy( this.getMoreRows, this ) );
 
 			this.setColumnActions();
 			this.setFilterOptions();
@@ -2470,6 +2474,9 @@ App.Column = ( function($,document,window, U) {
 
 			console.log('SEARCHING!',this.action, this.params);
 
+			$( this.colName + ' .loader' ).fadeIn();
+			$(this.colName + ' .showMore').hide();
+
 			var params = $.extend({},this.params);
 
 			this.nodeName = $( this.colName + ' .searchFilter').val();
@@ -2486,7 +2493,7 @@ App.Column = ( function($,document,window, U) {
 
 				keyword = $( this.colName + ' .additionalOptions .keyword').val();
 
-				if( keyword !== '' && keyword !== 'enter keyword' && keyword !== this.params.keyword ) {
+				if( keyword !== '' && keyword !== 'enter keyword'  ) {
 					params.keyword = keyword;
 				} else {
 					delete params.keyword;
@@ -2563,9 +2570,13 @@ App.Column = ( function($,document,window, U) {
 				if(!params.end)
 					params.end = this.params.end;
 
-				params.key = this.params.key;
-				params.lock = this.params.lock;
-				params.fromAction = this.params.fromAction;
+				//params.key = this.params.key;
+				//params.lock = this.params.lock;
+				//params.fromAction = this.params.fromAction;
+				if(this.page > 1) {
+					params.page = this.page;
+				}
+
 				this.updateAll(this.action,params);
 
 				$(this).trigger('RefreshingData',[this.index,this.nodeName]);
@@ -2632,26 +2643,19 @@ App.Column = ( function($,document,window, U) {
 				return;
 			}
 
-
-			for(var i = 0; i < rows.length;i++) {
-				if( rows[i].count > maxVal )
-					maxVal = rows[i].count;
-			}
-			//console.log(maxVal);
-
 			$(resultContainer).hide();
 
-			for(i = 0; i < rows.length;i++) {
+			for(var i = 0; i < rows.length;i++) {
 
-				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""><div class="loader"></div></div>');
+				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""><div class="loading"></div></div>');
 
 				var newBar = $(newRow).children('.bar');
 				resultContainer.append(newRow);
 
-				var rowMaxWidth = $(this.element).width() - (parseInt($(newBar).css('left'))*2);
-				var size = Math.round( ( rows[i].count / maxVal ) * rowMaxWidth );
+				//var rowMaxWidth = $(this.element).width() - (parseInt($(newBar).css('left'))*2);
+				//var size = Math.round( ( rows[i].count / maxVal ) * rowMaxWidth );
 
-				$(newBar).css('width',size);
+				//$(newBar).css('width',size);
 				$(newRow).children('.tally').text(rows[i].count);
 
 				if( this.action == 'contacts' ) {
@@ -2677,7 +2681,7 @@ App.Column = ( function($,document,window, U) {
 					$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
 
 				} else if( this.action == 'emails' ) {
-						$(newBar).css('width',rowMaxWidth);
+						//$(newBar).css('width',rowMaxWidth);
 
 						var date = new Date();
 						date.setTime(rows[i].date.utc * 1000);
@@ -2685,9 +2689,34 @@ App.Column = ( function($,document,window, U) {
 
 				}
 
-				count++;
+				//count++;
 
 			}
+
+			var bars = resultContainer.children('.resultContainer');
+
+			for(i = 0; i < bars.length;i++) {
+				var barVal = parseInt($(bars[i]).children('.tally').text());
+				if( barVal > maxVal )
+					maxVal =  barVal;
+			}
+
+			for(i = 0; i < bars.length;i++) {
+
+				var barVal2 = parseInt($(bars[i]).children('.tally').text());
+				var bar = resultContainer.children('.resultContainer').eq(i).children('.bar');
+				var rowMaxWidth = $(this.element).width() - (parseInt($(bar).css('left'))*2);
+				var size = Math.round( ( barVal2 / maxVal ) * rowMaxWidth );
+
+				$(bar).css('width',size);
+
+				if( this.action == 'emails' ) {
+					$(bar).css('width',rowMaxWidth);
+				}
+
+			}
+
+
 
 			this.updateUI();
 
@@ -2712,6 +2741,14 @@ App.Column = ( function($,document,window, U) {
 				$(this).trigger('Updated');
 			}
 
+			if( rows.length < 20 ) {
+				$(this.colName + ' .showMore').hide();
+			} else {
+				$( this.colName + ' .showMore' ).fadeIn();
+			}
+
+
+			$( this.colName + ' .loader' ).fadeOut();
 
 		},
 
@@ -2735,6 +2772,7 @@ App.Column = ( function($,document,window, U) {
 			var new_params = $.extend({},this.params);
 			delete new_params.keyword;
 			delete new_params.count;
+			delete new_params.page;
 
 			if( action === 'contacts' ) {
 				if( this.action == 'dates' ) {
@@ -2796,9 +2834,16 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .resultContainer' ).addClass('dim');
 			row.removeClass('dim');
 			row.addClass('on');
-			row.children('.loader').fadeIn(100);
+			row.children('.loading').fadeIn(100);
 
 			$(this).trigger('NewColumn',[this.index, action, new_params, index]);
+
+		},
+
+		getMoreRows: function() {
+
+			this.page++;
+			this.searchColumn();
 
 		},
 
@@ -2812,7 +2857,9 @@ App.Column = ( function($,document,window, U) {
 			this.action = action;
 			this.params = $.extend( {}, params );
 
-			this.clearData();
+			if(!this.params.page)
+				this.clearData();
+
 			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
 
 		},
@@ -2940,7 +2987,7 @@ App.ColumnController = ( function($,document,window, U) {
 		columnDataRecieved: function(e,index) {
 
 			if( index > 0 ) {
-				$("#Column" + (index-1) + ' .loader').hide();
+				$("#Column" + (index-1) + ' .loading').hide();
 				$("#Column" + (index-1) + ' .resultContainer').eq(this.activeRow).children('.arrow').fadeIn();
 			}
 		},
@@ -2951,6 +2998,7 @@ App.ColumnController = ( function($,document,window, U) {
 				if( this.columns.length > column+1 ) {
 					this.removeColumns(column+2);
 				}
+				$( this.columns[column+1].colName + ' .loader' ).fadeIn();
 				this.columns[column+1].updateAll(action,params);
 			} else {
 				this.addColumn(action,params);

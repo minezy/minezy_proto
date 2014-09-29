@@ -83,7 +83,7 @@ App.ColumnController = ( function($,document,window, U) {
 		columnDataRecieved: function(e,index) {
 
 			if( index > 0 ) {
-				$("#Column" + (index-1) + ' .loader').hide();
+				$("#Column" + (index-1) + ' .loading').hide();
 				$("#Column" + (index-1) + ' .resultContainer').eq(this.activeRow).children('.arrow').fadeIn();
 			}
 		},
@@ -94,6 +94,7 @@ App.ColumnController = ( function($,document,window, U) {
 				if( this.columns.length > column+1 ) {
 					this.removeColumns(column+2);
 				}
+				$( this.columns[column+1].colName + ' .loader' ).fadeIn();
 				this.columns[column+1].updateAll(action,params);
 			} else {
 				this.addColumn(action,params);

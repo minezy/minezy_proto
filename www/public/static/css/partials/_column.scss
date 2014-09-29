@@ -73,7 +73,6 @@ section.columnContainer {
 
 			.searchOptions {
 				padding-top: 8px;
-				padding-left: 8px;
 				max-width: 290px;
 			}
 
@@ -244,7 +243,7 @@ section.columnContainer {
 				line-height: 30px;
 			}
 
-			.loader {
+			.loading {
 				position: absolute;
 				left:0px;
 				width: 20px;
@@ -260,7 +259,7 @@ section.columnContainer {
 	}
 
 	a.showMore {
-		display: none;
+		display: block;
 		width: 120px;
 		height: 26px;
 		line-height: 26px;

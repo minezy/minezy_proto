@@ -9,7 +9,7 @@ def query_contacts(params, countResults=False):
     rels = ''
     if len(params['count']):
         rels = ':' + '|'.join(params['count'])
-    
+
     bWhere = True
     bManualCount = True
     if len(params['from']):
@@ -49,7 +49,7 @@ def query_contacts(params, countResults=False):
                 elif cnt == 'BCC':
                     query_str += "n.bcc"
             query_str += " AS count "
-        
+
     if params['start'] or params['end']:
         if not bWhere:
             query_str += "WHERE "
@@ -62,7 +62,7 @@ def query_contacts(params, countResults=False):
             query_str += "AND "
         if params['end']:
             query_str += "e.timestamp <= {end} "
-        
+
     if params['keyword']:
         if not bWhere:
             query_str += "WHERE "
@@ -70,13 +70,13 @@ def query_contacts(params, countResults=False):
         else:
             query_str += "AND "
         query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
-        
+
     if bManualCount:
         query_str += "WITH n,count(distinct(e)) AS count "
     query_str += "RETURN n.name,n.email,count ORDER BY count " + params['order'] + ", n.name ASC "
-    
+
     if params['index'] or params['page'] > 1:
-        query_str += "SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
+        query_str += "SKIP "+ str(params['index'] + ((params['page']-1)*params['limit'])) + " "
     if params['limit']:
         query_str += "LIMIT {limit}"
 
@@ -85,22 +85,22 @@ def query_contacts(params, countResults=False):
     else:
         # for debugging
         print query_str
-        
+
         tx = neo4j_conn.g_session.create_transaction()
         tx.append(query_str, params)
         results = tx.commit()
-    
+
         contacts = []
         count = -1
         for count,record in enumerate(results[0]):
-            contact = { 
+            contact = {
                 'name':  record[0],
                 'email': record[1],
                 'count': record[2]
-                } 
-            
+                }
+
             contacts.append(contact)
-    
+
         resp = {}
         resp['_count'] = count+1
         resp['_params'] = params
@@ -109,24 +109,24 @@ def query_contacts(params, countResults=False):
 
     t1 = time.time()
     resp['_query_time'] = t1-t0
-    
+
     return resp
 
 
 def _query_count(query_str, params):
     count_str = query_str[0:query_str.find("RETURN")]
     count_str += "RETURN count(*)"
-    
+
     # for debugging
     print count_str
-    
+
     tx = neo4j_conn.g_session.create_transaction()
     tx.append(count_str, params)
     results = tx.commit()
-    
+
     resp = {'count': results[0][0][0] }
     resp['_params'] = params
     resp['_query'] = count_str
     return resp
 
-    
+
