@@ -1,7 +1,4 @@
-import sys
-import json
 import time
-from py2neo import cypher, node, rel
 from minezy_api import neo4j_conn
 
 
@@ -19,18 +16,44 @@ def query_dates(params, countResults=False):
             bMonth = True
             bDay = True
     
+    rels = ''
+    #if len(params['count']):
+        #rels = ':' + '|'.join(params['count'])
+    
     if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
         if len(params['from']):
-            query_str = "MATCH (n:Contact)-[:SENT]->(e:Email) WHERE n.email IN {from} AND has(e.timestamp) "
+            query_str = "MATCH (f:Contact)-[]-(e:Email)"
         else:
-            query_str = "MATCH (e:Email) WHERE has(e.timestamp) "
+            query_str = "MATCH (e:Email)"
             
-        for to in params['to']:
-            query_str += "AND (e)-[:TO]->(:Contact {email:'"+to+"'}) "
-        for cc in params['cc']:
-            query_str += "AND (e)-[:CC]->(:Contact {email:'"+cc+"'}) "
-        for bcc in params['bcc']:
-            query_str += "AND (e)-[:BCC]->(:Contact {email:'"+bcc+"'}) "
+        if len(params['to']) or len(params['cc']) or len(params['bcc']):
+            query_str += "-[r2:TO|CC]-(t:Contact)"
+            
+        query_str += " WHERE "
+        
+        if len(params['from']):
+            query_str += "f.email IN {from} "
+            
+        if len(params['to']) or len(params['cc']) or len(params['bcc']):
+            query_str += "AND ("
+            
+            bDid = False
+            if len(params['to']):
+                query_str += "(type(r2)='TO' AND t.email in {to})"
+                bDid = True
+            if len(params['cc']):
+                if bDid:
+                    query_str += " OR "
+                query_str += "(type(r2)='CC' AND t.email in {cc})"
+                bDid = True
+            if len(params['bcc']):
+                if bDid:
+                    query_str += " OR "
+                query_str += "(type(r2)='BCC' AND t.email in {bcc})"
+                bDid = True
+            
+            query_str += ") "
+        query_str += "AND has(e.timestamp) "
     else:
         query_str = "MATCH (e:Email) WHERE has(e.timestamp) "
     
@@ -46,22 +69,26 @@ def query_dates(params, countResults=False):
     if params['end']:
         query_str += "AND e.timestamp <= {end} "
         
-    query_str += "WITH e.year AS year, "
-    
+    if bYear:
+        query_str += "WITH e.year AS year, "
     if bMonth:
         query_str += "e.month AS month, "
     if bDay:
         query_str += "e.day AS day, "
             
-    query_str += "count(e) AS count RETURN year,"
+    query_str += "count(e) AS count RETURN "
 
+    if bYear:
+        query_str += "year,"
     if bMonth:
         query_str += "month,"
     if bDay:
         query_str += "day,"
 
-    query_str += "count ORDER BY year " + params['order']
+    query_str += "count ORDER BY "
     
+    if bYear:
+        query_str += "year " + params['order']
     if bMonth:
         query_str += ", month " + params['order']
     if bDay:

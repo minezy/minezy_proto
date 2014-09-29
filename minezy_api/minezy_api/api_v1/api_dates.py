@@ -2,7 +2,6 @@ from minezy_api import app
 from minezy_api.api_v1.api_common import support_jsonp, query_params
 from minezy_api.api_v1.query_dates import query_dates
 from flask import jsonify, request
-from __builtin__ import str
 
 
 @app.route('/1/dates/', methods=['GET'])

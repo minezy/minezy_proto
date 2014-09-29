@@ -1,4 +1,3 @@
-import sys
 from minezy_api import app
 from flask import jsonify, request
 

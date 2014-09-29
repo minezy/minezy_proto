@@ -1,7 +1,4 @@
-import sys
-import json
 import time
-from py2neo import cypher, node, rel
 from minezy_api import neo4j_conn
 
 
@@ -11,12 +8,12 @@ def query_emails(params, countResults=False):
     
     if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
         if len(params['from']):
-            query_str = "MATCH (n:Contact)-[:SENT]->(e:Email) WHERE n.email IN {from} AND has(e.subject) "
+            query_str = "MATCH (n:Contact)-[]-(e:Email) WHERE n.email IN {from} AND has(e.subject) "
         else:
             query_str = "MATCH (e:Email) WHERE has(e.subject) "
             
         for to in params['to']:
-            query_str += "AND (e)-[:TO]->(:Contact {email:'"+to+"'}) "
+            query_str += "AND (e)-[]-(:Contact {email:'"+to+"'}) "
         for cc in params['cc']:
             query_str += "AND (e)-[:CC]->(:Contact {email:'"+cc+"'}) "
         for bcc in params['bcc']:

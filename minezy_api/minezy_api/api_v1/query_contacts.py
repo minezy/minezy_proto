@@ -1,8 +1,4 @@
-import sys
-import json
 import time
-import re
-from py2neo import cypher, node, rel
 from minezy_api import neo4j_conn
 
 
@@ -17,14 +13,14 @@ def query_contacts(params, countResults=False):
     bWhere = True
     bManualCount = True
     if len(params['from']):
-        query_str = "MATCH (m:Contact)-[:SENT]->(e)-[r"+rels+"]->(n:Contact) WHERE ("
+        query_str = "MATCH (m:Contact)-[:SENT]-(e)-[r"+rels+"]-(n:Contact) WHERE ("
         for i, contact in enumerate(params['from']):
             if i > 0:
                 query_str += " OR "
             query_str += "m.email='"+contact+"'"
         query_str += ") "
     elif len(params['to']):
-        query_str = "MATCH (n:Contact)-[r:SENT]->(e)-["+rels+"]->(m:Contact) WHERE ("
+        query_str = "MATCH (n:Contact)-[r"+rels+"]-(e)-["+rels+"]-(m:Contact) WHERE ("
         for i, contact in enumerate(params['to']):
             if i > 0:
                 query_str += " OR "
@@ -76,13 +72,13 @@ def query_contacts(params, countResults=False):
         query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
         
     if bManualCount:
-        query_str += "WITH n,count(r) AS count "
+        query_str += "WITH n,count(distinct(e)) AS count "
     query_str += "RETURN n.name,n.email,count ORDER BY count " + params['order'] + ", n.name ASC "
     
     if params['index'] or params['page'] > 1:
-        query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
+        query_str += "SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
     if params['limit']:
-        query_str += " LIMIT {limit}"
+        query_str += "LIMIT {limit}"
 
     if countResults:
         resp = _query_count(query_str, params)
