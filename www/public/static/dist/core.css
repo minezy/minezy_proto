@@ -552,12 +552,15 @@ section.columnContainer {
           color: #c1c1c1;
           display: inline-block; }
       section.columnContainer div.results div.resultContainer.on {
-        background: #e1e1e1; }
+        background: #e1e1e1;
+        font-weight: 700; }
         section.columnContainer div.results div.resultContainer.on .bar {
           background: #19fcae; }
         section.columnContainer div.results div.resultContainer.on .arrow {
           color: #646464;
           display: inline-block; }
+      section.columnContainer div.results div.resultContainer.dim {
+        opacity: 0.3; }
       section.columnContainer div.results div.resultContainer .title {
         font-size: 12px;
         line-height: 30px;

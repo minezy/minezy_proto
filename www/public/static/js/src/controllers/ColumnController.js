@@ -155,6 +155,10 @@ App.ColumnController = ( function($,document,window, U) {
 				}
 			}
 
+			if( rootIndex-1 >= 0 ) {
+				this.columns[rootIndex-1].removeHighlight();
+			}
+
 		},
 
 		closingColumn: function(e,index) {

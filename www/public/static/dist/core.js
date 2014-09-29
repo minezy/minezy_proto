@@ -2551,7 +2551,7 @@ App.Column = ( function($,document,window, U) {
 					params.count = opParam[1];
 				}
 
-				
+
 			}
 
 			if( !$.isEmptyObject(params) ) {
@@ -2793,11 +2793,18 @@ App.Column = ( function($,document,window, U) {
 
 			console.log(this.index,'P-A:',new_params,action);
 
+			$( this.colName + ' .resultContainer' ).addClass('dim');
+			row.removeClass('dim');
 			row.addClass('on');
 			row.children('.loader').fadeIn(100);
 
 			$(this).trigger('NewColumn',[this.index, action, new_params, index]);
 
+		},
+
+		removeHighlight: function() {
+			$( this.colName + ' .resultContainer' ).removeClass('dim');
+			$( this.colName + ' .resultContainer' ).removeClass('on');
 		},
 
 		updateAll: function(action,params) {
@@ -3003,6 +3010,10 @@ App.ColumnController = ( function($,document,window, U) {
 					this.removeColumn(i, totalDelay-(i*100) );
 					this.path.pop();
 				}
+			}
+
+			if( rootIndex-1 >= 0 ) {
+				this.columns[rootIndex-1].removeHighlight();
 			}
 
 		},

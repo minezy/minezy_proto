@@ -179,6 +179,7 @@ section.columnContainer {
 
 			&.on {
 				background: #e1e1e1;
+				font-weight: 700;
 
 				.bar {
 					background:#19fcae;
@@ -189,6 +190,10 @@ section.columnContainer {
 					display: inline-block;
 				}
 
+			}
+
+			&.dim {
+				opacity: 0.3;
 			}
 
 			.title {
