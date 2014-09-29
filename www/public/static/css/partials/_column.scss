@@ -30,13 +30,32 @@ section.columnContainer {
 				width: 150px;
 			}
 
+			select.big {
+				display: block;
+				border: none;
+				background-color: #e3e3e3;
+				width: 100%;
+				font-weight: 700;
+				margin-bottom:2px;
+				font-size: 24px;
+				line-height: 30px;
+				text-transform: capitalize;
+				height: 46px;
+				background-position: 95% center;
+
+				option {
+					font-size: 14px;
+					line-height: 20px;
+				}
+			}
+
 			input {
 				margin-bottom: 8px;
 			}
 
 			input[type="text"] {
-				margin-left:0;
-				width:150px;
+				margin-left:3px;
+				width:169px;
 				box-sizing: border-box;
 			}
 
@@ -64,6 +83,11 @@ section.columnContainer {
 				.month {
 					width: 100px;
 				}
+
+				label {
+					display: inline-block;
+					width: 70px;
+				}
 			}
 
 			a.searchMore {
@@ -90,6 +114,7 @@ section.columnContainer {
 				height: 17px;
 				font-size: 14px;
 				cursor: pointer;
+				background-color: white;
 
 				&:hover {
 					color: red;

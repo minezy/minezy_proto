@@ -3,7 +3,7 @@
 App.ColumnController = ( function($,document,window, U) {
 
 
-	function ColumnController(settings) {
+	function ColumnController() {
 		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
@@ -12,25 +12,31 @@ App.ColumnController = ( function($,document,window, U) {
 		this.totalColWidth = 0;
 		this.path = ['root'];
 		this.at = new App.ActionTree();
-		this.settings = settings;
+		this.dateSettings = {};
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
 		this.adjustColumnHeight();
 
-		//setup the dates
-		var sd = new Date(this.settings.minTime);
-		var ed = new Date(this.settings.maxTime);
-
-		$('.optionContainer.dates .year').empty();
-		$('.optionContainer.dates .year').append('<option value="--">--</option>');
-		for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
-			$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
-		}
-
 	}
 
 	ColumnController.prototype = {
+
+		setDates: function(dateSettings) {
+
+			this.dateSettings = dateSettings;
+
+			//setup the dates
+			var sd = new Date(dateSettings.minTime);
+			var ed = new Date(dateSettings.maxTime);
+
+			$('.optionContainer.dates .year').empty();
+			$('.optionContainer.dates .year').append('<option value="--">--</option>');
+			for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
+				$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
+			}
+
+		},
 
 		addColumn: function(action,params) {
 
@@ -46,8 +52,8 @@ App.ColumnController = ( function($,document,window, U) {
 				'path':this.path,
 				'columnActions':ops,
 				'nodeName':ops[0],
-				'maxTime': this.settings.maxTime,
-				'minTime': this.settings.minTime
+				'maxTime': this.dateSettings.maxTime,
+				'minTime': this.dateSettings.minTime
 			});
 
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
@@ -179,7 +185,7 @@ App.ColumnController = ( function($,document,window, U) {
 			for(var i =0;i<cols.length;i++){
 				if( $(cols[i]).height() > maxh )
 					maxh = $(cols[i]).height();
-				console.log( 'maxh', maxh );
+				//console.log( 'maxh', maxh );
 			}
 
 			if( maxh < h )

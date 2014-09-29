@@ -2358,7 +2358,7 @@ App.Column = ( function($,document,window, U) {
 			this.colName = this.colName + this.index;
 
 			$( this.colName + ' .searchMore').on('click',$.proxy( this.showMoreSearchOptions, this ) );
-			$( this.colName + ' .searchOptions').hide();
+			//$( this.colName + ' .searchOptions').hide();
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
 
 			this.setColumnActions();
@@ -2375,7 +2375,7 @@ App.Column = ( function($,document,window, U) {
 
 		updateUI: function(data) {
 
-			$( this.colName + ' .searchAction').text(this.action);
+			/*$( this.colName + ' .searchAction').text(this.action);
 			$( this.colName + ' .searchParams').empty();
 
 			for (var key in this.params) {
@@ -2386,7 +2386,7 @@ App.Column = ( function($,document,window, U) {
 				$(filter).children('em').text(param);
 
 				$( this.colName + ' .searchParams').append(filter);
-			}
+			}*/
 
 		},
 
@@ -2404,7 +2404,7 @@ App.Column = ( function($,document,window, U) {
 				if(i===0){
 					selected = ' selected';
 				}
-				var option = '<option value="'+this.columnActions[i]+'" '+selected+'>'+this.columnActions[i]+'</option>';
+				var option = '<option value="'+this.columnActions[i]+'" '+selected+'>'+opParam[0]+'</option>';
 				$( this.colName + ' .searchFilter').append(option);
 			}
 
@@ -2434,6 +2434,11 @@ App.Column = ( function($,document,window, U) {
 				$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
 				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 
+				if( opParam[1] ) {
+					$( this.colName + ' .additionalOptions .field-sent').attr('checked', false);
+					$( this.colName + ' .additionalOptions .label-sent').css('display','none');
+				}
+
 			} else if( val === 'emails' ) {
 				options = $('#template .searchOptionWidgets .emails').clone();
 
@@ -2456,13 +2461,14 @@ App.Column = ( function($,document,window, U) {
 
 			}
 
-			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			//$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
 
 		},
 
 		searchColumn:function() {
 
-			console.log('SEARCHING!',this.params);
+			console.log('SEARCHING!',this.action, this.params);
 
 			var params = $.extend({},this.params);
 
@@ -2473,20 +2479,20 @@ App.Column = ( function($,document,window, U) {
 				this.action = opParam[0];
 			}
 
+			var keyword = '';
+
 			//field
 			if( this.action == 'contacts') {
 
-				var keyword = $( this.colName + ' .additionalOptions .keyword').val();
+				keyword = $( this.colName + ' .additionalOptions .keyword').val();
 
 				if( keyword !== '' && keyword !== 'enter keyword' && keyword !== this.params.keyword ) {
-					$( this.colName + ' .searchOptions a').off('click');
-
 					params.keyword = keyword;
 				} else {
 					delete params.keyword;
 				}
 
-				var field = '';
+				/*var field = '';
 				if( $( this.colName + ' .additionalOptions .field-to').is(':checked') )
 					field += 'to|';
 				if( $( this.colName + ' .additionalOptions .field-cc').is(':checked') )
@@ -2498,9 +2504,25 @@ App.Column = ( function($,document,window, U) {
 
 				field = field.substring(0, field.length - 1);
 				//console.log('FIELD: '+field,$( this.colName + ' .field-to'));
-				if( field !== 'to|cc|bbc|sent')
-					params.count = field;
+				if( field !== 'to|sent')
+					params.count = field;*/
+				if( opParam[1] ) {
+					params.count = 'to';
+				} else {
+					params.count = 'to|sent';
+				}
+
 			} else if( this.action == 'emails' ) {
+
+				keyword = $( this.colName + ' .additionalOptions .keyword').val();
+
+				if( keyword !== '' && keyword !== 'enter keyword' && keyword !== this.params.keyword ) {
+					params.keyword = keyword;
+				} else {
+					delete params.keyword;
+				}
+
+				console.log('KEYWORD: ',keyword);
 
 			} else if( this.action == 'dates' ) {
 				if( !opParam[1] ) {
@@ -2533,7 +2555,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			if( !$.isEmptyObject(params) ) {
-				$( this.colName + ' .additionalOptions a').off('click');
+				//$( this.colName + ' .additionalOptions a').off('click');
 				params.limit = 20;
 				if(!params.start)
 					params.start = this.params.start;
@@ -2576,17 +2598,17 @@ App.Column = ( function($,document,window, U) {
 
 		showMoreSearchOptions: function(e) {
 
-			if(this.optionsOpen){
-				$( this.colName + ' .searchOptions').slideUp();
+			/*if(this.optionsOpen){
+				//$( this.colName + ' .searchOptions').slideUp();
 				this.optionsOpen = false;
 				$( this.colName + ' .searchMore i').addClass('fa-plus');
 				$( this.colName + ' .searchMore i').removeClass('fa-minus');
 			} else{
-				$( this.colName + ' .searchOptions').slideDown();
+				//$( this.colName + ' .searchOptions').slideDown();
 				this.optionsOpen = true;
 				$( this.colName + ' .searchMore i').removeClass('fa-plus');
 				$( this.colName + ' .searchMore i').addClass('fa-minus');
-			}
+			}*/
 
 		},
 
@@ -2680,7 +2702,7 @@ App.Column = ( function($,document,window, U) {
 			$(resultContainer).fadeIn();
 
 			//enable search again
-			$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			//$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
 
 			//update the controller if the column is new
 			if( !this.active ) {
@@ -2712,26 +2734,28 @@ App.Column = ( function($,document,window, U) {
 
 			var new_params = $.extend({},this.params);
 			delete new_params.keyword;
+			delete new_params.count;
 
 			if( action === 'contacts' ) {
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
+					new_params.count = 'to|sent';
 				} else {
 					new_params[lock] = key;
+					new_params.count = 'to';
 				}
 
-				new_params.count = 'to|cc|bcc|sent';
 
 			} else if( action === 'dates' ) {
 
 				if( this.action == 'dates' ) {
-					console.log('here',key);
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
 				} else if( this.action == 'contacts' ) {
 					if(this.params.from)
 						new_params.to = key;
+					new_params.count = 'to';
 				}
 
 				new_params.count = 'month';
@@ -2747,6 +2771,8 @@ App.Column = ( function($,document,window, U) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
 				} else if( this.action == 'contacts' ) {
+					new_params[lock] = key;
+				}  else if( this.action == 'emails' ) {
 					new_params[lock] = key;
 				}
 
@@ -2827,7 +2853,7 @@ App.Column = ( function($,document,window, U) {
 App.ColumnController = ( function($,document,window, U) {
 
 
-	function ColumnController(settings) {
+	function ColumnController() {
 		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
@@ -2836,25 +2862,31 @@ App.ColumnController = ( function($,document,window, U) {
 		this.totalColWidth = 0;
 		this.path = ['root'];
 		this.at = new App.ActionTree();
-		this.settings = settings;
+		this.dateSettings = {};
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
 		this.adjustColumnHeight();
 
-		//setup the dates
-		var sd = new Date(this.settings.minTime);
-		var ed = new Date(this.settings.maxTime);
-
-		$('.optionContainer.dates .year').empty();
-		$('.optionContainer.dates .year').append('<option value="--">--</option>');
-		for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
-			$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
-		}
-
 	}
 
 	ColumnController.prototype = {
+
+		setDates: function(dateSettings) {
+
+			this.dateSettings = dateSettings;
+
+			//setup the dates
+			var sd = new Date(dateSettings.minTime);
+			var ed = new Date(dateSettings.maxTime);
+
+			$('.optionContainer.dates .year').empty();
+			$('.optionContainer.dates .year').append('<option value="--">--</option>');
+			for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
+				$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
+			}
+
+		},
 
 		addColumn: function(action,params) {
 
@@ -2870,8 +2902,8 @@ App.ColumnController = ( function($,document,window, U) {
 				'path':this.path,
 				'columnActions':ops,
 				'nodeName':ops[0],
-				'maxTime': this.settings.maxTime,
-				'minTime': this.settings.minTime
+				'maxTime': this.dateSettings.maxTime,
+				'minTime': this.dateSettings.minTime
 			});
 
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
@@ -3003,7 +3035,7 @@ App.ColumnController = ( function($,document,window, U) {
 			for(var i =0;i<cols.length;i++){
 				if( $(cols[i]).height() > maxh )
 					maxh = $(cols[i]).height();
-				console.log( 'maxh', maxh );
+				//console.log( 'maxh', maxh );
 			}
 
 			if( maxh < h )
@@ -3051,8 +3083,9 @@ App.MinezyController = ( function($,document,window, U) {
 			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
 		}
 
-		this.settings = {};
+		this.dateSettings = {};
 		this.API = new App.API();
+		this.colManager = new App.ColumnController();
 
 		this.API.getData('dates', {'limit':1,'order':'asc','count':'month'}, $.proxy(this.getMinDate,this) );
 
@@ -3063,7 +3096,7 @@ App.MinezyController = ( function($,document,window, U) {
 		getMinDate: function(data) {
 
 			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
-			this.settings.minTime = date.getTime();
+			this.dateSettings.minTime = date.getTime();
 
 			this.API.getData('dates', {'limit':1,'order':'desc','count':'month'}, $.proxy(this.getMaxDate,this) );
 
@@ -3072,33 +3105,10 @@ App.MinezyController = ( function($,document,window, U) {
 		getMaxDate: function(data) {
 
 			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
-			this.settings.maxTime = date.getTime();
+			this.dateSettings.maxTime = date.getTime();
 
-			this.colManager = new App.ColumnController(this.settings);
+			this.colManager.setDates(this.dateSettings);
 			this.colManager.addColumn('contacts',{'limit':20});
-
-		},
-
-
-		changeDateRange: function() {
-
-			var sy = $('#start_date_year').val();
-			var sm = $('#start_date_month').val();
-			var ey = $('#end_date_year').val();
-			var em = $('#end_date_month').val();
-
-			var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
-			var ed = new Date(ey, em, 0, 0, 0, 0, 0);
-
-			//console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
-
-			if(isNaN(sd)){
-				sd.setTime(0);
-			}
-
-			//console.log(sd.getTime()/1000,ed.getTime()/1000);
-
-			this.colManager.updateDates(sd.getTime()/1000,ed.getTime()/1000);
 
 		},
 
@@ -3279,7 +3289,7 @@ App.ActionTree = ( function($,document,window, U) {
 		'root' : {
 			'contacts' : {
 				'contacts-from': {
-					'contacts-to': {
+/*					'contacts-to': {
 						'dates-to': {
 							'dates-day': {
 								'emails-list': {
@@ -3293,7 +3303,7 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails-meta' : false
 						},
-					},
+					},*/
 					'dates-to': {
 						'dates-day': {
 							'emails-list': {
@@ -3486,135 +3496,6 @@ Utils.MediaQuery = (function($){
   };
 })(jQuery,document,window);
 ;
-/* PhoneMenu 1.0,  Matthew Quinn, GRAND Creative Inc.  Copyright 2012
- *
- *  Description:
- *    animates a mobile menu much like what is popular in iOS to date. Menu will appear on the left and shift the whole site over when
- *    opened.
- *
- *  Input:
- *    element   your navigation bar that you want to move back and forth
- *    options   config options - none as of yet
- *
- *  Dependancies: JQuery 1.8, easing.js, Modernizer
- *
- *  Implementation
- *    apply the 'slide' class to any objects you want to shift over to make room for the nav menu.
- *
-*/
-
-Utils.PhoneMenu = (function($, Utils, Modernizr) {
-
-	"use strict";
-
-	//private properties
-	var menuWidth;
-	//var container;
-
-	function PhoneMenu(options) {
-
-		// retreive options
-		this.options = options || {};
-
-		this.direction = this.options.direction ? this.options.direction : 1;
-
-		this.opened = false;
-		//container = element;
-		menuWidth = this.options.width ? this.options.width : $(window).width();
-
-		if( Modernizr.csstransitions && !Utils.isAndroid2() && !Utils.isWindowsPhone()  ) {
-			$('.slide').each( $.proxy(function(i,v) {
-
-				$(v).css('-webkit-transition-property','-webkit-transform');
-				$(v).css('-moz-transition-property','-moz-transform');
-				$(v).css('-o-transition-property','-o-transform');
-				$(v).css('transitionDuration','250ms');
-				//$(this).css('transitionTimingFunction','cubic-bezier(0.175, 0.885, 0.320, 1.275)');
-				$(v).css('transitionTimingFunction','ease');
-
-				if( i === 1 ) { //fire the end transition only once.
-					$(v).on('webkitTransitionEnd', $.proxy( this.animateComplete, this) );
-					$(v).on('msTransitionEnd', $.proxy( this.animateComplete, this) );
-					$(v).on('oTransitionEnd', $.proxy( this.animateComplete, this) );
-					$(v).on('transitionEnd', $.proxy( this.animateComplete, this) );
-				}
-
-			},this ) );
-		}
-
-	}
-
-	//Public Functions
-	PhoneMenu.prototype = {
-
-		setMenuWidth: function(w){
-			menuWidth = w;
-			if(this.opened)
-				this.moveMenu(menuWidth);
-		},
-
-		setDirection: function(d) {
-			this.direction = d;
-		},
-
-		moveMenu : function(distance) {
-
-		$('.slide').each( $.proxy( function(i,v) {
-
-				if( Modernizr.csstransitions && !Utils.isAndroid2() && !Utils.isWindowsPhone()  ) {
-				if( Modernizr.csstransforms3d )
-					$(v).css('transform','translate3d(' + ( this.direction * distance ) + 'px,0,0)' );
-				else
-					$(v).css('transform','translateX(' + ( this.direction * distance ) + 'px)' );
-			} else {
-				$(v).stop();
-
-				//run the complete function once.
-				if( i === 0 ) {
-					$(v).animate( { left: ( this.direction * distance ) + "px" }, { duration: 250, complete: this.animateComplete, queue: false } );
-				} else {
-					$(v).animate( { left: ( this.direction * distance ) + "px" }, { duration: 250, queue: false } );
-				}
-
-			}
-
-			}, this ) );
-
-
-		},
-
-		animateComplete : function(e) {
-			console.log('COMPLETE', this.opened);
-			if( this.opened )
-				$(this).trigger('openComplete');
-			else
-				$(this).trigger('closeComplete');
-		},
-
-		toggle: function() {
-
-			if( this.opened )
-				this.close();
-			else
-				this.open();
-		},
-
-		open: function() {
-			this.opened = true;
-			this.moveMenu(menuWidth);
-		},
-
-		close: function() {
-			this.opened = false;
-			this.moveMenu(0);
-		}
-
-	};
-
-	return PhoneMenu;
-
-})(jQuery, Utils, Modernizr,document,window);
-;
 
 
 
@@ -3753,320 +3634,3 @@ Utils.Router = (function($,U) {
 	return Router;
 
 })(jQuery, Utils);
-;
-/* Scroller 1.0,  Matthew Quinn, GRAND Creative Inc.  Copyright 2012
- *
- *  Description:
- *    A horizontally scrolling set of dom elements. Can be swiped via or animated via calling the scroll function.
- *    Inspired in part by swipe.js
- *
- *  Input:
- *    element - this is the container element for the scroller.
- *    options:
- *      widthMod  - the width modifier. It's assumed the width will be 100% page width. This modifies that width by a % or a value (ie: 80% (% of page width) or -40px (page width - 40pixels))
- *      perpage   - how many children are on a page
- *
- *  Dependancies: JQuery 1.8, easing.js, Modernizer
- *
- *  Implementation
- *
- *
-*/
-
-
-Utils.Scroller = (function($, Modernizr, Utils) {
-
-	"use strict";
-
-	function Scroller(element,options) {
-		if( !element ) return null;
-
-		this.container = element;
-		this.slideElement = $(this.container.get()[0].children[0]);
-
-		this.updateOptions(options);
-
-		this.perpage = 1;
-		this.page = -1;
-		this.prevPage = 0;
-		this.nextPageThreshold = 80;
-		this.minNextPageThreshold = 10;
-		this.dir = 0;
-		this.enabled = false;
-		this.initOffset = 0;
-		this.maxWidth = 0;
-
-		this.gestureDeltaX = 0;
-
-		if( Modernizr.csstransitions ) {
-			$(this.slideElement).on( 'transitionend webkitTransitionEnd msTransitionEnd', $.proxy( this.handleTransitionEnd, this ) );
-		}
-
-		this.maxpages = this.slideElement.find('>li').length / this.perpage;
-
-		$(window).resize( $.proxy( this.size, this ) );
-
-		this.enable();
-		this.size();
-
-	}
-
-	//Public Functions
-	Scroller.prototype = {
-
-		enable: function() {
-			this.enabled = true;
-			this.container.on( "touchstart", $.proxy( this.touchStart, this ) );
-			this.container.on( "touchmove", $.proxy( this.touchMove, this ) );
-			this.container.on( "touchend", $.proxy( this.touchEnd, this ) );
-		},
-
-
-		disable: function() {
-			this.enabled = false;
-			this.container.off( "touchstart" );
-			this.container.off( "touchmove" );
-			this.container.off( "touchend" );
-		},
-
-		updateOptions: function(options) {
-			this.options = options || {};
-
-			this.maxWidth = this.options.max ? this.options.max : 0;
-			this.duration = this.options.duration ? this.options.duration : 300;
-			this.peekWidth = this.options.peek ? this.options.peek : 0;
-			this.tileSize = this.options.size ? this.options.size : 1;
-			this.maxpages = this.slideElement.find('>li').length / this.perpage;
-
-			this.size();
-		},
-
-		size: function() {
-
-			/* Dom Hiarchy
-			DIV: SLIDER CONTAINER
-			UL: SLIDING ELEMENT
-			LI: TILE CONTAINER (PAGES)
-			DIV: TILE CONTENT
-
-			Horizontal Screen Layout:
-			1                    2                     3
-			- LI ------ ---------- LI ----------- ------ LI -
-			PEEK | PAD | PAD | CONTENT DIV | PAD | PAD | PEEK
-			*/
-
-			//Compute the desired width of the content div with respect to the slider container width
-			var div_w   = Math.round( this.tileSize * this.container.width() );
-
-			//if there is a max width option set, make sure we cap it at that number
-			if( this.maxWidth > 0 && div_w > this.maxWidth )
-				div_w = this.maxWidth;
-
-			//if the peek width is 0 (no peeks) then we only have 2 pads to deal with (see 2 above w/o peeks)
-			var pad_count = 2;
-			if( this.peekWidth > 0 )
-				pad_count = 4;
-
-			//calculate the padding that sits on the left and right of the tile content div.
-			var pad_w   = Math.round( ( this.container.width() - div_w - ( this.peekWidth * 2 ) ) / pad_count );
-
-			//compute the li tile container width by adding two padding widths to the content div (2 in the diagram above)
-			var li_w    = Math.round( div_w + ( pad_w * 2 ) );
-
-			//calculate the initial offset of the sliding element based on the peek width (1 in the diagram above)
-			var init_x  = 0;
-
-			if( this.peekWidth > 0 )
-				init_x = pad_w + this.peekWidth;
-
-
-			// check to see if css transitions are supported
-			if( Modernizr.csstransitions ) {
-				this.slideElement.css( 'transition-duration', '0ms' );
-
-				if( Modernizr.csstransforms3d )
-					this.slideElement.css( 'transform', 'translate3d(' + init_x + 'px,0,0)' );
-				else
-					this.slideElement.css( 'transform', 'translateX(' + init_x + 'px)' );
-
-				//revert to moving the element via css's left attributte
-			} else {
-				this.slideElement.css( 'left', init_x + "px" );
-			}
-
-			//set the page width for moving between pages and the initial offset (used in this.move and this.touchMove)
-			this.width = this.liwidth = li_w;
-			this.initOffset = -init_x;
-
-			//set the slider element's width.
-			this.slideElement.width( this.maxpages * (this.width+1) + 'px' );
-
-			//set the tile container's width
-			this.slideElement.find('>li').width( this.width );
-
-			if( Utils.isAndroid2() || Utils.isBlackBerry() )
-				this.slideElement.find('>li').css('margin-left','-2px');
-
-			//this.slideElement.find('>li').css('border','solid 1px red');
-
-			//set the tile content div's width
-			this.slideElement.find('>li>div').width( div_w );
-
-			//translate to the proper spot in
-			this.move(0);
-
-		},
-
-		next: function() {
-
-			if( this.page + 1 < this.maxpages ) {
-				this.prevPage = this.page;
-				this.page++;
-				this.dir = 1;
-				this.move(this.duration);
-			}
-
-		},
-
-		prev: function() {
-
-			if( this.page - 1 >= 0 ) {
-				this.prevPage = this.page;
-				this.page--;
-				this.dir = -1;
-				this.move(this.duration);
-			}
-
-		},
-
-		jumpTo: function(page,dur) {
-
-			if( page + 1 <= this.maxpages && page - 1 >= -1 ) {
-				this.dir = page > this.page ? 1 : -1;
-				this.prevPage = this.page;
-				this.page = page;
-				this.move(dur);
-			}
-
-		},
-
-		touchStart: function(e) {
-
-			this.oldMousePosX = e.originalEvent.touches[0].pageX;
-			this.oldMousePosY = e.originalEvent.touches[0].pageY;
-			this.isScrolling = undefined;
-			e.stopPropagation();
-
-		},
-
-		touchMove: function(e) {
-
-			// ensure swiping with one touch and not pinching
-			if(e.originalEvent.touches.length > 1 || e.originalEvent.scale && e.originalEvent.scale !== 1) return;
-
-			//get the current touch position
-			var posX = e.originalEvent.touches[0].pageX;
-			var posY = e.originalEvent.touches[0].pageY;
-
-			//calculate the distance travelled since the touch started
-			this.gestureDeltaX = this.oldMousePosX - posX;
-			this.gestureDeltaY = this.oldMousePosY - posY;
-
-			//only concerned with horizonal swipes, so if its a vertical swipe use the default action.
-			// detect the vertical movement is the dominant delta.
-			if ( typeof this.isScrolling == 'undefined') {
-				this.isScrolling = !!( this.isScrolling || Math.abs(this.gestureDeltaX) < Math.abs(this.gestureDeltaY) );
-			}
-
-			//if the page isn't scrolling, calculate the distance the scroll element should move.
-			if( !this.isScrolling ) {
-
-				//stop browser scrolling.
-				e.preventDefault();
-
-				//var sliderOffset = this.page * this.width;
-				var sliderOffset = (this.page * this.width) + this.initOffset;
-
-
-				if( this.page < this.maxpages && Math.abs(this.gestureDeltaX) > 5 ) {  //setup swipe enforcements
-					if( Modernizr.csstransitions ) {      // check to see if css transitions are supported
-						this.slideElement.css( 'transition-duration', '0ms' );
-						if( Modernizr.csstransforms3d )
-							this.slideElement.css( 'transform', 'translate3d(' + -( sliderOffset + this.gestureDeltaX ) + 'px,0,0)' );
-						else
-							this.slideElement.css( 'transform', 'translateX(' + -( sliderOffset + this.gestureDeltaX ) + 'px)' );
-					} else {                              //revert to moving the element via css's left attributte
-						this.slideElement.css( 'left', -(sliderOffset+this.gestureDeltaX) + "px" );
-					}
-				}
-
-				e.stopPropagation();
-
-			}
-
-		},
-
-		touchEnd: function() {
-
-			var sliderOffset = this.page * this.width;
-
-			if( !this.isScrolling ) {
-
-				if( this.gestureDeltaX < 0 && Math.abs( this.gestureDeltaX ) >= this.nextPageThreshold && this.page > 0   ) {
-					this.prevPage = this.page;
-					this.page--;
-					this.dir = -1;
-				} else if( this.gestureDeltaX > 0 && Math.abs( this.gestureDeltaX ) >= this.nextPageThreshold && this.page < this.maxpages-1 )  {
-					this.prevPage = this.page;
-					this.page++;
-					this.dir = 1;
-				}
-
-				if( Math.abs(this.gestureDeltaX) > 5 ) {
-					this.move(this.duration);
-				}
-
-				this.gestureDeltaX = 0;
-			}
-
-		},
-
-		move: function(duration) {
-
-			if( duration > 0 ) {
-				$(this).trigger( 'scrollStart', [this.dir] );
-			}
-
-			var sliderOffset = (this.page * this.width) + this.initOffset;
-
-			if( Modernizr.csstransitions ) {             // check to see if css transitions are supported
-
-				this.slideElement.css( 'transition-timing-function', 'ease' );
-				//this.slideElement.css( 'transition-timing-function', 'cubic-bezier(0.175, 0.885, 0.320, 1.275)' );
-				this.slideElement.css( 'transition-duration', duration + 'ms' );
-
-				if( Modernizr.csstransforms3d )
-					this.slideElement.css( 'transform', 'translate3d(' + -sliderOffset + 'px,0,0)' );
-				else
-					this.slideElement.css( 'transform', 'translateX(' + -( sliderOffset ) + 'px)' );
-
-			} else {    //revert to moving the element via css's left attributte
-
-				$(this.slideElement).animate({ left: -sliderOffset }, { duration: duration,  complete: $.proxy( this.handleTransitionEnd, this) } );
-
-			}
-
-		},
-
-		handleTransitionEnd: function() {
-			$(this).trigger( 'scrollComplete' );
-		}
-
-	};
-
-	return Scroller;
-
-})(jQuery, Modernizr, Utils, document, window);
-
-
-

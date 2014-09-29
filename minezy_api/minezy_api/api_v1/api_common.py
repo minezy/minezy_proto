@@ -34,7 +34,7 @@ def query_params(request):
     if query_params['page'] < 1:
         query_params['page'] = 1
         
-    field = request.args.get('field',default='SENT|TO|CC|BCC',type=str).upper()
+    field = request.args.get('field',default='SENT|TO',type=str).upper()
     count = request.args.get('count',default=field,type=str).upper()
     count = count.replace('|','+').replace(' ','+')
     query_params['count'] = count.split('+')

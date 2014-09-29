@@ -47,7 +47,7 @@ App.Column = ( function($,document,window, U) {
 			this.colName = this.colName + this.index;
 
 			$( this.colName + ' .searchMore').on('click',$.proxy( this.showMoreSearchOptions, this ) );
-			$( this.colName + ' .searchOptions').hide();
+			//$( this.colName + ' .searchOptions').hide();
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
 
 			this.setColumnActions();
@@ -64,7 +64,7 @@ App.Column = ( function($,document,window, U) {
 
 		updateUI: function(data) {
 
-			$( this.colName + ' .searchAction').text(this.action);
+			/*$( this.colName + ' .searchAction').text(this.action);
 			$( this.colName + ' .searchParams').empty();
 
 			for (var key in this.params) {
@@ -75,7 +75,7 @@ App.Column = ( function($,document,window, U) {
 				$(filter).children('em').text(param);
 
 				$( this.colName + ' .searchParams').append(filter);
-			}
+			}*/
 
 		},
 
@@ -93,7 +93,7 @@ App.Column = ( function($,document,window, U) {
 				if(i===0){
 					selected = ' selected';
 				}
-				var option = '<option value="'+this.columnActions[i]+'" '+selected+'>'+this.columnActions[i]+'</option>';
+				var option = '<option value="'+this.columnActions[i]+'" '+selected+'>'+opParam[0]+'</option>';
 				$( this.colName + ' .searchFilter').append(option);
 			}
 
@@ -123,6 +123,11 @@ App.Column = ( function($,document,window, U) {
 				$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
 				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 
+				if( opParam[1] ) {
+					$( this.colName + ' .additionalOptions .field-sent').attr('checked', false);
+					$( this.colName + ' .additionalOptions .label-sent').css('display','none');
+				}
+
 			} else if( val === 'emails' ) {
 				options = $('#template .searchOptionWidgets .emails').clone();
 
@@ -145,13 +150,14 @@ App.Column = ( function($,document,window, U) {
 
 			}
 
-			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			//$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
 
 		},
 
 		searchColumn:function() {
 
-			console.log('SEARCHING!',this.params);
+			console.log('SEARCHING!',this.action, this.params);
 
 			var params = $.extend({},this.params);
 
@@ -162,20 +168,20 @@ App.Column = ( function($,document,window, U) {
 				this.action = opParam[0];
 			}
 
+			var keyword = '';
+
 			//field
 			if( this.action == 'contacts') {
 
-				var keyword = $( this.colName + ' .additionalOptions .keyword').val();
+				keyword = $( this.colName + ' .additionalOptions .keyword').val();
 
 				if( keyword !== '' && keyword !== 'enter keyword' && keyword !== this.params.keyword ) {
-					$( this.colName + ' .searchOptions a').off('click');
-
 					params.keyword = keyword;
 				} else {
 					delete params.keyword;
 				}
 
-				var field = '';
+				/*var field = '';
 				if( $( this.colName + ' .additionalOptions .field-to').is(':checked') )
 					field += 'to|';
 				if( $( this.colName + ' .additionalOptions .field-cc').is(':checked') )
@@ -187,9 +193,25 @@ App.Column = ( function($,document,window, U) {
 
 				field = field.substring(0, field.length - 1);
 				//console.log('FIELD: '+field,$( this.colName + ' .field-to'));
-				if( field !== 'to|cc|bbc|sent')
-					params.count = field;
+				if( field !== 'to|sent')
+					params.count = field;*/
+				if( opParam[1] ) {
+					params.count = 'to';
+				} else {
+					params.count = 'to|sent';
+				}
+
 			} else if( this.action == 'emails' ) {
+
+				keyword = $( this.colName + ' .additionalOptions .keyword').val();
+
+				if( keyword !== '' && keyword !== 'enter keyword' && keyword !== this.params.keyword ) {
+					params.keyword = keyword;
+				} else {
+					delete params.keyword;
+				}
+
+				console.log('KEYWORD: ',keyword);
 
 			} else if( this.action == 'dates' ) {
 				if( !opParam[1] ) {
@@ -222,7 +244,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			if( !$.isEmptyObject(params) ) {
-				$( this.colName + ' .additionalOptions a').off('click');
+				//$( this.colName + ' .additionalOptions a').off('click');
 				params.limit = 20;
 				if(!params.start)
 					params.start = this.params.start;
@@ -265,17 +287,17 @@ App.Column = ( function($,document,window, U) {
 
 		showMoreSearchOptions: function(e) {
 
-			if(this.optionsOpen){
-				$( this.colName + ' .searchOptions').slideUp();
+			/*if(this.optionsOpen){
+				//$( this.colName + ' .searchOptions').slideUp();
 				this.optionsOpen = false;
 				$( this.colName + ' .searchMore i').addClass('fa-plus');
 				$( this.colName + ' .searchMore i').removeClass('fa-minus');
 			} else{
-				$( this.colName + ' .searchOptions').slideDown();
+				//$( this.colName + ' .searchOptions').slideDown();
 				this.optionsOpen = true;
 				$( this.colName + ' .searchMore i').removeClass('fa-plus');
 				$( this.colName + ' .searchMore i').addClass('fa-minus');
-			}
+			}*/
 
 		},
 
@@ -369,7 +391,7 @@ App.Column = ( function($,document,window, U) {
 			$(resultContainer).fadeIn();
 
 			//enable search again
-			$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
+			//$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
 
 			//update the controller if the column is new
 			if( !this.active ) {
@@ -401,26 +423,28 @@ App.Column = ( function($,document,window, U) {
 
 			var new_params = $.extend({},this.params);
 			delete new_params.keyword;
+			delete new_params.count;
 
 			if( action === 'contacts' ) {
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
+					new_params.count = 'to|sent';
 				} else {
 					new_params[lock] = key;
+					new_params.count = 'to';
 				}
 
-				new_params.count = 'to|cc|bcc|sent';
 
 			} else if( action === 'dates' ) {
 
 				if( this.action == 'dates' ) {
-					console.log('here',key);
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
 				} else if( this.action == 'contacts' ) {
 					if(this.params.from)
 						new_params.to = key;
+					new_params.count = 'to';
 				}
 
 				new_params.count = 'month';
@@ -436,6 +460,8 @@ App.Column = ( function($,document,window, U) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
 				} else if( this.action == 'contacts' ) {
+					new_params[lock] = key;
+				}  else if( this.action == 'emails' ) {
 					new_params[lock] = key;
 				}
 

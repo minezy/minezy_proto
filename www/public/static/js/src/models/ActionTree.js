@@ -6,7 +6,7 @@ App.ActionTree = ( function($,document,window, U) {
 		'root' : {
 			'contacts' : {
 				'contacts-from': {
-					'contacts-to': {
+/*					'contacts-to': {
 						'dates-to': {
 							'dates-day': {
 								'emails-list': {
@@ -20,7 +20,7 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails-meta' : false
 						},
-					},
+					},*/
 					'dates-to': {
 						'dates-day': {
 							'emails-list': {

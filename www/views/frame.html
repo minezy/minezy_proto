@@ -154,16 +154,14 @@
 
 				<div class="colHeader">
 					<a class="closeButton"><i class="fa fa-times"></i></a>
-					<h2 class="searchAction">Contacts</h2>
-					<p class="searchParams">
+					<select name="filter" class="searchFilter big">
+					</select>
+					{#<p class="searchParams">
 						<span><strong>Field:</strong><em> To, CC, BCC</em></span>
-					</p>
+					</p>#}
 
-					<a href="javascript:;" class="searchMore"><i class="fa fa-plus"></i> Change Search</a>
+					{#<a href="javascript:;" class="searchMore"><i class="fa fa-plus"></i> Change Search</a>#}
 					<div class="searchOptions actors">
-						<label>Search By:</label>
-						<select name="filter" class="searchFilter">
-						</select>
 						<div class="additionalOptions">
 						</div>
 					</div>
@@ -172,16 +170,16 @@
 				<div class="searchOptionWidgets">
 
 					<div class="optionContainer contacts">
-						<input type="checkbox" value="1" class="field-to" checked> To:
-						<input type="checkbox" value="1" class="field-cc" checked> CC:
-						<input type="checkbox" value="1" class="field-bcc" checked> BCC: <br>
-						<input type="checkbox" value="1" class="field-sent" checked> From: <br>
+						{#<span class="label-to"><input type="checkbox" value="1" class="field-to" checked> To:</span>
+						<span class="label-cc"><input type="checkbox" value="1" class="field-cc"> CC:</span>
+						<span class="label-bcc"><input type="checkbox" value="1" class="field-bcc"> BCC: <br></span>
+						<span class="label-sent"><input type="checkbox" value="1" class="field-sent" checked> From: <br></span>#}
 
-						<input type="text" class="keyword" value="enter keyword"><a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>
+						<label>Search</label><input type="text" class="keyword" value="enter keyword"><a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>
 					</div>
 
 					<div class="optionContainer emails">
-						<input type="text" class="keyword" value="enter keyword"><a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>
+						<label>Search</label><input type="text" class="keyword" value="enter keyword"><a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>
 					</div>
 
 					<div class="optionContainer dates">
@@ -225,7 +223,8 @@
 								<option value="12">December</option>
 							</select>
 						</div>
-						<a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>
+						<label>Search</label><input type="text" class="keyword" value=""><a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>
+
 					</div>
 
 

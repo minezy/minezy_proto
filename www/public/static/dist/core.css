@@ -453,11 +453,26 @@ section.columnContainer {
       box-sizing: border-box; }
       section.columnContainer div.column div.colHeader select {
         width: 150px; }
+      section.columnContainer div.column div.colHeader select.big {
+        display: block;
+        border: none;
+        background-color: #e3e3e3;
+        width: 100%;
+        font-weight: 700;
+        margin-bottom: 2px;
+        font-size: 24px;
+        line-height: 30px;
+        text-transform: capitalize;
+        height: 46px;
+        background-position: 95% center; }
+        section.columnContainer div.column div.colHeader select.big option {
+          font-size: 14px;
+          line-height: 20px; }
       section.columnContainer div.column div.colHeader input {
         margin-bottom: 8px; }
       section.columnContainer div.column div.colHeader input[type="text"] {
-        margin-left: 0;
-        width: 150px;
+        margin-left: 3px;
+        width: 169px;
         box-sizing: border-box; }
       section.columnContainer div.column div.colHeader input[type="checkbox"] {
         background: white;
@@ -475,6 +490,9 @@ section.columnContainer {
           width: 66px; }
         section.columnContainer div.column div.colHeader .additionalOptions .month {
           width: 100px; }
+        section.columnContainer div.column div.colHeader .additionalOptions label {
+          display: inline-block;
+          width: 70px; }
       section.columnContainer div.column div.colHeader a.searchMore {
         color: #20cc90;
         font-size: 14px; }
@@ -494,7 +512,8 @@ section.columnContainer {
         width: 17px;
         height: 17px;
         font-size: 14px;
-        cursor: pointer; }
+        cursor: pointer;
+        background-color: white; }
         section.columnContainer div.column div.colHeader .closeButton:hover {
           color: red; }
         section.columnContainer div.column div.colHeader .closeButton i {
