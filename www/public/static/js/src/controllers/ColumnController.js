@@ -3,7 +3,7 @@
 App.ColumnController = ( function($,document,window, U) {
 
 
-	function ColumnController(options) {
+	function ColumnController(settings) {
 		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
@@ -12,10 +12,21 @@ App.ColumnController = ( function($,document,window, U) {
 		this.totalColWidth = 0;
 		this.path = ['root'];
 		this.at = new App.ActionTree();
+		this.settings = settings;
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
 		this.adjustColumnHeight();
+
+		//setup the dates
+		var sd = new Date(this.settings.minTime);
+		var ed = new Date(this.settings.maxTime);
+
+		$('.optionContainer.dates .year').empty();
+		$('.optionContainer.dates .year').append('<option value="--">--</option>');
+		for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
+			$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
+		}
 
 	}
 
@@ -28,7 +39,17 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.path.push(ops[0]);
 
-			var new_col = new App.Column( { 'action':action,'params':params,'index':this.columns.length,'path':this.path,'columnActions':ops,'nodeName':ops[0] } );
+			var new_col = new App.Column({
+				'action':action,
+				'params':params,
+				'index':this.columns.length,
+				'path':this.path,
+				'columnActions':ops,
+				'nodeName':ops[0],
+				'maxTime': this.settings.maxTime,
+				'minTime': this.settings.minTime
+			});
+
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
 			$(new_col).on('Updated', $.proxy( this.updatedColumn, this ) );
 			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
@@ -91,7 +112,7 @@ App.ColumnController = ( function($,document,window, U) {
 			this.totalColWidth += this.columns[index].width;
 
 			$(column).css('left',offset-80);
-			$(column).hide().fadeIn(300,$.proxy(function() { 
+			$(column).hide().fadeIn(300,$.proxy(function() {
 
 				if( this.totalColWidth > $(window).width() ) {
 					var sl = this.totalColWidth - $(window).width();
@@ -160,6 +181,9 @@ App.ColumnController = ( function($,document,window, U) {
 					maxh = $(cols[i]).height();
 				console.log( 'maxh', maxh );
 			}
+
+			if( maxh < h )
+				maxh = h;
 
 			$('.column').css('height',maxh);
 		},

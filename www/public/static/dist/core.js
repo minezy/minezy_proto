@@ -2334,6 +2334,8 @@ App.Column = ( function($,document,window, U) {
 		this.width = 340;
 		this.childOptions = this.at.getActions(this.path);
 		this.nodeName = options.nodeName;
+		this.minTime = options.minTime;
+		this.maxTime = options.maxTime;
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -2360,7 +2362,7 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
 
 			this.setColumnActions();
-			this.searchFilter();
+			this.setFilterOptions();
 
 			//hide or show close button
 			if( this.index === 0 ) {
@@ -2410,10 +2412,15 @@ App.Column = ( function($,document,window, U) {
 
 		searchFilter: function() {
 
+			this.setFilterOptions();
+			this.searchColumn();
+
+		},
+
+		setFilterOptions: function() {
 
 			this.nodeName = $( this.colName + ' .searchFilter').val();
 			var opParam = this.nodeName.split('-');
-
 			var val = opParam[0];
 			var options;
 
@@ -2443,11 +2450,14 @@ App.Column = ( function($,document,window, U) {
 
 					$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
 					$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
+				} else {
+					$( this.colName + ' .additionalOptions').empty();
 				}
 
 			}
 
 			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+
 		},
 
 		searchColumn:function() {
@@ -2817,7 +2827,7 @@ App.Column = ( function($,document,window, U) {
 App.ColumnController = ( function($,document,window, U) {
 
 
-	function ColumnController(options) {
+	function ColumnController(settings) {
 		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
@@ -2826,10 +2836,21 @@ App.ColumnController = ( function($,document,window, U) {
 		this.totalColWidth = 0;
 		this.path = ['root'];
 		this.at = new App.ActionTree();
+		this.settings = settings;
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
 		this.adjustColumnHeight();
+
+		//setup the dates
+		var sd = new Date(this.settings.minTime);
+		var ed = new Date(this.settings.maxTime);
+
+		$('.optionContainer.dates .year').empty();
+		$('.optionContainer.dates .year').append('<option value="--">--</option>');
+		for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
+			$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
+		}
 
 	}
 
@@ -2842,7 +2863,17 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.path.push(ops[0]);
 
-			var new_col = new App.Column( { 'action':action,'params':params,'index':this.columns.length,'path':this.path,'columnActions':ops,'nodeName':ops[0] } );
+			var new_col = new App.Column({
+				'action':action,
+				'params':params,
+				'index':this.columns.length,
+				'path':this.path,
+				'columnActions':ops,
+				'nodeName':ops[0],
+				'maxTime': this.settings.maxTime,
+				'minTime': this.settings.minTime
+			});
+
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
 			$(new_col).on('Updated', $.proxy( this.updatedColumn, this ) );
 			$(new_col).on('NewColumn', $.proxy( this.newColumnRequest, this ) );
@@ -2905,7 +2936,7 @@ App.ColumnController = ( function($,document,window, U) {
 			this.totalColWidth += this.columns[index].width;
 
 			$(column).css('left',offset-80);
-			$(column).hide().fadeIn(300,$.proxy(function() { 
+			$(column).hide().fadeIn(300,$.proxy(function() {
 
 				if( this.totalColWidth > $(window).width() ) {
 					var sl = this.totalColWidth - $(window).width();
@@ -2975,6 +3006,9 @@ App.ColumnController = ( function($,document,window, U) {
 				console.log( 'maxh', maxh );
 			}
 
+			if( maxh < h )
+				maxh = h;
+
 			$('.column').css('height',maxh);
 		},
 
@@ -3017,15 +3051,34 @@ App.MinezyController = ( function($,document,window, U) {
 			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
 		}
 
-		this.colManager = new App.ColumnController();
-		this.colManager.addColumn('contacts',{'limit':20});
+		this.settings = {};
+		this.API = new App.API();
 
-
-		//$('#refreshDates').on('click', $.proxy(this.changeDateRange,this) );
+		this.API.getData('dates', {'limit':1,'order':'asc','count':'month'}, $.proxy(this.getMinDate,this) );
 
 	}
 
 	MinezyController.prototype = {
+
+		getMinDate: function(data) {
+
+			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
+			this.settings.minTime = date.getTime();
+
+			this.API.getData('dates', {'limit':1,'order':'desc','count':'month'}, $.proxy(this.getMaxDate,this) );
+
+		},
+
+		getMaxDate: function(data) {
+
+			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
+			this.settings.maxTime = date.getTime();
+
+			this.colManager = new App.ColumnController(this.settings);
+			this.colManager.addColumn('contacts',{'limit':20});
+
+		},
+
 
 		changeDateRange: function() {
 
@@ -3226,6 +3279,21 @@ App.ActionTree = ( function($,document,window, U) {
 		'root' : {
 			'contacts' : {
 				'contacts-from': {
+					'contacts-to': {
+						'dates-to': {
+							'dates-day': {
+								'emails-list': {
+									'emails-meta' : false
+								},
+							},
+							'emails-list': {
+								'emails-meta' : false
+							},
+						},
+						'emails-list': {
+							'emails-meta' : false
+						},
+					},
 					'dates-to': {
 						'dates-day': {
 							'emails-list': {

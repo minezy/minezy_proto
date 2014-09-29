@@ -23,6 +23,8 @@ App.Column = ( function($,document,window, U) {
 		this.width = 340;
 		this.childOptions = this.at.getActions(this.path);
 		this.nodeName = options.nodeName;
+		this.minTime = options.minTime;
+		this.maxTime = options.maxTime;
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -49,7 +51,7 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
 
 			this.setColumnActions();
-			this.searchFilter();
+			this.setFilterOptions();
 
 			//hide or show close button
 			if( this.index === 0 ) {
@@ -99,10 +101,15 @@ App.Column = ( function($,document,window, U) {
 
 		searchFilter: function() {
 
+			this.setFilterOptions();
+			this.searchColumn();
+
+		},
+
+		setFilterOptions: function() {
 
 			this.nodeName = $( this.colName + ' .searchFilter').val();
 			var opParam = this.nodeName.split('-');
-
 			var val = opParam[0];
 			var options;
 
@@ -132,11 +139,14 @@ App.Column = ( function($,document,window, U) {
 
 					$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
 					$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
+				} else {
+					$( this.colName + ' .additionalOptions').empty();
 				}
 
 			}
 
 			$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
+
 		},
 
 		searchColumn:function() {

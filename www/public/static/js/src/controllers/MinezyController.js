@@ -16,15 +16,34 @@ App.MinezyController = ( function($,document,window, U) {
 			$(window).on( 'touchmove', $.proxy( this.handleScroll, this ) );
 		}
 
-		this.colManager = new App.ColumnController();
-		this.colManager.addColumn('contacts',{'limit':20});
+		this.settings = {};
+		this.API = new App.API();
 
-
-		//$('#refreshDates').on('click', $.proxy(this.changeDateRange,this) );
+		this.API.getData('dates', {'limit':1,'order':'asc','count':'month'}, $.proxy(this.getMinDate,this) );
 
 	}
 
 	MinezyController.prototype = {
+
+		getMinDate: function(data) {
+
+			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
+			this.settings.minTime = date.getTime();
+
+			this.API.getData('dates', {'limit':1,'order':'desc','count':'month'}, $.proxy(this.getMaxDate,this) );
+
+		},
+
+		getMaxDate: function(data) {
+
+			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
+			this.settings.maxTime = date.getTime();
+
+			this.colManager = new App.ColumnController(this.settings);
+			this.colManager.addColumn('contacts',{'limit':20});
+
+		},
+
 
 		changeDateRange: function() {
 
