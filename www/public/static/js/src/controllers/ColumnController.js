@@ -190,13 +190,17 @@ App.ColumnController = ( function($,document,window, U) {
 			for(var i =0;i<cols.length;i++){
 				if( $(cols[i]).height() > maxh )
 					maxh = $(cols[i]).height();
-				//console.log( 'maxh', maxh );
+
+				var colh= h - $(cols[i]).children('.colHeader').height() - (parseInt($(cols[i]).children('.colHeader').css('padding-left'))*2);
+
+				$(cols[i]).children('.scrollContainer').css('height',colh);
+
 			}
 
 			if( maxh < h )
 				maxh = h;
 
-			$('.column').css('height',maxh);
+			$('.column').css('height',h);
 		},
 
 		handleScroll: function(e) {

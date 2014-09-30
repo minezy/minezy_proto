@@ -2349,14 +2349,14 @@ App.Column = ( function($,document,window, U) {
 		setupColumn: function() {
 
 			this.element = $('#template').clone();
-			var resultContainer = $(this.element).children('.results');
-
-			resultContainer.empty();
-			$('.columnContainer').append(this.element);
-
 			$(this.element).hide();
 			$(this.element).attr('id','Column'+this.index);
+			$('.columnContainer').append(this.element);
 			this.colName = this.colName + this.index;
+
+			var resultContainer = $( this.colName + ' .results');
+			resultContainer.empty();
+
 			$( this.colName + ' .loader').hide();
 			$( this.colName + ' .showMore').hide();
 
@@ -2631,7 +2631,7 @@ App.Column = ( function($,document,window, U) {
 			var rows = {};
 			var maxVal = 0;
 			var count = 0;
-			var resultContainer = $(this.element).children('.results');
+			var resultContainer = $(this.colName + ' .results');
 
 			if( this.action == 'contacts' ) {
 				rows = data.contacts.contact;
@@ -3094,13 +3094,17 @@ App.ColumnController = ( function($,document,window, U) {
 			for(var i =0;i<cols.length;i++){
 				if( $(cols[i]).height() > maxh )
 					maxh = $(cols[i]).height();
-				//console.log( 'maxh', maxh );
+
+				var colh= h - $(cols[i]).children('.colHeader').height() - (parseInt($(cols[i]).children('.colHeader').css('padding-left'))*2);
+
+				$(cols[i]).children('.scrollContainer').css('height',colh);
+
 			}
 
 			if( maxh < h )
 				maxh = h;
 
-			$('.column').css('height',maxh);
+			$('.column').css('height',h);
 		},
 
 		handleScroll: function(e) {

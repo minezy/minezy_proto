@@ -38,14 +38,14 @@ App.Column = ( function($,document,window, U) {
 		setupColumn: function() {
 
 			this.element = $('#template').clone();
-			var resultContainer = $(this.element).children('.results');
-
-			resultContainer.empty();
-			$('.columnContainer').append(this.element);
-
 			$(this.element).hide();
 			$(this.element).attr('id','Column'+this.index);
+			$('.columnContainer').append(this.element);
 			this.colName = this.colName + this.index;
+
+			var resultContainer = $( this.colName + ' .results');
+			resultContainer.empty();
+
 			$( this.colName + ' .loader').hide();
 			$( this.colName + ' .showMore').hide();
 
@@ -320,7 +320,7 @@ App.Column = ( function($,document,window, U) {
 			var rows = {};
 			var maxVal = 0;
 			var count = 0;
-			var resultContainer = $(this.element).children('.results');
+			var resultContainer = $(this.colName + ' .results');
 
 			if( this.action == 'contacts' ) {
 				rows = data.contacts.contact;

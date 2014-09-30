@@ -1,7 +1,7 @@
 
 section.columnContainer {
 	position: relative;
-	overflow: scroll;
+	overflow-x: overlay;
 
 	#template {
 		display: none;
@@ -161,9 +161,14 @@ section.columnContainer {
 		display: none;
 	}
 
+	div.scrollContainer {
+		overflow-y: scroll;
+	}
+
 	div.results {
 		box-sizing: border-box;
 		padding:20px 0px;
+
 
 		div.resultContainer {
 			position: relative;
