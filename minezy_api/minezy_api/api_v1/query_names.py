@@ -33,14 +33,14 @@ def query_names(params, countResults=False):
     query_str += "RETURN n.name as name,count,contacts "
     
     if 'USE' in params['count']:
-        query_str += "ORDER BY count DESC, name ASC "
+        query_str += "ORDER BY count DESC, name ASC"
     else:  
-        query_str += "ORDER BY name ASC "
+        query_str += "ORDER BY name ASC"
     
     if params['index'] or params['page'] > 1:
-        query_str += "SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
+        query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
     if params['limit']:
-        query_str += "LIMIT {limit}"
+        query_str += " LIMIT {limit}"
     
     if countResults:
         resp = _query_count(query_str, params)

@@ -73,12 +73,12 @@ def query_contacts(params, countResults=False):
 
     if bManualCount:
         query_str += "WITH n,count(distinct(e)) AS count "
-    query_str += "RETURN n.name,n.email,count ORDER BY count " + params['order'] + ", n.name ASC "
+    query_str += "RETURN n.name,n.email,count ORDER BY count " + params['order'] + ", n.name ASC"
 
     if params['index'] or params['page'] > 1:
-        query_str += "SKIP "+ str(params['index'] + ((params['page']-1)*params['limit'])) + " "
+        query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
     if params['limit']:
-        query_str += "LIMIT {limit}"
+        query_str += " LIMIT {limit}"
 
     if countResults:
         resp = _query_count(query_str, params)
