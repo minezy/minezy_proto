@@ -364,7 +364,7 @@ App.Column = ( function($,document,window, U) {
 				var size = Math.round( ( barVal2 / maxVal ) * rowMaxWidth );
 
 				$(bar).css('width',size);
-console.log(i,$(bars[i]).hasClass('on'));
+
 				if( $(bars[i]).hasClass('on') ) {
 					rowClicked = i;
 				}
@@ -374,7 +374,7 @@ console.log(i,$(bars[i]).hasClass('on'));
 				}
 
 			}
-console.log(rowClicked);
+
 			if( rowClicked ) {
 				resultContainer.children('.resultContainer').addClass('dim');
 				resultContainer.children('.resultContainer').eq(rowClicked).removeClass('dim');
@@ -416,7 +416,7 @@ console.log(rowClicked);
 		},
 
 		newColumnRequest: function(index,e) {
-console.log(this.colName,index,this.action,this.childOptions,this.path);
+
 			$( this.colName + ' .resultContainer' ).removeClass('on');
 
 			var row = $( this.colName + ' .resultContainer' ).eq(index);
@@ -430,9 +430,6 @@ console.log(this.colName,index,this.action,this.childOptions,this.path);
 			if( actionLock.length > 1 ) {
 				lock = actionLock[1];
 			}
-
-console.log('KEY',key,action);
-
 
 			var new_params = $.extend({},this.params);
 			delete new_params.keyword;
@@ -520,7 +517,7 @@ console.log('KEY',key,action);
 		},
 
 		updateAll: function(action,params) {
-console.log(action,this.action);
+
 			this.action = action;
 			this.params = $.extend( {}, params );
 

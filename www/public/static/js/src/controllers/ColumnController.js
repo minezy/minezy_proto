@@ -44,7 +44,6 @@ App.ColumnController = ( function($,document,window, U) {
 			//var action = ops[0].split('-'); //default action is the first node
 
 			this.path.push(ops[0]);
-			console.log('PUSH',ops[0]);
 
 			var new_col = new App.Column({
 				'action':action,
@@ -98,7 +97,28 @@ App.ColumnController = ( function($,document,window, U) {
 			if( this.columns[column+1] ) {
 				if( this.columns.length > column+1 ) {
 					this.removeColumns(column+2);
+
+					console.log('NEWCOL',column,action,params);
+
+					//if a child column is open and you click a new row on the parent, keep the state of the child but supply the changed params
+					if( this.path[column+2] != action  ) {
+						//keep the old action
+						action = this.columns[column+1].action;
+
+						//keep the old count
+						params.count = this.columns[column+1].params.count;
+
+						//if( params.to != this.columns[column+1].params.to )
+						//	params.to
+
+					}
+
 				}
+
+
+				//
+
+
 				$( this.columns[column+1].colName + ' .loader' ).fadeIn();
 				this.columns[column+1].updateAll(action,params);
 			} else {
@@ -107,7 +127,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.activeRow = rowIndex;
 
-			console.log(this.path);
+			//console.log(this.path);
 
 		},
 

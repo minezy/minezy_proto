@@ -2675,7 +2675,7 @@ App.Column = ( function($,document,window, U) {
 				var size = Math.round( ( barVal2 / maxVal ) * rowMaxWidth );
 
 				$(bar).css('width',size);
-console.log(i,$(bars[i]).hasClass('on'));
+
 				if( $(bars[i]).hasClass('on') ) {
 					rowClicked = i;
 				}
@@ -2685,7 +2685,7 @@ console.log(i,$(bars[i]).hasClass('on'));
 				}
 
 			}
-console.log(rowClicked);
+
 			if( rowClicked ) {
 				resultContainer.children('.resultContainer').addClass('dim');
 				resultContainer.children('.resultContainer').eq(rowClicked).removeClass('dim');
@@ -2727,7 +2727,7 @@ console.log(rowClicked);
 		},
 
 		newColumnRequest: function(index,e) {
-console.log(this.colName,index,this.action,this.childOptions,this.path);
+
 			$( this.colName + ' .resultContainer' ).removeClass('on');
 
 			var row = $( this.colName + ' .resultContainer' ).eq(index);
@@ -2741,9 +2741,6 @@ console.log(this.colName,index,this.action,this.childOptions,this.path);
 			if( actionLock.length > 1 ) {
 				lock = actionLock[1];
 			}
-
-console.log('KEY',key,action);
-
 
 			var new_params = $.extend({},this.params);
 			delete new_params.keyword;
@@ -2831,7 +2828,7 @@ console.log('KEY',key,action);
 		},
 
 		updateAll: function(action,params) {
-console.log(action,this.action);
+
 			this.action = action;
 			this.params = $.extend( {}, params );
 
@@ -2926,7 +2923,6 @@ App.ColumnController = ( function($,document,window, U) {
 			//var action = ops[0].split('-'); //default action is the first node
 
 			this.path.push(ops[0]);
-			console.log('PUSH',ops[0]);
 
 			var new_col = new App.Column({
 				'action':action,
@@ -2980,7 +2976,28 @@ App.ColumnController = ( function($,document,window, U) {
 			if( this.columns[column+1] ) {
 				if( this.columns.length > column+1 ) {
 					this.removeColumns(column+2);
+
+					console.log('NEWCOL',column,action,params);
+
+					//if a child column is open and you click a new row on the parent, keep the state of the child but supply the changed params
+					if( this.path[column+2] != action  ) {
+						//keep the old action
+						action = this.columns[column+1].action;
+
+						//keep the old count
+						params.count = this.columns[column+1].params.count;
+
+						//if( params.to != this.columns[column+1].params.to )
+						//	params.to
+
+					}
+
 				}
+
+
+				//
+
+
 				$( this.columns[column+1].colName + ' .loader' ).fadeIn();
 				this.columns[column+1].updateAll(action,params);
 			} else {
@@ -2989,7 +3006,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 			this.activeRow = rowIndex;
 
-			console.log(this.path);
+			//console.log(this.path);
 
 		},
 
