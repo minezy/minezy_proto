@@ -44,12 +44,13 @@ App.ColumnController = ( function($,document,window, U) {
 			//var action = ops[0].split('-'); //default action is the first node
 
 			this.path.push(ops[0]);
+			console.log('PUSH',ops[0]);
 
 			var new_col = new App.Column({
 				'action':action,
 				'params':params,
 				'index':this.columns.length,
-				'path':this.path,
+				'path':this.path.slice(0),
 				'columnActions':ops,
 				'nodeName':ops[0],
 				'maxTime': this.dateSettings.maxTime,
@@ -73,10 +74,14 @@ App.ColumnController = ( function($,document,window, U) {
 
 		updatePath: function(e,index,nodeName) {
 
-			this.path[index+1] = nodeName;
+			if( nodeName != this.path[index+1] ) {
 
-			if( this.columns.length > index )
-				this.removeColumns(index+1);
+				this.path[index+1] = nodeName;
+
+				if( this.columns.length > index )
+					this.removeColumns(index+1);
+
+			}
 
 		},
 
@@ -130,10 +135,8 @@ App.ColumnController = ( function($,document,window, U) {
 			$(column).css('left',offset);
 
 			this.adjustColumnHeight();
-
 			this.activeColumn = index;
 
-			//console.log(this.totalColWidth, $('.columnContainer').innerWidth());
 
 		},
 

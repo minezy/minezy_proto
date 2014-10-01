@@ -593,7 +593,7 @@ section.columnContainer {
   section.columnContainer div.searchOptionWidgets {
     display: none; }
   section.columnContainer div.scrollContainer {
-    overflow-y: scroll; }
+    overflow-y: overlay; }
   section.columnContainer div.results {
     box-sizing: border-box;
     padding: 20px 0px; }

@@ -2337,6 +2337,7 @@ App.Column = ( function($,document,window, U) {
 		this.minTime = options.minTime;
 		this.maxTime = options.maxTime;
 		this.page = 1;
+		this.scrollPos= 0;
 
 		this.setupColumn();
 		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
@@ -2377,22 +2378,6 @@ App.Column = ( function($,document,window, U) {
 
 		},
 
-		updateUI: function(data) {
-
-			/*$( this.colName + ' .searchAction').text(this.action);
-			$( this.colName + ' .searchParams').empty();
-
-			for (var key in this.params) {
-				var filter = $('#template .searchParams span').clone();
-				var param = this.params[key];
-
-				$(filter).children('strong').text(key+": ");
-				$(filter).children('em').text(param);
-
-				$( this.colName + ' .searchParams').append(filter);
-			}*/
-
-		},
 
 		handleColumnClose: function(e) {
 			$(this).trigger('Closing',[this.index]);
@@ -2474,8 +2459,10 @@ App.Column = ( function($,document,window, U) {
 
 			console.log('SEARCHING!',this.action, this.params);
 
-			$( this.colName + ' .loader' ).fadeIn();
-			$(this.colName + ' .showMore').hide();
+			if( this.page == 1 ) {
+				$( this.colName + ' .loader' ).fadeIn();
+				$(this.colName + ' .showMore').hide();
+			}
 
 			var params = $.extend({},this.params);
 
@@ -2499,20 +2486,6 @@ App.Column = ( function($,document,window, U) {
 					delete params.keyword;
 				}
 
-				/*var field = '';
-				if( $( this.colName + ' .additionalOptions .field-to').is(':checked') )
-					field += 'to|';
-				if( $( this.colName + ' .additionalOptions .field-cc').is(':checked') )
-					field += 'cc|';
-				if( $( this.colName + ' .additionalOptions .field-bcc').is(':checked') )
-					field += 'bcc|';
-				if( $( this.colName + ' .additionalOptions .field-sent').is(':checked') )
-					field += 'sent|';
-
-				field = field.substring(0, field.length - 1);
-				//console.log('FIELD: '+field,$( this.colName + ' .field-to'));
-				if( field !== 'to|sent')
-					params.count = field;*/
 				if( opParam[1] ) {
 					params.count = 'to';
 				} else {
@@ -2532,6 +2505,7 @@ App.Column = ( function($,document,window, U) {
 				console.log('KEYWORD: ',keyword);
 
 			} else if( this.action == 'dates' ) {
+
 				if( !opParam[1] ) {
 					var sy = $( this.colName + ' .start_date_year').val();
 					var sm = $( this.colName + ' .start_date_month').val();
@@ -2558,11 +2532,10 @@ App.Column = ( function($,document,window, U) {
 					params.count = opParam[1];
 				}
 
-
 			}
 
 			if( !$.isEmptyObject(params) ) {
-				//$( this.colName + ' .additionalOptions a').off('click');
+
 				params.limit = 20;
 				if(!params.start)
 					params.start = this.params.start;
@@ -2570,9 +2543,6 @@ App.Column = ( function($,document,window, U) {
 				if(!params.end)
 					params.end = this.params.end;
 
-				//params.key = this.params.key;
-				//params.lock = this.params.lock;
-				//params.fromAction = this.params.fromAction;
 				if(this.page > 1) {
 					params.page = this.page;
 				}
@@ -2580,6 +2550,7 @@ App.Column = ( function($,document,window, U) {
 				this.updateAll(this.action,params);
 
 				$(this).trigger('RefreshingData',[this.index,this.nodeName]);
+
 				this.path[this.index+1] = this.nodeName;
 				this.childOptions = this.at.getActions(this.path);
 			}
@@ -2643,7 +2614,8 @@ App.Column = ( function($,document,window, U) {
 				return;
 			}
 
-			$(resultContainer).hide();
+			if(this.page == 1)
+				$(resultContainer).hide();
 
 			for(var i = 0; i < rows.length;i++) {
 
@@ -2652,10 +2624,6 @@ App.Column = ( function($,document,window, U) {
 				var newBar = $(newRow).children('.bar');
 				resultContainer.append(newRow);
 
-				//var rowMaxWidth = $(this.element).width() - (parseInt($(newBar).css('left'))*2);
-				//var size = Math.round( ( rows[i].count / maxVal ) * rowMaxWidth );
-
-				//$(newBar).css('width',size);
 				$(newRow).children('.tally').text(rows[i].count);
 
 				if( this.action == 'contacts' ) {
@@ -2681,15 +2649,12 @@ App.Column = ( function($,document,window, U) {
 					$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
 
 				} else if( this.action == 'emails' ) {
-						//$(newBar).css('width',rowMaxWidth);
 
 						var date = new Date();
 						date.setTime(rows[i].date.utc * 1000);
 						$(newRow).children('.title').text( date.toLocaleTimeString() + ' ' + rows[i].subject );
 
 				}
-
-				//count++;
 
 			}
 
@@ -2701,6 +2666,7 @@ App.Column = ( function($,document,window, U) {
 					maxVal =  barVal;
 			}
 
+			var rowClicked = 0;
 			for(i = 0; i < bars.length;i++) {
 
 				var barVal2 = parseInt($(bars[i]).children('.tally').text());
@@ -2709,16 +2675,21 @@ App.Column = ( function($,document,window, U) {
 				var size = Math.round( ( barVal2 / maxVal ) * rowMaxWidth );
 
 				$(bar).css('width',size);
+console.log(i,$(bars[i]).hasClass('on'));
+				if( $(bars[i]).hasClass('on') ) {
+					rowClicked = i;
+				}
 
 				if( this.action == 'emails' ) {
 					$(bar).css('width',rowMaxWidth);
 				}
 
 			}
-
-
-
-			this.updateUI();
+console.log(rowClicked);
+			if( rowClicked ) {
+				resultContainer.children('.resultContainer').addClass('dim');
+				resultContainer.children('.resultContainer').eq(rowClicked).removeClass('dim');
+			}
 
 			//enable row clicking
 			count=0;
@@ -2750,10 +2721,13 @@ App.Column = ( function($,document,window, U) {
 
 			$( this.colName + ' .loader' ).fadeOut();
 
+			$( this.colName + ' .scrollContainer' ).scrollTop(this.scrollPos);
+
+
 		},
 
 		newColumnRequest: function(index,e) {
-
+console.log(this.colName,index,this.action,this.childOptions,this.path);
 			$( this.colName + ' .resultContainer' ).removeClass('on');
 
 			var row = $( this.colName + ' .resultContainer' ).eq(index);
@@ -2762,12 +2736,14 @@ App.Column = ( function($,document,window, U) {
 			var actionLock = this.childOptions[0].split('-');
 			var action = '';
 			var lock = '';
-
 			action = actionLock[0];
 
 			if( actionLock.length > 1 ) {
 				lock = actionLock[1];
 			}
+
+console.log('KEY',key,action);
+
 
 			var new_params = $.extend({},this.params);
 			delete new_params.keyword;
@@ -2845,6 +2821,8 @@ App.Column = ( function($,document,window, U) {
 			this.page++;
 			this.searchColumn();
 
+			this.scrollPos = $( this.colName + ' .scrollContainer' ).scrollTop();
+
 		},
 
 		removeHighlight: function() {
@@ -2853,7 +2831,7 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		updateAll: function(action,params) {
-
+console.log(action,this.action);
 			this.action = action;
 			this.params = $.extend( {}, params );
 
@@ -2948,12 +2926,13 @@ App.ColumnController = ( function($,document,window, U) {
 			//var action = ops[0].split('-'); //default action is the first node
 
 			this.path.push(ops[0]);
+			console.log('PUSH',ops[0]);
 
 			var new_col = new App.Column({
 				'action':action,
 				'params':params,
 				'index':this.columns.length,
-				'path':this.path,
+				'path':this.path.slice(0),
 				'columnActions':ops,
 				'nodeName':ops[0],
 				'maxTime': this.dateSettings.maxTime,
@@ -2977,10 +2956,14 @@ App.ColumnController = ( function($,document,window, U) {
 
 		updatePath: function(e,index,nodeName) {
 
-			this.path[index+1] = nodeName;
+			if( nodeName != this.path[index+1] ) {
 
-			if( this.columns.length > index )
-				this.removeColumns(index+1);
+				this.path[index+1] = nodeName;
+
+				if( this.columns.length > index )
+					this.removeColumns(index+1);
+
+			}
 
 		},
 
@@ -3034,10 +3017,8 @@ App.ColumnController = ( function($,document,window, U) {
 			$(column).css('left',offset);
 
 			this.adjustColumnHeight();
-
 			this.activeColumn = index;
 
-			//console.log(this.totalColWidth, $('.columnContainer').innerWidth());
 
 		},
 
