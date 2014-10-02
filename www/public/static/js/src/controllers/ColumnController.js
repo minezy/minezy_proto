@@ -108,6 +108,12 @@ App.ColumnController = ( function($,document,window, U) {
 						//keep the old count
 						params.count = this.columns[column+1].params.count;
 
+						if( this.columns[column+1].params.start && !params.start )
+							params.start = this.columns[column+1].params.start;
+
+						if( this.columns[column+1].params.end && !params.end )
+							params.end = this.columns[column+1].params.end;
+
 						//if( params.to != this.columns[column+1].params.to )
 						//	params.to
 

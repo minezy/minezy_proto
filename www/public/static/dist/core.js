@@ -2440,7 +2440,8 @@ App.Column = ( function($,document,window, U) {
 				$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
 				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 			} else if( val === 'dates' ) {
-				if( !opParam[1] ) {
+				console.log(opParam);
+				if( !opParam[1] || opParam[1] != 'day' ) {
 					options = $('#template .searchOptionWidgets .dates').clone();
 
 					$( this.colName + ' .additionalOptions').empty();
@@ -2511,6 +2512,10 @@ App.Column = ( function($,document,window, U) {
 				}
 
 			} else if( this.action == 'dates' ) {
+
+				if(opParam[1] === 'to') {
+					opParam.pop();
+				}
 
 				if( !opParam[1] ) {
 					var sy = $( this.colName + ' .start_date_year').val();
@@ -2609,17 +2614,22 @@ App.Column = ( function($,document,window, U) {
 				rows = data;
 			} else if( this.action == 'observers' ) {
 				rows = data;
-			} else {
-				return;
 			}
+
 
 			if(this.page == 1)
 				$(resultContainer).hide();
 
-			if( this.action == 'emails/meta' ) {
-				this.renderEmails(rows);
+			if( rows.length === 0 ) {
+				resultContainer.append( this.HTMLFactory.generateNoResults() );
 			} else {
-				this.renderRows(rows);
+
+				if( this.action == 'emails/meta' ) {
+					this.renderEmails(rows);
+				} else {
+					this.renderRows(rows);
+				}
+
 			}
 
 			//fade in column
@@ -2634,10 +2644,8 @@ App.Column = ( function($,document,window, U) {
 				$(this).trigger('Updated');
 			}
 
-
 			$( this.colName + ' .loader' ).fadeOut();
 			$( this.colName + ' .scrollContainer' ).scrollTop(this.scrollPos);
-
 
 		},
 
@@ -2730,6 +2738,7 @@ App.Column = ( function($,document,window, U) {
 			delete new_params.page;
 
 			if( action === 'contacts' ) {
+
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
@@ -2743,8 +2752,11 @@ App.Column = ( function($,document,window, U) {
 			} else if( action === 'dates' ) {
 
 				if( this.action == 'dates' ) {
-					new_params.start = key.split('-')[0];
-					new_params.end = key.split('-')[1];
+					var sd = new Date();
+					sd.setTime( key.split('-')[0] * 1000 );
+
+					new_params.year = sd.getFullYear();
+					new_params.month = sd.getMonth()+1;
 				} else if( this.action == 'contacts' ) {
 					if(this.params.from)
 						new_params.to = key;
@@ -2768,7 +2780,6 @@ App.Column = ( function($,document,window, U) {
 				}  else if( this.action == 'emails' ) {
 					new_params.id = key;
 				}
-
 
 			} else if( action === 'emails/meta' ) {
 				new_params.id = key;
@@ -2843,6 +2854,7 @@ App.Column = ( function($,document,window, U) {
 
 		clearData: function() {
 
+			$( this.colName + ' .noresults').remove();
 			$( this.colName + ' .resultContainer').remove();
 			$( this.colName + ' .emailContainer').remove();
 
@@ -2968,6 +2980,12 @@ App.ColumnController = ( function($,document,window, U) {
 
 						//keep the old count
 						params.count = this.columns[column+1].params.count;
+
+						if( this.columns[column+1].params.start && !params.start )
+							params.start = this.columns[column+1].params.start;
+
+						if( this.columns[column+1].params.end && !params.end )
+							params.end = this.columns[column+1].params.end;
 
 						//if( params.to != this.columns[column+1].params.to )
 						//	params.to
@@ -3106,6 +3124,14 @@ App.HTMLFactory = ( function($,document,window, U) {
 	}
 
 	HTMLFactory.prototype = {
+
+		generateNoResults: function() {
+
+			noResults = $('#template .noresults').eq(0).clone();
+
+			return noResults;
+
+		},
 
 		generateColumn: function() {
 

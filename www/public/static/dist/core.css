@@ -678,6 +678,14 @@ section.columnContainer {
         height: 30px;
         top: 0;
         display: none; }
+    section.columnContainer div.results div.noresults {
+      padding: 10px;
+      background-color: #f0f0f0;
+      border-radius: 3px;
+      font-size: 12px;
+      margin: 2px 20px;
+      color: #363636;
+      font-style: italic; }
     section.columnContainer div.results div.emailContainer {
       box-sizing: border-box;
       padding: 0 20px;

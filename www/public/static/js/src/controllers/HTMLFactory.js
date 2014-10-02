@@ -14,6 +14,14 @@ App.HTMLFactory = ( function($,document,window, U) {
 
 	HTMLFactory.prototype = {
 
+		generateNoResults: function() {
+
+			noResults = $('#template .noresults').eq(0).clone();
+
+			return noResults;
+
+		},
+
 		generateColumn: function() {
 
 		},
