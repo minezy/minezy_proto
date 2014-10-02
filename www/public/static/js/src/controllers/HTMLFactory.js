@@ -85,12 +85,16 @@ App.HTMLFactory = ( function($,document,window, U) {
 				for(var k=0;k<data.contacts.cc.length;k++ ) {
 					newEmail.children('.ccContainer').append(this.generateContact(data.contacts.cc[k]));
 				}
+			} else {
+				newEmail.children('.ccContainer').hide();
 			}
 
 			if( data.contacts.bcc) {
 				for(var j=0;j<data.contacts.bcc.length;j++ ) {
 					newEmail.children('.bccContainer').append(this.generateContact(data.contacts.bcc[j]));
 				}
+			} else {
+				newEmail.children('.bccContainer').hide();
 			}
 
 			return newEmail;
