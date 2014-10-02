@@ -310,6 +310,12 @@ section.columnContainer {
 					font-size: 12px;
 					margin: 2px;
 
+					&.found {
+						border: solid 1px #20cc90;
+						color: #20cc90;
+						background-color: #363636;
+					}
+
 					a {
 						display: inline-block;
 						color: #20cc90;

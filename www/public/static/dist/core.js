@@ -2634,7 +2634,7 @@ App.Column = ( function($,document,window, U) {
 		renderEmails: function(email) {
 			var resultContainer = $(this.colName + ' .results');
 
-			resultContainer.append( this.HTMLFactory.generateEmail( email ) );
+			resultContainer.append( this.HTMLFactory.generateEmail( email,this.params ) );
 
 		},
 
@@ -2763,7 +2763,7 @@ App.Column = ( function($,document,window, U) {
 			} else if( action === 'emails/meta' ) {
 				new_params.id = key;
 				delete new_params.limit;
-				delete new_params.from;
+				//delete new_params.from;
 			}
 
 			console.log(this.index,'P-A:',new_params,action);
@@ -3169,7 +3169,7 @@ App.HTMLFactory = ( function($,document,window, U) {
 
 		},
 
-		generateEmail: function(data) {
+		generateEmail: function(data,params) {
 
 			newEmail = $('#template .emailContainer').eq(0).clone();
 
@@ -3184,12 +3184,18 @@ App.HTMLFactory = ( function($,document,window, U) {
 			if( data.contacts.to ) {
 				for(var i=0;i<data.contacts.to.length;i++ ) {
 					newEmail.children('.toContainer').append(this.generateContact(data.contacts.to[i]));
+					if( data.contacts.to[i].email == params.from || data.contacts.to[i].email == params.to  ) {
+						newEmail.find('.toContainer .contact').eq(i).addClass('found');
+					}
 				}
 			}
 
 			if( data.contacts.cc ) {
 				for(var k=0;k<data.contacts.cc.length;k++ ) {
 					newEmail.children('.ccContainer').append(this.generateContact(data.contacts.cc[k]));
+					if( data.contacts.cc[k].email == params.from || data.contacts.cc[k].email == params.to  ) {
+						newEmail.find('.ccContainer .contact').eq(k).addClass('found');
+					}
 				}
 			} else {
 				newEmail.children('.ccContainer').hide();
@@ -3198,6 +3204,11 @@ App.HTMLFactory = ( function($,document,window, U) {
 			if( data.contacts.bcc) {
 				for(var j=0;j<data.contacts.bcc.length;j++ ) {
 					newEmail.children('.bccContainer').append(this.generateContact(data.contacts.bcc[j]));
+
+					if( data.contacts.bcc[j].email == params.from || data.contacts.bcc[j].email == params.to  ) {
+						newEmail.find('.bccContainer .contact').eq(j).addClass('found');
+					}
+
 				}
 			} else {
 				newEmail.children('.bccContainer').hide();

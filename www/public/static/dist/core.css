@@ -701,6 +701,10 @@ section.columnContainer {
         border: solid 1px #ddd;
         font-size: 12px;
         margin: 2px; }
+        section.columnContainer div.results div.emailContainer .contactContainer .contact.found {
+          border: solid 1px #20cc90;
+          color: #20cc90;
+          background-color: #363636; }
         section.columnContainer div.results div.emailContainer .contactContainer .contact a {
           display: inline-block;
           color: #20cc90;

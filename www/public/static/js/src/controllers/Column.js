@@ -323,7 +323,7 @@ App.Column = ( function($,document,window, U) {
 		renderEmails: function(email) {
 			var resultContainer = $(this.colName + ' .results');
 
-			resultContainer.append( this.HTMLFactory.generateEmail( email ) );
+			resultContainer.append( this.HTMLFactory.generateEmail( email,this.params ) );
 
 		},
 
@@ -452,7 +452,7 @@ App.Column = ( function($,document,window, U) {
 			} else if( action === 'emails/meta' ) {
 				new_params.id = key;
 				delete new_params.limit;
-				delete new_params.from;
+				//delete new_params.from;
 			}
 
 			console.log(this.index,'P-A:',new_params,action);
