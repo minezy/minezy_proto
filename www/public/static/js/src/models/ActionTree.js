@@ -10,53 +10,53 @@ App.ActionTree = ( function($,document,window, U) {
 						'dates-to': {
 							'dates-day': {
 								'emails-list': {
-									'emails-meta' : false
+									'emails/meta' : false
 								},
 							},
 							'emails-list': {
-								'emails-meta' : false
+								'emails/meta' : false
 							},
 						},
 						'emails-list': {
-							'emails-meta' : false
+							'emails/meta' : false
 						},
 					},*/
 					'dates-to': {
 						'dates-day': {
 							'emails-list': {
-								'emails-meta' : false
+								'emails/meta' : false
 							},
 						},
 						'emails-list': {
-							'emails-meta' : false
+							'emails/meta' : false
 						},
 					},
 					'emails-list': {
-						'emails-meta' : false
+						'emails/meta' : false
 					},
 				},
 				'dates': {
 					'dates-day': {
 						'emails-list': {
-							'emails-meta' : false
+							'emails/meta' : false
 						},
 					},
 					'contacts-from': {
 						'dates-day': {
 							'emails-list': {
-								'emails-meta' : false
+								'emails/meta' : false
 							},
 						},
 						'emails-list': {
-							'emails-meta' : false
+							'emails/meta' : false
 						},
 					},
 					'emails-list': {
-						'emails-meta' : false
+						'emails/meta' : false
 					},
 				},
 				'emails-list': {
-					'emails-meta' : false
+					'emails/meta' : false
 				}
 			},
 			'dates': {
@@ -64,35 +64,35 @@ App.ActionTree = ( function($,document,window, U) {
 					'contacts-from': {
 						'dates-day': {
 							'emails-list': {
-								'emails-meta' : false
+								'emails/meta' : false
 							},
 						},
 						'emails-list': {
-							'emails-meta' : false
+							'emails/meta' : false
 						},
 					},
 					'dates-day': {
 						'emails-list': {
-							'emails-meta' : false
+							'emails/meta' : false
 						},
 					},
 					'emails-list': {
-						'emails-meta' : false
+						'emails/meta' : false
 					}
 				},
 				'dates-day': {
 					'contacts' : {
 						'contacts-from': {
 							'emails-list': {
-								'emails-meta' : false
+								'emails/meta' : false
 							},
 						},
 						'emails-list': {
-							'emails-meta' : false
+							'emails/meta' : false
 						}
 					},
 					'emails-list': {
-						'emails-meta' : false
+						'emails/meta' : false
 					},
 				}
 			}

@@ -156,11 +156,7 @@
 					<a class="closeButton"><i class="fa fa-times"></i></a>
 					<select name="filter" class="searchFilter big">
 					</select>
-					{#<p class="searchParams">
-						<span><strong>Field:</strong><em> To, CC, BCC</em></span>
-					</p>#}
-
-					{#<a href="javascript:;" class="searchMore"><i class="fa fa-plus"></i> Change Search</a>#}
+					<h4 class="emailTitle">Email</h4>
 					<div class="searchOptions actors">
 						<div class="additionalOptions">
 						</div>
@@ -248,6 +244,28 @@
 							<div class="arrow"><i class="fa fa-caret-right"></i></div>
 							<input type="hidden" name="email" value="">
 							<div class="loading"></div>
+						</div>
+
+						<div class="emailContainer">
+							<div class="subjectContainer"></div>
+							<div class="date"></div>
+							<div class="fromContainer contactContainer">
+								<label>From:</label>
+								<div class="contact">
+									<div class="name"></div><div class="email"></div>
+								</div>
+							</div>
+
+							<div class="toContainer contactContainer">
+								<label>To:</label>
+							</div>
+							<div class="ccContainer contactContainer">
+								<label>CC:</label>
+							</div>
+							<div class="bccContainer contactContainer">
+								<label>BCC:</label>
+							</div>
+
 						</div>
 
 					</div>

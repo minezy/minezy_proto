@@ -2,14 +2,12 @@
 
 App.Column = ( function($,document,window, U) {
 
-	var months = ["January","February","March","April","May","June","July","August","September","October","November","December"];
-	var numDaysInMonth = [31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
-
 	function Column(options) {
 		//console.log('COLUMN INIT > ', options);
 
 		this.API = new App.API();
 		this.at = new App.ActionTree();
+		this.HTMLFactory = new App.HTMLFactory();
 		this.index = options.index;
 		this.element = null;
 		this.active = false;
@@ -50,10 +48,14 @@ App.Column = ( function($,document,window, U) {
 			$( this.colName + ' .loader').hide();
 			$( this.colName + ' .showMore').hide();
 
-			$( this.colName + ' .searchMore').on('click',$.proxy( this.showMoreSearchOptions, this ) );
-			//$( this.colName + ' .searchOptions').hide();
 			$( this.colName + ' .searchFilter').on('change',$.proxy( this.searchFilter, this ) );
 			$( this.colName + ' .showMore').on('click',$.proxy( this.getMoreRows, this ) );
+
+			if( this.action === 'emails/meta' ) {
+				$( this.colName + ' .searchFilter').hide();
+			} else {
+				$( this.colName + ' .emailTitle').hide();
+			}
 
 			this.setColumnActions();
 			this.setFilterOptions();
@@ -90,6 +92,8 @@ App.Column = ( function($,document,window, U) {
 
 		searchFilter: function() {
 
+			delete this.params.page;
+			this.page = 1;
 			this.setFilterOptions();
 			this.searchColumn();
 
@@ -178,7 +182,7 @@ App.Column = ( function($,document,window, U) {
 				if( opParam[1] ) {
 					params.count = 'to';
 				} else {
-					params.count = 'to|sent';
+					params.count = 'to|cc|bcc|sent';
 				}
 
 			} else if( this.action == 'emails' ) {
@@ -267,37 +271,22 @@ App.Column = ( function($,document,window, U) {
 			}
 		},
 
-		showMoreSearchOptions: function(e) {
-
-			/*if(this.optionsOpen){
-				//$( this.colName + ' .searchOptions').slideUp();
-				this.optionsOpen = false;
-				$( this.colName + ' .searchMore i').addClass('fa-plus');
-				$( this.colName + ' .searchMore i').removeClass('fa-minus');
-			} else{
-				//$( this.colName + ' .searchOptions').slideDown();
-				this.optionsOpen = true;
-				$( this.colName + ' .searchMore i').removeClass('fa-plus');
-				$( this.colName + ' .searchMore i').addClass('fa-minus');
-			}*/
-
-		},
-
 		recievedData: function(data) {
 
-			//console.log('GOT THE DATA!',data,this.active, this.colName,this.element);
-			$(this).trigger('DataReceived',[this.index]);
-
+			var resultContainer = $(this.colName + ' .results');
 			var rows = {};
 			var maxVal = 0;
-			var count = 0;
-			var resultContainer = $(this.colName + ' .results');
+
+			$(this).trigger('DataReceived',[this.index]);
+
 
 			if( this.action == 'contacts' ) {
 				rows = data.contacts.contact;
 			} else if( this.action == 'dates' ) {
 				rows = data.dates.dates;
 			} else if( this.action == 'emails' ) {
+				rows = data.emails.email;
+			} else if( this.action == 'emails/meta' ) {
 				rows = data.emails.email;
 			} else {
 				return;
@@ -306,45 +295,45 @@ App.Column = ( function($,document,window, U) {
 			if(this.page == 1)
 				$(resultContainer).hide();
 
+			if( this.action == 'emails/meta' ) {
+				this.renderEmails(rows);
+			} else {
+				this.renderRows(rows);
+			}
+
+			//fade in column
+			if(this.page == 1)
+				$(resultContainer).fadeIn();
+
+			//update the controller if the column is new
+			if( !this.active ) {
+				this.active = true;
+				$(this).trigger('Ready');
+			} else {
+				$(this).trigger('Updated');
+			}
+
+
+			$( this.colName + ' .loader' ).fadeOut();
+			$( this.colName + ' .scrollContainer' ).scrollTop(this.scrollPos);
+
+
+		},
+
+		renderEmails: function(email) {
+			var resultContainer = $(this.colName + ' .results');
+
+			resultContainer.append( this.HTMLFactory.generateEmail( email ) );
+
+		},
+
+		renderRows: function(rows) {
+
+			var resultContainer = $(this.colName + ' .results');
+			var maxVal = 0;
+
 			for(var i = 0; i < rows.length;i++) {
-
-				var newRow = $('<div class="resultContainer"><div class="bar"></div><div class="tally"></div><div class="title"></div><div class="arrow"><i class="fa fa-caret-right"></i></div><input type="hidden" name="email" value=""><div class="loading"></div></div>');
-
-				var newBar = $(newRow).children('.bar');
-				resultContainer.append(newRow);
-
-				$(newRow).children('.tally').text(rows[i].count);
-
-				if( this.action == 'contacts' ) {
-
-					$(newRow).children('.title').text(rows[i].name);
-					$(newRow).children('input').val(rows[i].email);
-
-				} else if( this.action == 'dates' ) {
-					var sd,ed;
-
-					if( data.dates._params.count[0] === 'MONTH' ) {
-						sd = new Date(rows[i].year, rows[i].month-1, 1, 0, 0, 0, 0);
-						ed = new Date(rows[i].year, rows[i].month-1, numDaysInMonth[rows[i].month-1], 23, 59, 59, 0);
-
-						$(newRow).children('.title').text( months[rows[i].month-1] + ', ' + rows[i].year);
-					} else if( data.dates._params.count[0] === 'DAY' ) {
-						sd = new Date(rows[i].year, rows[i].month-1, rows[i].day, 0, 0, 0, 0);
-						ed = new Date(rows[i].year, rows[i].month-1, rows[i].day, 23, 59, 59, 999);
-
-						$(newRow).children('.title').text( months[rows[i].month-1] + ' ' + rows[i].day +', ' + rows[i].year);
-					}
-
-					$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
-
-				} else if( this.action == 'emails' ) {
-
-						var date = new Date();
-						date.setTime(rows[i].date.utc * 1000);
-						$(newRow).children('.title').text( date.toLocaleTimeString() + ' ' + rows[i].subject );
-
-				}
-
+				resultContainer.append( this.HTMLFactory.generateRow( this.action, this.params, rows[i] ) );
 			}
 
 			var bars = resultContainer.children('.resultContainer');
@@ -380,6 +369,7 @@ App.Column = ( function($,document,window, U) {
 				resultContainer.children('.resultContainer').eq(rowClicked).removeClass('dim');
 			}
 
+
 			//enable row clicking
 			count=0;
 			$( this.colName + ' .resultContainer').each($.proxy(function(i,v) {
@@ -387,30 +377,12 @@ App.Column = ( function($,document,window, U) {
 				count++;
 			},this));
 
-			//fade in rows
-			$(resultContainer).fadeIn();
-
-			//enable search again
-			//$( this.colName + ' .additionalOptions a').on('click',$.proxy( this.searchColumn, this ) );
-
-			//update the controller if the column is new
-			if( !this.active ) {
-				this.active = true;
-				$(this).trigger('Ready');
-			} else {
-				$(this).trigger('Updated');
-			}
 
 			if( rows.length < 20 ) {
-				$(this.colName + ' .showMore').hide();
+				$( this.colName + ' .showMore').hide();
 			} else {
 				$( this.colName + ' .showMore' ).fadeIn();
 			}
-
-
-			$( this.colName + ' .loader' ).fadeOut();
-
-			$( this.colName + ' .scrollContainer' ).scrollTop(this.scrollPos);
 
 
 		},
@@ -440,7 +412,7 @@ App.Column = ( function($,document,window, U) {
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
-					new_params.count = 'to|sent';
+					new_params.count = 'to|cc|bcc|sent';
 				} else {
 					new_params[lock] = key;
 					new_params.count = 'to';
@@ -473,23 +445,15 @@ App.Column = ( function($,document,window, U) {
 				} else if( this.action == 'contacts' ) {
 					new_params[lock] = key;
 				}  else if( this.action == 'emails' ) {
-					new_params[lock] = key;
+					new_params.id = key;
 				}
 
 
+			} else if( action === 'emails/meta' ) {
+				new_params.id = key;
+				delete new_params.limit;
+				delete new_params.from;
 			}
-
-			/*var fromLock = '';
-			if( this.params.lock ) {
-				fromLock = '-' + this.params.lock;
-
-			}*/
-
-			//new_params.fromAction = this.action + fromLock;
-			//new_params.key = key;
-			//new_params.lock = lock;
-			//new_params.limit = 20;
-
 
 			console.log(this.index,'P-A:',new_params,action);
 
@@ -503,6 +467,11 @@ App.Column = ( function($,document,window, U) {
 		},
 
 		getMoreRows: function() {
+
+			//disable row clicks first
+			$( this.colName + ' .resultContainer').each($.proxy(function(i,v) {
+				$(v).off('click');
+			},this));
 
 			this.page++;
 			this.searchColumn();
@@ -521,8 +490,16 @@ App.Column = ( function($,document,window, U) {
 			this.action = action;
 			this.params = $.extend( {}, params );
 
-			if(!this.params.page)
+console.log(action);
+
+			if( !this.params.page ) {
 				this.clearData();
+			}
+
+			if( action == 'emails/meta') {
+				this.clearData();	
+			}
+
 
 			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
 
@@ -541,6 +518,7 @@ App.Column = ( function($,document,window, U) {
 		clearData: function() {
 
 			$( this.colName + ' .resultContainer').remove();
+			$( this.colName + ' .emailContainer').remove();
 
 		},
 

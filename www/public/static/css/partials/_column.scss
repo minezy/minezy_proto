@@ -49,6 +49,20 @@ section.columnContainer {
 				}
 			}
 
+			h4 {
+				background-color: #e3e3e3;
+				width: 100%;
+				font-weight: 700;
+				margin-bottom:2px;
+				font-size: 24px;
+				line-height: 30px;
+				text-transform: capitalize;
+				height: 46px;
+				border-radius: 3px;
+				padding: 7px 10px;
+				box-sizing: border-box;
+			}
+
 			input {
 				margin-bottom: 8px;
 			}
@@ -259,6 +273,63 @@ section.columnContainer {
 				top: 0;
 				display: none;
 			}
+		}
+
+		div.emailContainer {
+			box-sizing: border-box;
+			padding:20px;
+			overflow: hidden;
+			max-width: 500px;
+
+			.subjectContainer {
+				font-size: 20px;
+				line-height: 28px;
+				word-break:break-all;
+			}
+
+			.date {
+				font-size: 11px;
+				line-height: 20px;
+				font-weight:300;
+				font-style: italic;
+				margin-bottom: 20px;
+			}
+
+			.contactContainer {
+				label {
+					display: inline-block;
+					padding-right: 10px;
+				}
+
+				.contact {
+					display: inline-block;
+					padding: 6px 8px;
+					background-color: #f0f0f0;
+					border-radius: 3px;
+					border: solid 1px #ddd;
+					font-size: 12px;
+					margin: 2px;
+
+					a {
+						display: inline-block;
+						color: #20cc90;
+						padding-right: 3px;
+					}
+
+					div {
+						display: inline-block;
+					}
+
+					div.name {
+						font-weight: 700;
+					}
+
+					div.email {
+						margin-left: 3px;
+					}
+				}
+			}
+
 		}
 
 	}

@@ -521,6 +521,18 @@ section.columnContainer {
         section.columnContainer div.column div.colHeader select.big option {
           font-size: 14px;
           line-height: 20px; }
+      section.columnContainer div.column div.colHeader h4 {
+        background-color: #e3e3e3;
+        width: 100%;
+        font-weight: 700;
+        margin-bottom: 2px;
+        font-size: 24px;
+        line-height: 30px;
+        text-transform: capitalize;
+        height: 46px;
+        border-radius: 3px;
+        padding: 7px 10px;
+        box-sizing: border-box; }
       section.columnContainer div.column div.colHeader input {
         margin-bottom: 8px; }
       section.columnContainer div.column div.colHeader input[type="text"] {
@@ -663,6 +675,42 @@ section.columnContainer {
         height: 30px;
         top: 0;
         display: none; }
+    section.columnContainer div.results div.emailContainer {
+      box-sizing: border-box;
+      padding: 20px;
+      overflow: hidden;
+      max-width: 500px; }
+      section.columnContainer div.results div.emailContainer .subjectContainer {
+        font-size: 20px;
+        line-height: 28px;
+        word-break: break-all; }
+      section.columnContainer div.results div.emailContainer .date {
+        font-size: 11px;
+        line-height: 20px;
+        font-weight: 300;
+        font-style: italic;
+        margin-bottom: 20px; }
+      section.columnContainer div.results div.emailContainer .contactContainer label {
+        display: inline-block;
+        padding-right: 10px; }
+      section.columnContainer div.results div.emailContainer .contactContainer .contact {
+        display: inline-block;
+        padding: 6px 8px;
+        background-color: #f0f0f0;
+        border-radius: 3px;
+        border: solid 1px #ddd;
+        font-size: 12px;
+        margin: 2px; }
+        section.columnContainer div.results div.emailContainer .contactContainer .contact a {
+          display: inline-block;
+          color: #20cc90;
+          padding-right: 3px; }
+        section.columnContainer div.results div.emailContainer .contactContainer .contact div {
+          display: inline-block; }
+        section.columnContainer div.results div.emailContainer .contactContainer .contact div.name {
+          font-weight: 700; }
+        section.columnContainer div.results div.emailContainer .contactContainer .contact div.email {
+          margin-left: 3px; }
   section.columnContainer a.showMore {
     display: block;
     width: 120px;
