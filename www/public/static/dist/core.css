@@ -506,6 +506,9 @@ section.columnContainer {
       box-sizing: border-box; }
       section.columnContainer div.column div.colHeader select {
         width: 150px; }
+      section.columnContainer div.column div.colHeader select.wide {
+        margin-left: 3px;
+        width: 169px; }
       section.columnContainer div.column div.colHeader select.big {
         display: block;
         border: none;

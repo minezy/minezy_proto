@@ -160,14 +160,6 @@ App.ColumnController = ( function($,document,window, U) {
 
 		},
 
-		updateDates: function(start,end) {
-
-			for(var i = 0; i < this.columns.length; i++ ) {
-				this.columns[i].updateParams({'start':start,'end':end});
-			}
-
-		},
-
 		removeColumns: function(rootIndex) {
 
 			if( this.columns.length > rootIndex ) {
@@ -185,11 +177,6 @@ App.ColumnController = ( function($,document,window, U) {
 
 		},
 
-		closingColumn: function(e,index) {
-			//console.log('CLOSE COLUMN: ',index);
-			this.removeColumns(index);
-		},
-
 		removeColumn: function(index,delay) {
 
 			$(this.columns[index].element).delay(delay).fadeOut( 300, $.proxy(function(){
@@ -197,6 +184,10 @@ App.ColumnController = ( function($,document,window, U) {
 				this.columns.splice(index,1);
 			},this));
 
+		},
+
+		closingColumn: function(e,index) {
+			this.removeColumns(index);
 		},
 
 		adjustColumnHeight: function(e) {
@@ -226,21 +217,13 @@ App.ColumnController = ( function($,document,window, U) {
 			$('.column').css('height',h);
 		},
 
-		handleScroll: function(e) {
-		},
-
-
 		handleResize: function(e) {
 			this.adjustColumnHeight();
 		},
 
-		handleMediaQueryChange: function(e,width) {
-
-		},
-
 		destroy: function() {
 			//do any clean up when destroying the section
-			//delete this.homePhotos;
+			
 		}
 
 	};

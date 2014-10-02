@@ -141,6 +141,10 @@ App.Column = ( function($,document,window, U) {
 					$( this.colName + ' .additionalOptions').empty();
 				}
 
+			} else if( val === 'cliques' ) {
+				$( this.colName + ' .additionalOptions').empty();
+			} else if( val === 'observers' ) {
+				$( this.colName + ' .additionalOptions').empty();
 			}
 
 			//$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
@@ -195,8 +199,6 @@ App.Column = ( function($,document,window, U) {
 					delete params.keyword;
 				}
 
-				console.log('KEYWORD: ',keyword);
-
 			} else if( this.action == 'dates' ) {
 
 				if( !opParam[1] ) {
@@ -224,6 +226,10 @@ App.Column = ( function($,document,window, U) {
 					params.end = this.params.end;
 					params.count = opParam[1];
 				}
+
+			} else if( this.action == 'observers' ) {
+
+			} else if( this.action == 'cliques' ) {
 
 			}
 
@@ -288,6 +294,10 @@ App.Column = ( function($,document,window, U) {
 				rows = data.emails.email;
 			} else if( this.action == 'emails/meta' ) {
 				rows = data.emails.email;
+			} else if( this.action == 'cliques' ) {
+				rows = data;
+			} else if( this.action == 'observers' ) {
+				rows = data;
 			} else {
 				return;
 			}
@@ -378,10 +388,10 @@ App.Column = ( function($,document,window, U) {
 			},this));
 
 
-			if( rows.length < 20 ) {
-				$( this.colName + ' .showMore').hide();
-			} else {
+			if( rows.length == 20 ) {
 				$( this.colName + ' .showMore' ).fadeIn();
+			} else {
+				$( this.colName + ' .showMore' ).hide();
 			}
 
 
@@ -453,7 +463,14 @@ App.Column = ( function($,document,window, U) {
 				new_params.id = key;
 				delete new_params.limit;
 				//delete new_params.from;
+
+			} else if( this.action == 'observers' ) {
+
+			} else if( this.action == 'cliques' ) {
+
 			}
+
+
 
 			console.log(this.index,'P-A:',new_params,action);
 
@@ -490,8 +507,6 @@ App.Column = ( function($,document,window, U) {
 			this.action = action;
 			this.params = $.extend( {}, params );
 
-console.log(action);
-
 			if( !this.params.page ) {
 				this.clearData();
 			}
@@ -505,7 +520,7 @@ console.log(action);
 
 		},
 
-		updateParams: function(params) {
+	/*	updateParams: function(params) {
 
 			//merge the params
 			this.params = $.extend( this.params, params );
@@ -513,23 +528,12 @@ console.log(action);
 			this.clearData();
 			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
 
-		},
+		},*/
 
 		clearData: function() {
 
 			$( this.colName + ' .resultContainer').remove();
 			$( this.colName + ' .emailContainer').remove();
-
-		},
-
-		handleScroll: function(e) {
-		},
-
-
-		handleResize: function(e) {
-		},
-
-		handleMediaQueryChange: function(e,width) {
 
 		},
 

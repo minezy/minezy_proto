@@ -30,7 +30,18 @@ def get_api_v1():
             'api': '/1/names/',
             'description': 'List names used in emails',
             'href': 'http://' + request.host + '/1/names?limit=10'
+        },
+        {
+            'api': '/1/cliques/',
+            'description': 'List cliques contact(s) are in',
+            'href': 'http://' + request.host + '/1/cliques?limit=10'
+        },
+        {
+            'api': '/1/observers/',
+            'description': 'List of contacts that observe conversations between contacts',
+            'href': 'http://' + request.host + '/1/observers?limit=10'
         }
+
     ]
     return jsonify( { 'apis' : apis_v1 } )
 

@@ -30,6 +30,11 @@ section.columnContainer {
 				width: 150px;
 			}
 
+			select.wide {
+				margin-left:3px;
+				width: 169px;
+			}
+
 			select.big {
 				display: block;
 				border: none;
@@ -66,6 +71,7 @@ section.columnContainer {
 			input {
 				margin-bottom: 8px;
 			}
+
 
 			input[type="text"] {
 				margin-left:3px;

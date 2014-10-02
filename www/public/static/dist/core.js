@@ -2452,6 +2452,10 @@ App.Column = ( function($,document,window, U) {
 					$( this.colName + ' .additionalOptions').empty();
 				}
 
+			} else if( val === 'cliques' ) {
+				$( this.colName + ' .additionalOptions').empty();
+			} else if( val === 'observers' ) {
+				$( this.colName + ' .additionalOptions').empty();
 			}
 
 			//$( this.colName + ' .searchOptions a').on('click',$.proxy( this.searchColumn, this ) );
@@ -2506,8 +2510,6 @@ App.Column = ( function($,document,window, U) {
 					delete params.keyword;
 				}
 
-				console.log('KEYWORD: ',keyword);
-
 			} else if( this.action == 'dates' ) {
 
 				if( !opParam[1] ) {
@@ -2535,6 +2537,10 @@ App.Column = ( function($,document,window, U) {
 					params.end = this.params.end;
 					params.count = opParam[1];
 				}
+
+			} else if( this.action == 'observers' ) {
+
+			} else if( this.action == 'cliques' ) {
 
 			}
 
@@ -2599,6 +2605,10 @@ App.Column = ( function($,document,window, U) {
 				rows = data.emails.email;
 			} else if( this.action == 'emails/meta' ) {
 				rows = data.emails.email;
+			} else if( this.action == 'cliques' ) {
+				rows = data;
+			} else if( this.action == 'observers' ) {
+				rows = data;
 			} else {
 				return;
 			}
@@ -2689,10 +2699,10 @@ App.Column = ( function($,document,window, U) {
 			},this));
 
 
-			if( rows.length < 20 ) {
-				$( this.colName + ' .showMore').hide();
-			} else {
+			if( rows.length == 20 ) {
 				$( this.colName + ' .showMore' ).fadeIn();
+			} else {
+				$( this.colName + ' .showMore' ).hide();
 			}
 
 
@@ -2764,7 +2774,14 @@ App.Column = ( function($,document,window, U) {
 				new_params.id = key;
 				delete new_params.limit;
 				//delete new_params.from;
+
+			} else if( this.action == 'observers' ) {
+
+			} else if( this.action == 'cliques' ) {
+
 			}
+
+
 
 			console.log(this.index,'P-A:',new_params,action);
 
@@ -2801,8 +2818,6 @@ App.Column = ( function($,document,window, U) {
 			this.action = action;
 			this.params = $.extend( {}, params );
 
-console.log(action);
-
 			if( !this.params.page ) {
 				this.clearData();
 			}
@@ -2816,7 +2831,7 @@ console.log(action);
 
 		},
 
-		updateParams: function(params) {
+	/*	updateParams: function(params) {
 
 			//merge the params
 			this.params = $.extend( this.params, params );
@@ -2824,23 +2839,12 @@ console.log(action);
 			this.clearData();
 			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
 
-		},
+		},*/
 
 		clearData: function() {
 
 			$( this.colName + ' .resultContainer').remove();
 			$( this.colName + ' .emailContainer').remove();
-
-		},
-
-		handleScroll: function(e) {
-		},
-
-
-		handleResize: function(e) {
-		},
-
-		handleMediaQueryChange: function(e,width) {
 
 		},
 
@@ -3017,14 +3021,6 @@ App.ColumnController = ( function($,document,window, U) {
 
 		},
 
-		updateDates: function(start,end) {
-
-			for(var i = 0; i < this.columns.length; i++ ) {
-				this.columns[i].updateParams({'start':start,'end':end});
-			}
-
-		},
-
 		removeColumns: function(rootIndex) {
 
 			if( this.columns.length > rootIndex ) {
@@ -3042,11 +3038,6 @@ App.ColumnController = ( function($,document,window, U) {
 
 		},
 
-		closingColumn: function(e,index) {
-			//console.log('CLOSE COLUMN: ',index);
-			this.removeColumns(index);
-		},
-
 		removeColumn: function(index,delay) {
 
 			$(this.columns[index].element).delay(delay).fadeOut( 300, $.proxy(function(){
@@ -3054,6 +3045,10 @@ App.ColumnController = ( function($,document,window, U) {
 				this.columns.splice(index,1);
 			},this));
 
+		},
+
+		closingColumn: function(e,index) {
+			this.removeColumns(index);
 		},
 
 		adjustColumnHeight: function(e) {
@@ -3083,21 +3078,13 @@ App.ColumnController = ( function($,document,window, U) {
 			$('.column').css('height',h);
 		},
 
-		handleScroll: function(e) {
-		},
-
-
 		handleResize: function(e) {
 			this.adjustColumnHeight();
 		},
 
-		handleMediaQueryChange: function(e,width) {
-
-		},
-
 		destroy: function() {
 			//do any clean up when destroying the section
-			//delete this.homePhotos;
+			
 		}
 
 	};
@@ -3484,21 +3471,6 @@ App.ActionTree = ( function($,document,window, U) {
 		'root' : {
 			'contacts' : {
 				'contacts-from': {
-/*					'contacts-to': {
-						'dates-to': {
-							'dates-day': {
-								'emails-list': {
-									'emails/meta' : false
-								},
-							},
-							'emails-list': {
-								'emails/meta' : false
-							},
-						},
-						'emails-list': {
-							'emails/meta' : false
-						},
-					},*/
 					'dates-to': {
 						'dates-day': {
 							'emails-list': {
@@ -3512,6 +3484,8 @@ App.ActionTree = ( function($,document,window, U) {
 					'emails-list': {
 						'emails/meta' : false
 					},
+					'cliques' : false,
+					'observers' : false
 				},
 				'dates': {
 					'dates-day': {
@@ -3528,6 +3502,8 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
+						'cliques' : false,
+						'observers' : false
 					},
 					'emails-list': {
 						'emails/meta' : false
@@ -3535,7 +3511,8 @@ App.ActionTree = ( function($,document,window, U) {
 				},
 				'emails-list': {
 					'emails/meta' : false
-				}
+				},
+				'cliques': false
 			},
 			'dates': {
 				'contacts' : {
@@ -3548,15 +3525,25 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
+						'cliques' : false,
+						'observers' : false
 					},
 					'dates-day': {
+						'contacts-from': {
+							'emails-list': {
+								'emails/meta' : false
+							},
+							'cliques' : false,
+							'observers' : false
+						},
 						'emails-list': {
 							'emails/meta' : false
 						},
 					},
 					'emails-list': {
 						'emails/meta' : false
-					}
+					},
+					'cliques': false
 				},
 				'dates-day': {
 					'contacts' : {
@@ -3564,10 +3551,13 @@ App.ActionTree = ( function($,document,window, U) {
 							'emails-list': {
 								'emails/meta' : false
 							},
+							'cliques' : false,
+							'observers' : false
 						},
 						'emails-list': {
 							'emails/meta' : false
-						}
+						},
+						'cliques' : false
 					},
 					'emails-list': {
 						'emails/meta' : false

@@ -6,21 +6,6 @@ App.ActionTree = ( function($,document,window, U) {
 		'root' : {
 			'contacts' : {
 				'contacts-from': {
-/*					'contacts-to': {
-						'dates-to': {
-							'dates-day': {
-								'emails-list': {
-									'emails/meta' : false
-								},
-							},
-							'emails-list': {
-								'emails/meta' : false
-							},
-						},
-						'emails-list': {
-							'emails/meta' : false
-						},
-					},*/
 					'dates-to': {
 						'dates-day': {
 							'emails-list': {
@@ -34,6 +19,8 @@ App.ActionTree = ( function($,document,window, U) {
 					'emails-list': {
 						'emails/meta' : false
 					},
+					'cliques' : false,
+					'observers' : false
 				},
 				'dates': {
 					'dates-day': {
@@ -50,6 +37,8 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
+						'cliques' : false,
+						'observers' : false
 					},
 					'emails-list': {
 						'emails/meta' : false
@@ -57,7 +46,8 @@ App.ActionTree = ( function($,document,window, U) {
 				},
 				'emails-list': {
 					'emails/meta' : false
-				}
+				},
+				'cliques': false
 			},
 			'dates': {
 				'contacts' : {
@@ -70,15 +60,25 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
+						'cliques' : false,
+						'observers' : false
 					},
 					'dates-day': {
+						'contacts-from': {
+							'emails-list': {
+								'emails/meta' : false
+							},
+							'cliques' : false,
+							'observers' : false
+						},
 						'emails-list': {
 							'emails/meta' : false
 						},
 					},
 					'emails-list': {
 						'emails/meta' : false
-					}
+					},
+					'cliques': false
 				},
 				'dates-day': {
 					'contacts' : {
@@ -86,10 +86,13 @@ App.ActionTree = ( function($,document,window, U) {
 							'emails-list': {
 								'emails/meta' : false
 							},
+							'cliques' : false,
+							'observers' : false
 						},
 						'emails-list': {
 							'emails/meta' : false
-						}
+						},
+						'cliques' : false
 					},
 					'emails-list': {
 						'emails/meta' : false
