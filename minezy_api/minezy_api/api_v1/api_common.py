@@ -29,6 +29,7 @@ def query_params(request):
     query_params['year'] = request.args.get('year',default=0,type=int)
     query_params['month'] = request.args.get('month',default=0,type=int)
     query_params['day'] = request.args.get('day',default=0,type=int)
+    query_params['id'] = request.args.get('id',default='',type=str)
 
     query_params['page'] = request.args.get('page',default=1,type=int)
     if query_params['page'] < 1:
