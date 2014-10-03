@@ -16,44 +16,37 @@ def query_dates(params, countResults=False):
             bMonth = True
             bDay = True
     
+    if params['rel'] == 'SENDER':
+        relL = 'SENT'
+        relR = 'TO|CC|BCC'
+    elif params['rel'] == 'RECEIVER':
+        relL = 'TO|CC|BCC'
+        relR = 'SENT'
+    else:
+        relL = 'SENT|TO|CC|BCC'
+        relR = 'SENT|TO|CC|BCC'
+            
     rels = ''
     #if len(params['count']):
         #rels = ':' + '|'.join(params['count'])
     
-    if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
-        if len(params['from']):
-            query_str = "MATCH (f:Contact)-[]-(e:Email)"
-        else:
-            query_str = "MATCH (e:Email)"
-            
-        if len(params['to']) or len(params['cc']) or len(params['bcc']):
-            query_str += "-[r2:TO|CC]-(t:Contact)"
-            
-        query_str += " WHERE "
+    if len(params['left']) or len(params['right']):
         
-        if len(params['from']):
-            query_str += "f.email IN {from} "
+        if len(params['left']) and len(params['right']):
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
+            query_str += "WHERE m.email IN {left} AND n.email IN {right} "
+            query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
             
-        if len(params['to']) or len(params['cc']) or len(params['bcc']):
-            query_str += "AND ("
+        elif len(params['left']):
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) WHERE m.email IN {left} "
+            query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
             
-            bDid = False
-            if len(params['to']):
-                query_str += "(type(r2)='TO' AND t.email in {to})"
-                bDid = True
-            if len(params['cc']):
-                if bDid:
-                    query_str += " OR "
-                query_str += "(type(r2)='CC' AND t.email in {cc})"
-                bDid = True
-            if len(params['bcc']):
-                if bDid:
-                    query_str += " OR "
-                query_str += "(type(r2)='BCC' AND t.email in {bcc})"
-                bDid = True
-            
-            query_str += ") "
+        else:
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) WHERE m.email IN {right} "
+            query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
+
         query_str += "AND has(e.timestamp) "
+        
     else:
         query_str = "MATCH (e:Email) WHERE has(e.timestamp) "
     
@@ -76,7 +69,7 @@ def query_dates(params, countResults=False):
     if bDay:
         query_str += "e.day AS day, "
             
-    query_str += "count(e) AS count RETURN "
+    query_str += "count(distinct(e)) AS count RETURN "
 
     if bYear:
         query_str += "year,"

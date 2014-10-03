@@ -6,20 +6,40 @@ def query_emails(params, countResults=False):
 
     t0 = time.time()
     
-    if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
-        if len(params['from']):
-            query_str = "MATCH (n:Contact)-[]-(e:Email) WHERE n.email IN {from} AND has(e.subject) "
-        else:
-            query_str = "MATCH (e:Email) WHERE has(e.subject) "
+    if params['rel'] == 'SENDER':
+        relL = 'SENT'
+        relR = 'TO|CC|BCC'
+    elif params['rel'] == 'RECEIVER':
+        relL = 'TO|CC|BCC'
+        relR = 'SENT'
+    else:
+        relL = 'SENT|TO|CC|BCC'
+        relR = 'SENT|TO|CC|BCC'
+    
+    if len(params['left']) or len(params['right']):
+        
+        if len(params['left']) and len(params['right']):
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
+            query_str += "WHERE m.email IN {left} AND n.email IN {right} "
+            query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
             
-        for to in params['to']:
-            query_str += "AND (e)-[]-(:Contact {email:'"+to+"'}) "
-        for cc in params['cc']:
-            query_str += "AND (e)-[:CC]->(:Contact {email:'"+cc+"'}) "
-        for bcc in params['bcc']:
-            query_str += "AND (e)-[:BCC]->(:Contact {email:'"+bcc+"'}) "
+        elif len(params['left']):
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) WHERE m.email IN {left} "
+            
+        else:
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) WHERE m.email IN {right} "
+
+        query_str += "AND has(e.subject) "
+        
     else:
         query_str = "MATCH (e:Email) WHERE has(e.subject) "
+        
+    if params['year']:
+        query_str += "AND e.year={year} "
+    if params['month']:
+        query_str += "AND e.month={month} "
+    if params['day']:
+        query_str += "AND e.day={day} "
         
     if params['start'] or params['end'] or params['keyword']:
         query_str += "AND "
@@ -86,7 +106,7 @@ def query_emails_meta(params):
 
     t0 = time.time()
     
-    query_str = "MATCH (e:Email)-[r]-(n) WHERE e.id={id} RETURN e,type(r),collect(n)"
+    query_str = "MATCH (e:Email)-[r]-(n) WHERE e.id={id} WITH e,r,n ORDER BY n.name RETURN e,type(r),collect(n)"
     
     print query_str
     
@@ -107,6 +127,7 @@ def query_emails_meta(params):
             email = {
                      'id': e['id'],
                      'subject': e['subject'],
+                     'link': e['link'],
                      'date':  {
                                "date":  e['date'],
                                "year":  e['year'],

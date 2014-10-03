@@ -1,7 +1,7 @@
 import sys
 from py2neo import cypher
 
-global g_session
+g_session = None
 
 def connect():
 	global g_session

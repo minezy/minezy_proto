@@ -17,20 +17,33 @@ def support_jsonp(f):
 def query_params(request):
     query_params = {}
 
-    query_params['index'] = request.args.get('index',default=0,type=int)
-    query_params['limit'] = request.args.get('limit',default=0,type=int)
     query_params['start'] = int(request.args.get('start',default=0,type=float))
     query_params['end'] = int(request.args.get('end',default=0,type=float))
+    query_params['year'] = request.args.get('year',default=0,type=int)
+    query_params['month'] = request.args.get('month',default=0,type=int)
+    query_params['day'] = request.args.get('day',default=0,type=int)
+
     query_params['keyword'] = request.args.get('keyword',default='',type=str)
+    query_params['id'] = request.args.get('id',default='',type=str)
+    
     query_params['from'] = request.args.getlist('from')
     query_params['to'] = request.args.getlist('to')
     query_params['cc'] = request.args.getlist('cc')
     query_params['bcc'] = request.args.getlist('bcc')
-    query_params['year'] = request.args.get('year',default=0,type=int)
-    query_params['month'] = request.args.get('month',default=0,type=int)
-    query_params['day'] = request.args.get('day',default=0,type=int)
-    query_params['id'] = request.args.get('id',default='',type=str)
 
+    query_params['left'] = request.args.getlist('left')
+    if len(query_params['left']) == 0:
+        query_params['left'] = query_params['from']
+    query_params['right'] = request.args.getlist('right')
+    if len(query_params['right']) == 0:
+        query_params['right'] = query_params['to']
+        
+    query_params['rel'] = request.args.get('rel',default='',type=str).upper()
+    if not (query_params['rel'] == 'SENDER' or query_params['rel'] == 'RECEIVER'):
+        query_params['rel'] = 'ANY' 
+
+    query_params['index'] = request.args.get('index',default=0,type=int)
+    query_params['limit'] = request.args.get('limit',default=0,type=int)
     query_params['page'] = request.args.get('page',default=1,type=int)
     if query_params['page'] < 1:
         query_params['page'] = 1

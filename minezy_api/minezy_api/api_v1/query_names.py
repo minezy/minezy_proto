@@ -8,7 +8,7 @@ def query_names(params, countResults=False):
     
     query_str = "MATCH (n:Name)-[r:NAME]-(c:Contact) "
     
-    if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']):
+    if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']) or len(params['left']) or len(params['right']):
         query_str += "WHERE " 
         bDid = False
         if len(params['from']):
@@ -28,6 +28,16 @@ def query_names(params, countResults=False):
                 query_str += "OR "
                 bDid = True
             query_str += "c.email IN {bcc} "
+        if len(params['left']):
+            if not bDid:
+                query_str += "OR "
+                bDid = True
+            query_str += "c.email IN {left} "
+        if len(params['right']):
+            if not bDid:
+                query_str += "OR "
+                bDid = True
+            query_str += "c.email IN {right} "
         
     query_str += "WITH n,count(r) as count,collect(c.email) as contacts "            
     query_str += "RETURN n.name as name,count,contacts "

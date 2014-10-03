@@ -6,33 +6,48 @@ def query_contacts(params, countResults=False):
 
     t0 = time.time()
 
-    rels = ''
-    if len(params['count']):
-        rels = ':' + '|'.join(params['count'])
+    if params['rel'] == 'SENDER':
+        relL = 'SENT'
+        relR = 'TO|CC|BCC'
+    elif params['rel'] == 'RECEIVER':
+        relL = 'TO|CC|BCC'
+        relR = 'SENT'
+    else:
+        relL = 'SENT|TO|CC|BCC'
+        relR = 'SENT|TO|CC|BCC'
 
     bWhere = True
-    bManualCount = True
-    if len(params['from']):
-        query_str = "MATCH (m:Contact)-[:SENT]-(e)-[r"+rels+"]-(n:Contact) WHERE ("
-        for i, contact in enumerate(params['from']):
-            if i > 0:
-                query_str += " OR "
-            query_str += "m.email='"+contact+"'"
-        query_str += ") "
-    elif len(params['to']):
-        query_str = "MATCH (n:Contact)-[r"+rels+"]-(e)-["+rels+"]-(m:Contact) WHERE ("
-        for i, contact in enumerate(params['to']):
-            if i > 0:
-                query_str += " OR "
-            query_str += "m.email='"+contact+"'"
-        query_str += ") "
-
+    bWith = False
+    query_str = ''
+    if len(params['left']) or len(params['right']):
+        
+        if len(params['left']) and len(params['right']):
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
+            query_str += "WHERE m.email IN {left} AND n.email IN {right} "
+            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            query_str += "WITH e MATCH (e)--(n:Contact) "
+            
+        elif len(params['left']):
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
+            query_str += "WHERE m.email IN {left} "
+            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            
+        else:
+            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
+            query_str += "WHERE m.email IN {right} "
+            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            
     elif params['start'] or params['end']:
+        rels = ''
+        if len(params['count']):
+            rels = ':' + '|'.join(params['count'])
+            
         bWhere = False
         query_str = "MATCH (n:Contact)-[r"+rels+"]-(e:Email) "
+        
     else:
         bWhere = False
-        bManualCount = False
+        bWith = True
         query_str = "MATCH (n:Contact) "
         if len(params['count']):
             for i,cnt in enumerate(params['count']):
@@ -71,8 +86,9 @@ def query_contacts(params, countResults=False):
             query_str += "AND "
         query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
 
-    if bManualCount:
-        query_str += "WITH n,count(distinct(e)) AS count "
+    if not bWith:
+        query_str += "WITH n,count(distinct(e)) as count "
+        
     query_str += "RETURN n.name,n.email,count ORDER BY count " + params['order'] + ", n.name ASC"
 
     if params['index'] or params['page'] > 1:
