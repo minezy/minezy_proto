@@ -117,7 +117,7 @@ App.Column = ( function($,document,window, U) {
 				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 
 				if( this.params.rel ) {
-					$( this.colName + ' .additionalOptions .relationship').hide();
+					$( this.colName + ' .additionalOptions .relationship').remove();
 				}
 
 			} else if( val === 'emails' ) {
