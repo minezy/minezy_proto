@@ -8,9 +8,9 @@ def query_contacts(params, countResults=False):
 
     if params['rel'] == 'SENDER':
         relL = 'SENT'
-        relR = 'TO|CC|BCC'
+        relR = 'TO'
     elif params['rel'] == 'RECEIVER':
-        relL = 'TO|CC|BCC'
+        relL = 'TO'
         relR = 'SENT'
     else:
         relL = 'SENT|TO|CC|BCC'

@@ -46,7 +46,7 @@
 		<header>
 			<h1>Minezy</h1>
 
-			<div class="account"><a href="javascript:;" class="button"><i class="fa fa-cog"></i>matt@wearegrand.com</a></div>
+			<div class="account"><a href="javascript:;" class="button"><i class="fa fa-cog"></i>Settings</a></div>
 			<div class="accountMenu">
 				<ul>
 					<li>change account</li>
@@ -55,90 +55,39 @@
 
 		</header>
 
-		<nav class="dates">
-			<div class="dateSelect">
-				<label>Start Date</label>
-				<select name="start_date_year" id="start_date_year" class="year">
-					<option value="">--</option>
-					<option value="2000">2000</option>
-					<option value="2001">2001</option>
-					<option value="2002">2002</option>
-					<option value="2003">2003</option>
-					<option value="2004">2004</option>
-					<option value="2005">2005</option>
-					<option value="2006">2006</option>
-					<option value="2007">2007</option>
-					<option value="2008">2008</option>
-					<option value="2009">2009</option>
-					<option value="2010">2010</option>
-					<option value="2011">2011</option>
-					<option value="2012">2012</option>
-					<option value="2013">2013</option>
-					<option value="2014">2014</option>
-				</select>
-				<select name="start_date_month" id="start_date_month" class="month">
-					<option value="">--</option>
-					<option value="1">January</option>
-					<option value="2">February</option>
-					<option value="3">March</option>
-					<option value="4">April</option>
-					<option value="5">May</option>
-					<option value="6">June</option>
-					<option value="7">July</option>
-					<option value="8">August</option>
-					<option value="9">September</option>
-					<option value="10">October</option>
-					<option value="11">November</option>
-					<option value="12">December</option>
-				</select>
+		<div class="siteOverlay"></div>
+
+		<section class="admin hide">
+
+			<h2>Settings</h2>
+			<a class="closeButton"><i class="fa fa-times"></i></a>
+
+			<div class="settingsContainer">
+
+				<div class="dbSelect field">
+					<label>Select Database:</label>
+					<select class="databases">
+						<option value="db1">Matt@WeAregrand.com</option>
+						<option value="db2">Enron</option>
+					</select>
+				</div>
+
+				<div class="dbSelect field">
+					<label>Load New Database (PST File):</label>
+					<input type="file" name="selectFile">
+				</div>
+
 			</div>
-			<div class="dateSelect">
-				<label>End Date</label>
-				<select name="end_date_year" id="end_date_year" class="year">
-					<option value="2000">2000</option>
-					<option value="2001">2001</option>
-					<option value="2002">2002</option>
-					<option value="2003">2003</option>
-					<option value="2004">2004</option>
-					<option value="2005">2005</option>
-					<option value="2006">2006</option>
-					<option value="2007">2007</option>
-					<option value="2008">2008</option>
-					<option value="2009">2009</option>
-					<option value="2010">2010</option>
-					<option value="2011">2011</option>
-					<option value="2012">2012</option>
-					<option value="2013">2013</option>
-					<option value="2014">2014</option>
-				</select>
-				<select name="end_date_month" id="end_date_month" class="month">
-					<option value="1">January</option>
-					<option value="2">February</option>
-					<option value="3">March</option>
-					<option value="4">April</option>
-					<option value="5">May</option>
-					<option value="6">June</option>
-					<option value="7">July</option>
-					<option value="8">August</option>
-					<option value="9">September</option>
-					<option value="10">October</option>
-					<option value="11">November</option>
-					<option value="12">December</option>
-				</select>
-			</div>
-			<div class="dateRefresh">
-				<a href="javascript:;" id="refreshDates" class="button"><i class="fa fa-refresh"></i></a>
+
+			<div class="buttons">
+				<a href="javascript:;" class="button ok"><i class="fa fa-check"></i></i>Ok</a>
+				<a href="javascript:;" class="button cancel"><i class="fa fa-times"></i>Cancel</a>
 			</div>
 
 
-			<div class="account"><a href="javascript:;" class="button"><i class="fa fa-cog"></i>matt@wearegrand.com</a></div>
-			<div class="accountMenu">
-				<ul>
-					<li>change account</li>
-				</ul>
-			</div>
+		</section>
 
-		</nav>
+
 
 		<section class="columnContainer">
 

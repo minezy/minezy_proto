@@ -3324,9 +3324,36 @@ App.MinezyController = ( function($,document,window, U) {
 
 		this.API.getData('dates', {'limit':1,'order':'asc','count':'month'}, $.proxy(this.getMinDate,this) );
 
+		$('.account .button').on('click',$.proxy(this.showSettings,this) );
+
+
 	}
 
 	MinezyController.prototype = {
+
+		showSettings: function(e) {
+
+			$('.siteOverlay').fadeIn(500);
+
+			setTimeout( $.proxy(function(){
+				console.log('here');
+				$('section.admin').removeClass('hide');
+			},this), 100);
+
+			$('section.admin .closeButton,section.admin .button.cancel').on('click',$.proxy(this.hideSettings,this) );
+		},
+
+		hideSettings: function() {
+
+			$('section.admin .closeButton,section.admin .button.cancel').off('click');
+
+			$('section.admin').addClass('hide');
+
+			setTimeout( $.proxy(function(){
+				$('.siteOverlay').fadeOut(500);
+			},this),300);
+
+		},
 
 		getMinDate: function(data) {
 
