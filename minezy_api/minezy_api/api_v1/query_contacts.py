@@ -48,9 +48,11 @@ def query_contacts(params, countResults=False):
     else:
         bWhere = False
         bWith = True
+        
+        count = relL.split('|')
         query_str = "MATCH (n:Contact) "
         if len(params['count']):
-            for i,cnt in enumerate(params['count']):
+            for i,cnt in enumerate(count):
                 if i == 0:
                     query_str += "WITH n,"
                 else:
