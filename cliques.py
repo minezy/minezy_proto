@@ -15,7 +15,7 @@ def find_cliques(rootAddr):
     
     cliques = []
     
-    for record in query.stream():
+    for record in results[0]:
         frm = int(record[0])
         tset = set(record[1])
             
@@ -34,14 +34,16 @@ def find_cliques(rootAddr):
 
 
 def find_cliques2(rootAddr):
-    query = neo4j.CypherQuery(neo4j_conn.g_graph,
-        "MATCH (n:Contact)-->(e:Email)-->(m:Contact) "
-        "RETURN id(n),id(e),collect(id(m)) "
-        )
+    query_str = "MATCH (n:Contact)-->(e:Email)-->(m:Contact) "
+    query_str += "RETURN id(n),id(e),collect(id(m)) "
+    
+    tx = neo4j_conn.g_session.create_transaction()
+    tx.append(query_str)
+    results = tx.commit()
     
     cliques = []
     
-    for record in query.stream():
+    for record in results[0]:
         frm = int(record[0])
         tset = set(record[2])
             
@@ -72,15 +74,17 @@ def find_cliques2(rootAddr):
     return cliques
     
 def find_cliques3(rootAddr):
-    query = neo4j.CypherQuery(neo4j_conn.g_graph,
-        "MATCH (n:Contact)-->(e:Email)-->(m:Contact) "
-        "WHERE m-->()-->n "
-        "RETURN id(n),id(e),collect(id(m)) "
-        )
+    query_str = "MATCH (n:Contact)-->(e:Email)-->(m:Contact) "
+    query_str += "WHERE m-->()-->n "
+    query_str += "RETURN id(n),id(e),collect(id(m)) "
+    
+    tx = neo4j_conn.g_session.create_transaction()
+    tx.append(query_str)
+    results = tx.commit()
     
     cliques = []
     
-    for record in query.stream():
+    for record in results[0]:
         frm = int(record[0])
         tset = set(record[2])
             
@@ -117,6 +121,7 @@ if __name__ == '__main__':
         exit(1)
 
     neo4j_conn.connect()
+    tx = neo4j_conn.g_session.create_transaction()
 
     print "Finding all cliques..."
     cliques = find_cliques3(sys.argv[1])
@@ -124,8 +129,12 @@ if __name__ == '__main__':
     for i, cset in enumerate(cliques):
         print "Clique (" + str(i+1) + '/' + str(len(cliques)) + "): " + str(len(cset))
         for c in cset:
-            n = neo4j_conn.g_graph.node(c)
-            print n['email'] + '\t\t' + str(n['name'])
+            tx.append("MATCH n WHERE id(n)={id} RETURN n", { 'id':c })
+            results = tx.execute()
+            
+            for record in results[0]:
+                n = record[0]
+                print n['email'] + '\t\t' + str(n['name'])
         print
     print "All Done"
     
