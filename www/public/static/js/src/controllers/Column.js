@@ -84,6 +84,11 @@ App.Column = ( function($,document,window, U) {
 				if(i===0){
 					selected = ' selected';
 				}
+
+				if(this.columnActions[i] == 'contacts-right') {
+					opParam[0] = 'Observers';
+				}
+
 				var option = '<option value="'+this.columnActions[i]+'" '+selected+'>'+opParam[0]+'</option>';
 				$( this.colName + ' .searchFilter').append(option);
 			}

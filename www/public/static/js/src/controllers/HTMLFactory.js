@@ -83,6 +83,11 @@ App.HTMLFactory = ( function($,document,window, U) {
 			newEmail.find('.fromContainer .name').text(data.contacts.from[0].name);
 			newEmail.find('.fromContainer .email').text(data.contacts.from[0].email);
 
+			if( data.contacts.from[0].email == params.left || data.contacts.from[0].email == params.right ) {
+				newEmail.find('.fromContainer .contact').eq(0).addClass('found');
+			}
+
+
 			if( data.contacts.to ) {
 				for(var i=0;i<data.contacts.to.length;i++ ) {
 					newEmail.children('.toContainer').append(this.generateContact(data.contacts.to[i]));
@@ -95,6 +100,7 @@ App.HTMLFactory = ( function($,document,window, U) {
 			if( data.contacts.cc ) {
 				for(var k=0;k<data.contacts.cc.length;k++ ) {
 					newEmail.children('.ccContainer').append(this.generateContact(data.contacts.cc[k]));
+					console.log(data.contacts.cc[k].email, params.observer);
 					if( data.contacts.cc[k].email == params.left || data.contacts.cc[k].email == params.right || data.contacts.cc[k].email == params.observer  ) {
 						newEmail.find('.ccContainer .contact').eq(k).addClass('found');
 					}
@@ -107,7 +113,7 @@ App.HTMLFactory = ( function($,document,window, U) {
 				for(var j=0;j<data.contacts.bcc.length;j++ ) {
 					newEmail.children('.bccContainer').append(this.generateContact(data.contacts.bcc[j]));
 
-					if( data.contacts.bcc[j].email == params.left || data.contacts.bcc[j].email == params.right || data.contacts.cc[k].email == params.observer ) {
+					if( data.contacts.bcc[j].email == params.left || data.contacts.bcc[j].email == params.right || data.contacts.bcc[j].email == params.observer ) {
 						newEmail.find('.bccContainer .contact').eq(j).addClass('found');
 					}
 
