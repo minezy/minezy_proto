@@ -2473,7 +2473,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			var params = $.extend({},this.params);
-console.log(params);
+
 			this.nodeName = $( this.colName + ' .searchFilter').val();
 			var opParam = this.nodeName.split('-');
 
@@ -2770,9 +2770,13 @@ console.log(params);
 					new_params.year = sd.getFullYear();
 					new_params.month = sd.getMonth()+1;
 				} else if( this.action == 'contacts' ) {
-					if(this.params.left)
+					if(this.params.left && this.params.right )
+						new_params.observer = key;
+					else if( this.params.left ) {
 						new_params.right = key;
-					new_params.count = 'to';
+					}
+
+					//new_params.count = 'to';
 				}
 
 				new_params.count = 'month';
@@ -3522,8 +3526,22 @@ App.ActionTree = ( function($,document,window, U) {
 					'emails-list': {
 						'emails/meta' : false
 					},
+					'contacts-right' : {
+						'dates-to': {
+							'dates-day': {
+								'emails-list': {
+									'emails/meta' : false
+								},
+							},
+							'emails-list': {
+								'emails/meta' : false
+							},
+						},
+						'emails-list': {
+							'emails/meta' : false
+						}
+					},
 					'cliques' : false,
-					'contacts-right' : false
 				},
 				'dates': {
 					'dates-day': {
