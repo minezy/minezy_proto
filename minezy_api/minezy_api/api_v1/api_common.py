@@ -37,6 +37,7 @@ def query_params(request):
     query_params['right'] = request.args.getlist('right')
     if len(query_params['right']) == 0:
         query_params['right'] = query_params['to']
+    query_params['observer'] = request.args.getlist('observer')
         
     query_params['rel'] = request.args.get('rel',default='',type=str).upper()
     if not (query_params['rel'] == 'SENDER' or query_params['rel'] == 'RECEIVER'):

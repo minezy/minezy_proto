@@ -37,6 +37,9 @@ def query_dates(params, countResults=False):
             query_str += "WHERE m.email IN {left} AND n.email IN {right} "
             query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
             
+            if len(params['observer']):
+                query_str += "WITH e MATCH (e)--(n:Contact) WHERE n.email IN {observer} "
+            
         elif len(params['left']):
             query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) WHERE m.email IN {left} "
             query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
