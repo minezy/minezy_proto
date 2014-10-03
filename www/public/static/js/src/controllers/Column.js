@@ -27,7 +27,7 @@ App.Column = ( function($,document,window, U) {
 		this.scrollPos= 0;
 
 		this.setupColumn();
-		this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
+		this.API.getData(this.action, this.params, $.proxy(this.receivedData,this) );
 
 
 	}
@@ -116,9 +116,8 @@ App.Column = ( function($,document,window, U) {
 				$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
 				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 
-				if( opParam[1] ) {
-					$( this.colName + ' .additionalOptions .field-sent').attr('checked', false);
-					$( this.colName + ' .additionalOptions .label-sent').css('display','none');
+				if( this.params.rel ) {
+					$( this.colName + ' .additionalOptions .relationship').hide();
 				}
 
 			} else if( val === 'emails' ) {
@@ -288,7 +287,7 @@ App.Column = ( function($,document,window, U) {
 			}
 		},
 
-		recievedData: function(data) {
+		receivedData: function(data) {
 
 			var resultContainer = $(this.colName + ' .results');
 			var rows = {};
@@ -536,7 +535,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 
-			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
+			this.API.getData(this.action, this.params, $.proxy(this.receivedData,this) );
 
 		},
 
@@ -546,7 +545,7 @@ App.Column = ( function($,document,window, U) {
 			this.params = $.extend( this.params, params );
 
 			this.clearData();
-			this.API.getData(this.action, this.params, $.proxy(this.recievedData,this) );
+			this.API.getData(this.action, this.params, $.proxy(this.receivedData,this) );
 
 		},*/
 
