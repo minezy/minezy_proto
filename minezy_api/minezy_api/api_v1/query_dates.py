@@ -55,10 +55,10 @@ def query_dates(params, countResults=False):
     
     if params['year']:
         query_str += "AND e.year={year} "
-    if params['month']:
-        query_str += "AND e.month={month} "
-    if params['day']:
-        query_str += "AND e.day={day} "
+        if params['month']:
+            query_str += "AND e.month={month} "
+            if params['day']:
+                query_str += "AND e.day={day} "
 
     if params['start']:
         query_str += "AND e.timestamp >= {start} "

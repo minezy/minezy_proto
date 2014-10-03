@@ -46,7 +46,6 @@ def query_contacts(params, countResults=False):
         query_str = "MATCH (n:Contact)-[r"+rels+"]-(e:Email) "
         
     else:
-        bWhere = False
         bWith = True
         
         count = relL.split('|')
@@ -66,6 +65,19 @@ def query_contacts(params, countResults=False):
                 query_str += "n.bcc"
         query_str += " AS count WHERE count > 0 "
 
+    if params['year']:
+        if not bWhere:
+            query_str += "WHERE "
+            bWhere = True
+        else:
+            query_str += "AND "
+            
+        query_str += "e.year={year} "
+        if params['month']:
+            query_str += "AND e.month={month} "
+            if params['day']:
+                query_str += "AND e.day={day} "
+                
     if params['start'] or params['end']:
         if not bWhere:
             query_str += "WHERE "
