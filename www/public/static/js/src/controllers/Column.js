@@ -185,9 +185,15 @@ App.Column = ( function($,document,window, U) {
 				}
 
 				if( opParam[1] ) {
-					params.count = 'to';
+					//params.count = 'to';
 				} else {
-					params.count = 'to|cc|bcc|sent';
+					//params.count = 'to|cc|bcc|sent';
+				}
+
+				if( !params.rel ) {
+					params.rel = $( this.colName + ' .additionalOptions select.relationship' ).val();
+				} else if ( params.rel != $( this.colName + ' .additionalOptions select.relationship' ).val() ) {
+					params.rel = $( this.colName + ' .additionalOptions select.relationship' ).val();
 				}
 
 			} else if( this.action == 'emails' ) {
@@ -415,6 +421,7 @@ App.Column = ( function($,document,window, U) {
 			var actionLock = this.childOptions[0].split('-');
 			var action = '';
 			var lock = '';
+			var relationship = $( this.colName + ' .additionalOptions select.relationship' ).val();
 			action = actionLock[0];
 
 			if( actionLock.length > 1 ) {
@@ -431,10 +438,12 @@ App.Column = ( function($,document,window, U) {
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
-					new_params.count = 'to|cc|bcc|sent';
+					//new_params.count = 'to|cc|bcc|sent';
 				} else {
 					new_params[lock] = key;
 					new_params.count = 'to';
+					if( !new_params.relationship )
+						new_params.rel = relationship;
 				}
 
 
