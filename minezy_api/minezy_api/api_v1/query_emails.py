@@ -57,7 +57,7 @@ def query_emails(params, countResults=False):
             query_str += "AND "
         query_str += "e.subject =~ '(?i).*"+params['keyword']+".*' "
         
-    query_str += "RETURN e ORDER BY e.timestamp " + params['order']
+    query_str += "RETURN distinct(e) ORDER BY e.timestamp " + params['order']
     
     if params['index'] or params['page'] > 1:
         query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
