@@ -2473,7 +2473,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			var params = $.extend({},this.params);
-
+console.log(params);
 			this.nodeName = $( this.colName + ' .searchFilter').val();
 			var opParam = this.nodeName.split('-');
 
@@ -2502,8 +2502,10 @@ App.Column = ( function($,document,window, U) {
 
 				if( !params.rel ) {
 					params.rel = $( this.colName + ' .additionalOptions select.relationship' ).val();
-				} else if ( params.rel != $( this.colName + ' .additionalOptions select.relationship' ).val() ) {
-					params.rel = $( this.colName + ' .additionalOptions select.relationship' ).val();
+				} else if ( $( this.colName + ' .additionalOptions select.relationship' ).val() ) {
+					if( params.rel != $( this.colName + ' .additionalOptions select.relationship' ).val() ) {
+						params.rel = $( this.colName + ' .additionalOptions select.relationship' ).val();
+					}
 				}
 
 			} else if( this.action == 'emails' ) {
@@ -2752,8 +2754,10 @@ App.Column = ( function($,document,window, U) {
 				} else {
 					new_params[lock] = key;
 					new_params.count = 'to';
-					if( !new_params.relationship )
+
+					if( !new_params.rel ) {
 						new_params.rel = relationship;
+					}
 				}
 
 
@@ -3519,7 +3523,7 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails/meta' : false
 					},
 					'cliques' : false,
-					'observers' : false
+					'contacts-right' : false
 				},
 				'dates': {
 					'dates-day': {

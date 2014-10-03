@@ -20,7 +20,7 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails/meta' : false
 					},
 					'cliques' : false,
-					'observers' : false
+					'contacts-right' : false
 				},
 				'dates': {
 					'dates-day': {
