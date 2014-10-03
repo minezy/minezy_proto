@@ -309,7 +309,7 @@ App.Column = ( function($,document,window, U) {
 			if(this.page == 1)
 				$(resultContainer).hide();
 
-			if( rows.length === 0 ) {
+			if( rows.length === 0 && this.page == 1 ) {
 				resultContainer.append( this.HTMLFactory.generateNoResults() );
 			} else {
 
@@ -447,8 +447,8 @@ App.Column = ( function($,document,window, U) {
 					new_params.year = sd.getFullYear();
 					new_params.month = sd.getMonth()+1;
 				} else if( this.action == 'contacts' ) {
-					if(this.params.from)
-						new_params.to = key;
+					if(this.params.left)
+						new_params.right = key;
 					new_params.count = 'to';
 				}
 

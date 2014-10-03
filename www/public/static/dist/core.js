@@ -2620,7 +2620,7 @@ App.Column = ( function($,document,window, U) {
 			if(this.page == 1)
 				$(resultContainer).hide();
 
-			if( rows.length === 0 ) {
+			if( rows.length === 0 && this.page == 1 ) {
 				resultContainer.append( this.HTMLFactory.generateNoResults() );
 			} else {
 
@@ -2758,8 +2758,8 @@ App.Column = ( function($,document,window, U) {
 					new_params.year = sd.getFullYear();
 					new_params.month = sd.getMonth()+1;
 				} else if( this.action == 'contacts' ) {
-					if(this.params.from)
-						new_params.to = key;
+					if(this.params.left)
+						new_params.right = key;
 					new_params.count = 'to';
 				}
 
@@ -3496,7 +3496,7 @@ App.ActionTree = ( function($,document,window, U) {
 	var tree = {
 		'root' : {
 			'contacts' : {
-				'contacts-from': {
+				'contacts-left': {
 					'dates-to': {
 						'dates-day': {
 							'emails-list': {
@@ -3519,7 +3519,7 @@ App.ActionTree = ( function($,document,window, U) {
 							'emails/meta' : false
 						},
 					},
-					'contacts-from': {
+					'contacts-left': {
 						'dates-day': {
 							'emails-list': {
 								'emails/meta' : false
@@ -3542,7 +3542,7 @@ App.ActionTree = ( function($,document,window, U) {
 			},
 			'dates': {
 				'contacts' : {
-					'contacts-from': {
+					'contacts-left': {
 						'dates-day': {
 							'emails-list': {
 								'emails/meta' : false
@@ -3555,7 +3555,7 @@ App.ActionTree = ( function($,document,window, U) {
 						'observers' : false
 					},
 					'dates-day': {
-						'contacts-from': {
+						'contacts-left': {
 							'emails-list': {
 								'emails/meta' : false
 							},
@@ -3573,7 +3573,7 @@ App.ActionTree = ( function($,document,window, U) {
 				},
 				'dates-day': {
 					'contacts' : {
-						'contacts-from': {
+						'contacts-left': {
 							'emails-list': {
 								'emails/meta' : false
 							},
