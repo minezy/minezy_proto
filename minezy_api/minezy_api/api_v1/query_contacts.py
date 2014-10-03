@@ -51,21 +51,20 @@ def query_contacts(params, countResults=False):
         
         count = relL.split('|')
         query_str = "MATCH (n:Contact) "
-        if len(params['count']):
-            for i,cnt in enumerate(count):
-                if i == 0:
-                    query_str += "WITH n,"
-                else:
-                    query_str += "+"
-                if cnt == 'SENT':
-                    query_str += "n.sent"
-                elif cnt == 'TO':
-                    query_str += "n.to"
-                elif cnt == 'CC':
-                    query_str += "n.cc"
-                elif cnt == 'BCC':
-                    query_str += "n.bcc"
-            query_str += " AS count "
+        for i,cnt in enumerate(count):
+            if i == 0:
+                query_str += "WITH n,"
+            else:
+                query_str += "+"
+            if cnt == 'SENT':
+                query_str += "n.sent"
+            elif cnt == 'TO':
+                query_str += "n.to"
+            elif cnt == 'CC':
+                query_str += "n.cc"
+            elif cnt == 'BCC':
+                query_str += "n.bcc"
+        query_str += " AS count WHERE count > 0 "
 
     if params['start'] or params['end']:
         if not bWhere:
