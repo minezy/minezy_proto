@@ -1,5 +1,7 @@
 import time
+from datetime import date, timedelta
 from minezy_api import neo4j_conn
+from query_common import prepare_date_range, prepare_date_clause
 
 
 def query_contacts(params, countResults=False):
@@ -15,6 +17,8 @@ def query_contacts(params, countResults=False):
     else:
         relL = 'SENT|TO|CC|BCC'
         relR = 'SENT|TO|CC|BCC'
+
+    params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
 
     bWhere = True
     bWith = False
@@ -37,13 +41,14 @@ def query_contacts(params, countResults=False):
             query_str += "WHERE m.email IN {right} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
-    elif params['start'] or params['end']:
-        rels = ''
-        if len(params['count']):
-            rels = ':' + '|'.join(params['count'])
+        if len(params['ymd']):
+            query_str += "WITH n,e MATCH "
+            query_str += prepare_date_clause(bYear, bMonth, bDay)
             
-        bWhere = False
-        query_str = "MATCH (n:Contact)-[r"+rels+"]-(e:Email) "
+    elif len(params['ymd']):
+        bWhere = True
+        query_str = "MATCH (n:Contact)-[r:"+relL+"]-(e:Email),"
+        query_str += prepare_date_clause(bYear, bMonth, bDay)
         
     else:
         bWith = True
@@ -64,32 +69,6 @@ def query_contacts(params, countResults=False):
             elif cnt == 'BCC':
                 query_str += "n.bcc"
         query_str += " AS count WHERE count > 0 "
-
-    if params['year']:
-        if not bWhere:
-            query_str += "WHERE "
-            bWhere = True
-        else:
-            query_str += "AND "
-            
-        query_str += "e.year={year} "
-        if params['month']:
-            query_str += "AND e.month={month} "
-            if params['day']:
-                query_str += "AND e.day={day} "
-                
-    if params['start'] or params['end']:
-        if not bWhere:
-            query_str += "WHERE "
-            bWhere = True
-        else:
-            query_str += "AND "
-        if params['start']:
-            query_str += "e.timestamp >= {start} "
-        if params['start'] and params['end']:
-            query_str += "AND "
-        if params['end']:
-            query_str += "e.timestamp <= {end} "
 
     if params['keyword']:
         if not bWhere:
@@ -159,3 +138,4 @@ def _query_count(query_str, params):
     return resp
 
 
+    

@@ -1,5 +1,6 @@
 import time
 from minezy_api import neo4j_conn
+from query_common import prepare_date_range, prepare_date_clause
 
 
 def query_emails(params, countResults=False):
@@ -16,42 +17,42 @@ def query_emails(params, countResults=False):
         relL = 'SENT|TO|CC|BCC'
         relR = 'SENT|TO|CC|BCC'
     
+    params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
+    
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
-            query_str += "WHERE m.email IN {left} AND n.email IN {right} "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
             query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
             
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(n:Contact) WHERE n.email IN {observer} "
             
         elif len(params['left']):
-            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) WHERE m.email IN {left} "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str += "WHERE cL.email IN {left} "
+            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
         else:
-            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) WHERE m.email IN {right} "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str += "WHERE cR.email IN {right} "
+            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
 
         query_str += "AND has(e.subject) "
+
+        if len(params['ymd']):
+            query_str += "WITH e MATCH "
+            query_str += prepare_date_clause(bYear, bMonth, bDay)
         
     else:
-        query_str = "MATCH (e:Email) WHERE has(e.subject) "
+        if len(params['ymd']):
+            query_str = "MATCH (e:Email),"
+            query_str += prepare_date_clause(bYear, bMonth, bDay)
+            query_str += "AND has(e.subject) "
+        else:
+            query_str = "MATCH (e:Email) WHERE has(e.subject) "
         
-    if params['year']:
-        query_str += "AND e.year={year} "
-        if params['month']:
-            query_str += "AND e.month={month} "
-            if params['day']:
-                query_str += "AND e.day={day} "
-        
-    if params['start'] or params['end'] or params['keyword']:
-        query_str += "AND "
-    if params['start']:
-        query_str += "e.timestamp >= {start} "
-    if params['start'] and params['end']:
-        query_str += "AND "
-    if params['end']:
-        query_str += "e.timestamp <= {end} "
     if params['keyword']:
         if params['start'] or params['end']:
             query_str += "AND "

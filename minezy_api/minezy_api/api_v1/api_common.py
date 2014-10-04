@@ -19,6 +19,7 @@ def query_params(request):
 
     query_params['start'] = int(request.args.get('start',default=0,type=float))
     query_params['end'] = int(request.args.get('end',default=0,type=float))
+    
     query_params['year'] = request.args.get('year',default=0,type=int)
     query_params['month'] = request.args.get('month',default=0,type=int)
     query_params['day'] = request.args.get('day',default=0,type=int)
