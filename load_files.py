@@ -2,76 +2,99 @@
 import os.path
 import sys
 import time
-import email
-import multiprocessing.dummy
-from neo4j_add import neo4jLoader
+import email.parser
+import multiprocessing
+from neo4j_loader import neo4jLoader
 
 
-def dir_files(path):
-    files = []
+def loader_worker(fileQ, loaderQ):
     try:
-        contents = os.listdir(path)
-        for i, item in enumerate(contents):
-            if os.path.isfile(path + '/' + contents[i]):
-                files += [path + '/' + item]
-    except Exception, e:
-        print e
-        pass
-    
-    return files
-
-
-def load_folder(data):
-    folder = data[0]
-    loader = data[1]
-    
-    loader.msg("Examining folder: " + folder)
-    files = dir_files(folder)
-    
-    try:
-        for fileName in files:
-            load_file(loader, fileName)
-    except Exception, e:
-        print e
-        pass
-    
-    return 
-
-
-def load_file(loader, fileName):
-    try:
-        rootLen = len(sys.argv[1])
-        if fileName[rootLen] == '/' or fileName[rootLen] == '\\':
-            rootLen += 1
+        while True:
+            fileName = fileQ.get()
+            if fileName is None:
+                break
             
-        with open(fileName) as f:
-            eFile = fileName[rootLen:]
-            email_message = email.message_from_file(f)
-            if len(email_message._headers) > 0:
-                loader.add(email_message, emailLink=eFile)
+            rootLen = len(sys.argv[1])
+            if fileName[rootLen] == '/' or fileName[rootLen] == '\\':
+                rootLen += 1
+            
+            parser = email.parser.Parser()
+            
+            with open(fileName) as f:
+                eFile = fileName[rootLen:]
+                email_msg = parser.parse(f, headersonly=True)
+                if len(email_msg._headers) > 0:
+                    
+                    t = email_msg._headers[0]
+                    if t[1] == 'VCARD':
+                        "vcard - skip"
+                    elif t[1] == 'VCALENDAR':
+                        "vcalendar - skip"
+                    else:
+                        loaderQ.put( (email_msg, eFile) )
+            fileQ.task_done()
             
     except Exception, e:
         print e
         pass
 
     return
+
     
+def traverse_dir(folder):
+    for root,dirs,files in os.walk(folder):
+        loader.msg("Examining folder: " + root)
+        for name in files:
+            yield (os.path.join(root, name))
+    return
+
+
 if __name__ == '__main__':
     "Usage: [dir] [dir] ..."
     t0 = time.time()
     loader = neo4jLoader()
     
+    numProcs = 8
+    
     if len(sys.argv) > 1:
-        folders = []
-        for i in range(1, len(sys.argv)):
-            sys.stdout.write("Gathering subfolders of " + sys.argv[i] + "... ")
-            folders += [x[0] for x in os.walk(sys.argv[i])]
-            sys.stdout.write(str(len(folders)) + "\n")
-        data = [(folder, loader) for folder in folders]
+        # using multiprocessing and generator 'traverse_dir' to speed things up
+        fileQ = multiprocessing.JoinableQueue(1000)
+        loaderQ = multiprocessing.JoinableQueue(1000*numProcs)
         
-        pool = multiprocessing.dummy.Pool(processes=4)
-        pool.map(load_folder, data)
-        pool.join()
+        procs = []
+        for i in range(numProcs):
+            p = multiprocessing.Process(target=loader_worker, args=(fileQ,loaderQ))
+            procs.append(p)
+            p.start()
+        
+        for fileName in traverse_dir(sys.argv[1]):
+            try:
+                fileQ.put_nowait(fileName)
+            except Exception,e:
+                try:
+                    while True:
+                        item = loaderQ.get_nowait()
+                        loader.add(item[0], item[1])
+                        loaderQ.task_done()
+                except Exception,e:
+                    pass
+            
+        for i in range(len(procs)):
+            fileQ.put(None)
+        fileQ.join()
+        for p in procs:
+            p.join()
+
+        try:
+            while True:
+                item = loaderQ.get_nowait()
+                loader.add(item)
+                loaderQ.task_done()
+        except Exception,e:
+            pass
+
+        loaderQ.join()
+        
 
     loader.complete()
     t1 = time.time()

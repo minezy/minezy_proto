@@ -5,7 +5,7 @@ import imaplib
 import email
 import threading
 import Queue
-from neo4j_add import neo4jLoader
+from neo4j_loader import neo4jLoader
 
 
 def _imap_load_folder(mail, folderName, loader, q):

@@ -3,13 +3,17 @@ from py2neo import cypher
 
 g_session = None
 
-def connect():
+def connect(createConstraints=False):
 	global g_session
 	
 	try:
 		sys.stdout.write("Connect to Neo4j... ")
 		g_session = cypher.Session("http://localhost:7474")
 		sys.stdout.write("OK\n")
+		
+		if createConstraints:
+			create_constraints()
+			
 		return g_session
 	except:
 		print
@@ -33,6 +37,18 @@ def create_constraints():
 		
 		sys.stdout.write("names index... ")
 		tx.append("CREATE CONSTRAINT ON (n:Name) ASSERT n.name IS UNIQUE")
+		tx.execute()
+		
+		sys.stdout.write("years index... ")
+		tx.append("CREATE CONSTRAINT ON (y:Year) ASSERT y.num IS UNIQUE")
+		tx.execute()
+		
+		sys.stdout.write("months index... ")
+		tx.append("CREATE CONSTRAINT ON (m:Month) ASSERT m.num IS UNIQUE")
+		tx.execute()
+		
+		sys.stdout.write("days index... ")
+		tx.append("CREATE CONSTRAINT ON (d:Day) ASSERT d.num IS UNIQUE")
 		tx.commit()
 		
 		sys.stdout.write("OK\n")

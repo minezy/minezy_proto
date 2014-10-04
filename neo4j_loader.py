@@ -21,7 +21,7 @@ class neo4jLoader:
     t = None
     
     def __init__(self):
-        self.session = neo4j_conn.connect()
+        self.session = neo4j_conn.connect(createConstraints=True)
         self.q = Queue.Queue(10000)
         self.t = threading.Thread(target=self._writer_thread)
         self.t.start()
@@ -131,6 +131,8 @@ class neo4jLoader:
             props = {"props" : { "id":msgID, "parentId":msgIDParent, "email":msgEmail, 
                                 "subject":msgSubject, "date":msgDate, "timestamp":timestamp, 
                                 "year":date[0], "month":date[1], "day":date[2],
+                                "ym":date[0]*100+date[1],
+                                "ymd":date[0]*10000+date[1]*100+date[2],
                                 "link":emailLink
                                 }
                       }
@@ -142,10 +144,21 @@ class neo4jLoader:
             cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, "
             cypher +=   "e.year={props}.year, e.month={props}.month, e.day={props}.day, "
             cypher +=   "e.link={props}.link "
-            # Add From Contact
+            opCount += 2
+            
+            # Add Dates
+            cypher += "MERGE (y:Year {num:{props}.year}) "
+            cypher += "MERGE (m:Month {num:{props}.ym}) "
+            cypher += "MERGE (d:Day {num:{props}.ymd}) "
+            cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
+            cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
+            cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
+            opCount += 6
+            
+            # Add From
             cypher += "MERGE (a:Contact {email:{props}.email}) "
             cypher += "CREATE UNIQUE (a)-[:SENT]->(e) "
-            opCount += 4
+            opCount += 2
             
             # Email Thread Relation
             if msgIDParent != "None":
