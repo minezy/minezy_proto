@@ -51,7 +51,7 @@ def query_dates(params, countResults=False):
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
         else:
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) WHERE m.email IN {right} "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
             query_str += "WHERE cR.email IN {right} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
 
@@ -167,15 +167,101 @@ def query_dates(params, countResults=False):
     
     return resp
 
-def query_dates_range(params):
+
+def query_dates_range(params, countResults=False):
 
     t0 = time.time()
     
-    resp = {}
-    #resp['_count'] = count+1
-    #resp['_params'] = params
-    #resp['_query'] = query_str
-    #resp['dates'] = dates
+    if params['rel'] == 'SENDER':
+        relL = 'SENT'
+        relR = 'TO|CC|BCC'
+    elif params['rel'] == 'RECEIVER':
+        relL = 'TO|CC|BCC'
+        relR = 'SENT'
+    else:
+        relL = 'SENT|TO|CC|BCC'
+        relR = 'SENT|TO|CC|BCC'
+    
+    bYear = True
+    bMonth = False
+    bDay = False
+    ymd_label = 'Year'
+    ymd_rel = 'YEAR'
+    for cnt in params['count']:
+        if cnt == 'MONTH':
+            ymd_label = 'Month'
+            ymd_rel = 'MONTH'
+            bMonth = True
+        elif cnt == 'DAY':
+            ymd_label = 'Day'
+            ymd_rel = 'DAY'
+            bMonth = True
+            bDay = True
+    
+    if len(params['left']) or len(params['right']):
+        
+        if len(params['left']) and len(params['right']):
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
+            
+        elif len(params['left']):
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email) "
+            query_str += "WHERE cL.email IN {left} "
+            
+        else:
+            query_str = "MATCH (e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str += "WHERE cR.email IN {right} "
+    
+        query_str += "WITH e MATCH (e)-[:"+ymd_rel+"]-(d) WITH MIN(d.num) AS dMin, MAX(d.num) AS dMax "
+    
+    else:
+        query_str = "MATCH (d:"+ymd_label+") WITH MIN(d.num) AS dMin, MAX(d.num) AS dMax "
+        
+    query_str += "RETURN "
+    if bDay:
+        query_str += "(dMin%100) as day_min, (dMin/100)%100 as month_min, (dMin/100)/100 as year_min, "
+        query_str += "(dMax%100) as day_max, (dMax/100)%100 as month_max, (dMax/100)/100 as year_max"
+    elif bMonth:
+        query_str += "(dMin)%100 as month_min, (dMin/100) as year_min, "
+        query_str += "(dMax)%100 as month_max, (dMax/100) as year_max"
+    else:
+        query_str += "dMin as year_min, "
+        query_str += "dMax as year_max"
+        
+    if countResults:
+        resp = _query_count(query_str, params)
+    else:
+        print query_str
+        
+        tx = neo4j_conn.g_session.create_transaction()
+        tx.append(query_str, params)
+        results = tx.commit()
+        
+        range = {}
+        count = -1
+        ordinal = 1 + params['index'] + (params['page']-1)*params['limit']
+        for count,record in enumerate(results[0]):
+            range_min = {} 
+            range_max = {} 
+            if bYear:
+                range_min['year'] = record['year_min']
+                range_max['year'] = record['year_max']
+            if bMonth:
+                range_min['month'] = record['month_min']
+                range_max['month'] = record['month_max']
+            if bDay:
+                range_min['day'] = record['day_min']
+                range_max['day'] = record['day_max']
+            
+            range['_ord'] = ordinal + count
+            range['first'] = range_min
+            range['last'] = range_max
+    
+        resp = {}
+        resp['_count'] = count+1
+        resp['_params'] = params
+        resp['_query'] = query_str
+        resp['range'] = range
 
     t1 = time.time()
     resp['_query_time'] = t1-t0
