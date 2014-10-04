@@ -1,5 +1,4 @@
 import time
-from datetime import date, timedelta
 from minezy_api import neo4j_conn
 from query_common import prepare_date_range, prepare_date_clause
 
