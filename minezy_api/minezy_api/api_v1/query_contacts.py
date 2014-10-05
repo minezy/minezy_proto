@@ -19,7 +19,6 @@ def query_contacts(params, countResults=False):
 
     params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
 
-    bWhere = True
     bWith = False
     query_str = ''
     if len(params['left']) or len(params['right']):
@@ -45,7 +44,6 @@ def query_contacts(params, countResults=False):
             query_str += prepare_date_clause(bYear, bMonth, bDay)
             
     elif len(params['ymd']):
-        bWhere = True
         query_str = "MATCH (n:Contact)-[r:"+relL+"]-(e:Email),"
         query_str += prepare_date_clause(bYear, bMonth, bDay)
         
@@ -70,12 +68,7 @@ def query_contacts(params, countResults=False):
         query_str += " AS count WHERE count > 0 "
 
     if params['keyword']:
-        if not bWhere:
-            query_str += "WHERE "
-            bWhere = True
-        else:
-            query_str += "AND "
-        query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
+        query_str += "AND n.name =~ '(?i).*"+params['keyword']+".*' "
 
     if not bWith:
         query_str += "WITH n,count(distinct(e)) as count "

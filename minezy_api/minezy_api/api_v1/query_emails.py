@@ -40,10 +40,7 @@ def query_emails(params, countResults=False):
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
 
         query_str += "AND has(e.subject) "
-
-        if len(params['ymd']):
-            query_str += "WITH e MATCH "
-            query_str += prepare_date_clause(bYear, bMonth, bDay)
+        query_str += prepare_date_clause(bYear, bMonth, bDay, prefix="WITH e MATCH ")
         
     else:
         if len(params['ymd']):
@@ -54,9 +51,7 @@ def query_emails(params, countResults=False):
             query_str = "MATCH (e:Email) WHERE has(e.subject) "
         
     if params['keyword']:
-        if params['start'] or params['end']:
-            query_str += "AND "
-        query_str += "e.subject =~ '(?i).*"+params['keyword']+".*' "
+        query_str += "AND e.subject =~ '(?i).*"+params['keyword']+".*' "
         
     query_str += "RETURN distinct(e) ORDER BY e.timestamp " + params['order']
     

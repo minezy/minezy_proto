@@ -1,7 +1,7 @@
 import time
 from datetime import date, timedelta
 from minezy_api import neo4j_conn
-from query_common import prepare_date_range
+from query_common import prepare_date_range, prepare_date_clause
 
 def query_dates(params, countResults=False):
 
@@ -36,6 +36,8 @@ def query_dates(params, countResults=False):
     
     if len(params['left']) or len(params['right']):
         
+        params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
+                
         if len(params['left']) and len(params['right']):
             query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
             query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
@@ -43,46 +45,47 @@ def query_dates(params, countResults=False):
             
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(cO:Contact) WHERE cO.email IN {observer} "
+
+            query_str += prepare_date_clause(bYear,bMonth,bDay,prefix="WITH e MATCH ")
             
         elif len(params['left']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
             query_str += "WHERE cL.email IN {left} "
-            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bAnd=True)
             
         else:
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
             query_str += "WHERE cR.email IN {right} "
-            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-
-        query_str += "WITH e MATCH (e)-[:YEAR]->(y),(e)-[:MONTH]->(m),(e)-[:DAY]->(d) "
-        params['ymd'] = prepare_date_range(params)[0]
-        if len(params['ymd']):
-            query_str += "WHERE (y.num IN {ymd} OR m.num IN {ymd} OR d.num IN {ymd}) "
+            #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bAnd=True)
 
         if bDay:
-            query_str += "WITH d.num%100 as day, m.num%100 as month, y.num as year, "
+            query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
         elif bMonth:
-            query_str += "WITH m.num%100 as month, y.num as year, "
+            query_str += "WITH (m.num%100) AS month, (m.num/100) AS year, "
         else:
-            query_str += "WITH y.num as year, "
+            query_str += "WITH y.num AS year, "
 
         query_str += "count(distinct(e)) AS count RETURN "
     
-        if bYear:
+        if bYear or bMonth or bDay:
             query_str += "year,"
-        if bMonth:
+        if bMonth or bDay:
             query_str += "month,"
         if bDay:
             query_str += "day,"
     
         query_str += "count ORDER BY "
         
-        if bYear:
+        if bYear or bMonth or bDay:
             query_str += "year " + params['order']
-        if bMonth:
-            query_str += ", month " + params['order']
+        if bMonth or bDay:
+            query_str += ",month " + params['order']
         if bDay:
-            query_str += ", day " + params['order']
+            query_str += ",day " + params['order']
             
         if params['index'] or params['page'] > 1:
             query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
@@ -148,7 +151,7 @@ def query_dates(params, countResults=False):
                 'year': record['year']
                 } 
             
-            if bMonth:
+            if bMonth or bDay:
                 entry['month'] = record['month']
             if bDay:
                 entry['day'] = record['day']

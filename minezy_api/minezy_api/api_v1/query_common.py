@@ -1,4 +1,3 @@
-import time
 import calendar
 from datetime import date, timedelta
 
@@ -24,7 +23,14 @@ def prepare_date_range(params):
                 # year only
                 startdate = date(year=params['year'], month=1, day=1)
                 enddate = date(year=params['year'], month=12, day=31)
-                
+
+            # test if given start/end times are smaller range
+            start = date.fromtimestamp(params['start'])
+            end = date.fromtimestamp(params['end'])
+            if start >= startdate and end <= enddate:
+                startdate = start
+                enddate = end
+
         else:
             # start/end times
             startdate = date.fromtimestamp(params['start'])
@@ -48,7 +54,7 @@ def prepare_date_range(params):
                 bForceDay = False
                 bForceMonth = True
                 bForceYear = False
-            else:
+            elif c == 'YEAR':
                 bForceDay = False
                 bForceMonth = False
                 bForceYear = True
@@ -90,34 +96,59 @@ def prepare_date_range(params):
     return ymd_range, bYear, bMonth, bDay
 
 
-def prepare_date_clause(bYear, bMonth, bDay):
+def prepare_date_clause(bYear, bMonth, bDay, bNode=True, bPath=True, bWhere=True, bAnd=False, prefix='', default=''):
     query_str = ''
     
-    if bYear:
-        query_str += "(e)-[:YEAR]->(y)"
-    if bMonth:
+    if bPath:
         if bYear:
-            query_str += ","
-        query_str += "(e)-[:MONTH]->(m)"
-    if bDay:
-        if bYear or bMonth:
-            query_str += ","
-        query_str += "(e)-[:DAY]->(d)"
+            if bNode:
+                query_str += "(e)"
+                
+            query_str += "-->(y:Year)"
+            
+        if bMonth:
+            if bYear:
+                query_str += ",(e)"
+            elif bNode:
+                query_str += "(e)"
+
+            query_str += "-->(m:Month)"
+            
+        if bDay:
+            if bYear or bMonth:
+                query_str += ",(e)"
+            elif bNode:
+                query_str += "(e)"
+                
+            query_str += "-->(d:Day)"
+            
+        if len(query_str):
+            query_str += " "
         
-    query_str += " WHERE ("
-    
-    if bYear:
-        query_str += "y.num IN {ymd}"
-    if bMonth:
+    if bWhere:
+        if bAnd:
+            query_str += "AND ("
+        else:
+            query_str += "WHERE ("
+        
         if bYear:
-            query_str += " OR "
-        query_str += "m.num IN {ymd}"
-    if bDay:
-        if bYear or bMonth:
-            query_str += " OR "
-        query_str += "d.num IN {ymd}"
-        
-    query_str += ") "
+            query_str += "y.num IN {ymd}"
+        if bMonth:
+            if bYear:
+                query_str += " OR "
+            query_str += "m.num IN {ymd}"
+        if bDay:
+            if bYear or bMonth:
+                query_str += " OR "
+            query_str += "d.num IN {ymd}"
+            
+        query_str += ") "
     
+    if len(query_str):
+        if len(prefix):
+            query_str = prefix + query_str
+    else:
+        query_str = default
+        
     return query_str
 
