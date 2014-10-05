@@ -80,7 +80,7 @@ def query_contacts(params, countResults=False):
     if not bWith:
         query_str += "WITH n,count(distinct(e)) as count "
         
-    query_str += "RETURN n.name,n.email,count ORDER BY count " + params['order'] + ", n.name ASC"
+    query_str += "RETURN COALESCE(n.name,n.email) as name,n.email,count ORDER BY count " + params['order'] + ", name ASC"
 
     if params['index'] or params['page'] > 1:
         query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
