@@ -185,20 +185,20 @@ def query_dates_range(params, countResults=False):
         relR = 'SENT|TO|CC|BCC'
     
     bYear = True
-    bMonth = False
-    bDay = False
-    ymd_label = 'Year'
-    ymd_rel = 'YEAR'
+    bMonth = True
+    bDay = True
+    ymd_label = 'Day'
     for cnt in params['count']:
         if cnt == 'MONTH':
             ymd_label = 'Month'
-            ymd_rel = 'MONTH'
             bMonth = True
-        elif cnt == 'DAY':
-            ymd_label = 'Day'
-            ymd_rel = 'DAY'
-            bMonth = True
-            bDay = True
+            bDay = False
+        elif cnt == 'YEAR':
+            ymd_label = 'Year'
+            bYear = True
+            bMonth = False
+            bDay = False
+        break
     
     if len(params['left']) or len(params['right']):
         
@@ -214,7 +214,7 @@ def query_dates_range(params, countResults=False):
             query_str = "MATCH (e:Email)-[rR:"+relR+"]-(cR:Contact) "
             query_str += "WHERE cR.email IN {right} "
     
-        query_str += "WITH e MATCH (e)-[:"+ymd_rel+"]-(d) WITH MIN(d.num) AS dMin, MAX(d.num) AS dMax "
+        query_str += "WITH e MATCH (e)-->(d:"+ymd_label+") WITH MIN(d.num) AS dMin, MAX(d.num) AS dMax "
     
     else:
         query_str = "MATCH (d:"+ymd_label+") WITH MIN(d.num) AS dMin, MAX(d.num) AS dMax "
@@ -239,10 +239,15 @@ def query_dates_range(params, countResults=False):
         tx.append(query_str, params)
         results = tx.commit()
         
-        range = {}
+        daterange = {}
         count = -1
         ordinal = 1 + params['index'] + (params['page']-1)*params['limit']
         for count,record in enumerate(results[0]):
+            # need to check for None result because min/max return null when not found
+            if None in record:
+                count = -1 
+                break
+            
             range_min = {} 
             range_max = {} 
             if bYear:
@@ -255,15 +260,15 @@ def query_dates_range(params, countResults=False):
                 range_min['day'] = record['day_min']
                 range_max['day'] = record['day_max']
             
-            range['_ord'] = ordinal + count
-            range['first'] = range_min
-            range['last'] = range_max
+            daterange['_ord'] = ordinal + count
+            daterange['first'] = range_min
+            daterange['last'] = range_max
     
         resp = {}
         resp['_count'] = count+1
         resp['_params'] = params
         resp['_query'] = query_str
-        resp['range'] = range
+        resp['range'] = daterange
 
     t1 = time.time()
     resp['_query_time'] = t1-t0

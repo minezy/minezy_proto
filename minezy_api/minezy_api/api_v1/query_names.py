@@ -52,9 +52,9 @@ def query_names(params, countResults=False):
     query_str += "RETURN COALESCE(n.name,n.email) as name,count,contacts "
     
     if 'USE' in params['count']:
-        query_str += "ORDER BY count DESC, name ASC"
+        query_str += "ORDER BY count " + params['order'] + ", name ASC"
     else:  
-        query_str += "ORDER BY name ASC"
+        query_str += "ORDER BY name " + params['order']
     
     if params['index'] or params['page'] > 1:
         query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
