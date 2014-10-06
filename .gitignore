@@ -2,5 +2,5 @@
 *.pyc
 *.db
 .metadata
-minzey_api/ui/ui_build/node_modules
-minzey_api/ui/ui_build/.sass-cache
+minezy_api/ui/ui_build/node_modules
+minezy_api/ui/ui_build/.sass-cache
