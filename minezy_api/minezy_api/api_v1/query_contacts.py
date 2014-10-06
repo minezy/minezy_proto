@@ -9,9 +9,9 @@ def query_contacts(params, countResults=False):
 
     if params['rel'] == 'SENDER':
         relL = 'SENT'
-        relR = 'TO'
+        relR = 'TO|CC|BCC'
     elif params['rel'] == 'RECEIVER':
-        relL = 'TO'
+        relL = 'TO|CC|BCC'
         relR = 'SENT'
     else:
         relL = 'SENT|TO|CC|BCC'
@@ -44,8 +44,8 @@ def query_contacts(params, countResults=False):
             query_str += prepare_date_clause(bYear, bMonth, bDay)
             
     elif len(params['ymd']):
-        query_str = "MATCH (n:Contact)-[r:"+relL+"]-(e:Email),"
-        query_str += prepare_date_clause(bYear, bMonth, bDay)
+        query_str = "MATCH (n:Contact)-[r:"+relL+"]-(e:Email)"
+        query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False)
         
     else:
         bWith = True

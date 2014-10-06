@@ -10,15 +10,6 @@ def query_dates(params, countResults=False):
     bYear = True
     bMonth = False
     bDay = False
-    ymd_rel = 'YEAR'
-    for cnt in params['count']:
-        if cnt == 'MONTH':
-            ymd_rel = 'MONTH'
-            bMonth = True
-        elif cnt == 'DAY':
-            ymd_rel = 'DAY'
-            bMonth = True
-            bDay = True
     
     if params['rel'] == 'SENDER':
         relL = 'SENT'
@@ -30,14 +21,10 @@ def query_dates(params, countResults=False):
         relL = 'SENT|TO|CC|BCC'
         relR = 'SENT|TO|CC|BCC'
             
-    rels = ''
-    #if len(params['count']):
-        #rels = ':' + '|'.join(params['count'])
+    params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
     
     if len(params['left']) or len(params['right']):
         
-        params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
-                
         if len(params['left']) and len(params['right']):
             query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
             query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
@@ -46,7 +33,10 @@ def query_dates(params, countResults=False):
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(cO:Contact) WHERE cO.email IN {observer} "
 
-            query_str += prepare_date_clause(bYear,bMonth,bDay,prefix="WITH e MATCH ")
+            bWhere = False
+            if len(params['ymd']):
+                bWhere = True
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bWhere=bWhere,prefix="WITH e MATCH ")
             
         elif len(params['left']):
             query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
@@ -93,29 +83,24 @@ def query_dates(params, countResults=False):
             query_str += " LIMIT {limit}"
         
     else:
-        ymd_label = ymd_rel.title()
-        
-        if params['start'] or params['end']:
-            startdate = date.fromtimestamp(params['start'])
-            enddate = date.fromtimestamp(params['end'])
-        
-            ymd = []
-            delta = enddate - startdate
-            for i in range(delta.days+1):
-                d = startdate + timedelta(days=i)
-                if bDay:
-                    ymd.append(d.year*10000 + d.month*100 + d.day)
-                elif bMonth:
-                    ymd.append(d.year*100 + d.month)
-                else:
-                    ymd.append(d.year)
-            params['ymd'] = list(set(ymd))
-            
-            query_str = "MATCH (d:"+ymd_label+") WHERE d.num IN {ymd} "
+        if bDay:
+            ymd_label = 'Day'
+            ymd_var = 'd'
+        elif bMonth:
+            ymd_label = 'Month'
+            ymd_var = 'm'
         else:
-            query_str = "MATCH (d:"+ymd_label+") "
+            ymd_label = 'Year'
+            ymd_var = 'y'
         
-        query_str += "WITH d ORDER BY d.num " + params['order']
+        bWhere = False
+        if len(params['ymd']):
+            bWhere = True
+        
+        query_str = "MATCH (%s:%s) " % (ymd_var, ymd_label)
+        query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bWhere)
+        
+        query_str += "WITH %s ORDER BY %s.num %s" % (ymd_var, ymd_var, params['order'])
         
         if params['index'] or params['page'] > 1:
             query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
@@ -126,10 +111,10 @@ def query_dates(params, countResults=False):
         if bDay:
             query_str += "(d.num%100) as day, (d.num/100)%100 as month, (d.num/100)/100 as year"
         elif bMonth:
-            query_str += "(d.num)%100 as month, (d.num/100) as year"
+            query_str += "(m.num)%100 as month, (m.num/100) as year"
         else:
-            query_str += "d.num as year"
-        query_str += ", LENGTH((d)<-[]-(:Email)) as count "
+            query_str += "y.num as year"
+        query_str += ", LENGTH((%s)<-[]-(:Email)) as count " % ymd_var
 
             
     if countResults:

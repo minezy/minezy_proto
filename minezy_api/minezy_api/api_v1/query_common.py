@@ -4,9 +4,28 @@ from datetime import date, timedelta
 
 def prepare_date_range(params):
     ymd_range = []
+    
     bYear = False
     bMonth = False
     bDay = False
+    
+    bCountDay = False
+    bCountMonth = False
+    bCountYear = False
+    for c in params['count']:
+        if c == 'DAY':
+            bCountDay = True
+            bCountMonth = False
+            bCountYear = False
+        elif c == 'MONTH':
+            bCountDay = False
+            bCountMonth = True
+            bCountYear = False
+        elif c == 'YEAR':
+            bCountDay = False
+            bCountMonth = False
+            bCountYear = True
+        break
     
     if params['start'] or params['end'] or params['year']:
         if params['year']:
@@ -42,37 +61,19 @@ def prepare_date_range(params):
             (startdate.day==1) and (enddate.day==calendar.monthrange(enddate.year, enddate.month)[1])):
             bWholeMonth = True
         
-        bForceDay = False
-        bForceMonth = False
-        bForceYear = False
-        for c in params['count']:
-            if c == 'DAY':
-                bForceDay = True
-                bForceMonth = False
-                bForceYear = False
-            elif c == 'MONTH':
-                bForceDay = False
-                bForceMonth = True
-                bForceYear = False
-            elif c == 'YEAR':
-                bForceDay = False
-                bForceMonth = False
-                bForceYear = True
-            break
-        
         delta = enddate - startdate
         for i in range(delta.days+1):
             d = startdate + timedelta(days=i)
             
-            if (bForceYear):
+            if (bCountYear):
                 ymd_range.append(d.year)
                 bYear = True
                 
-            elif (bForceMonth): 
+            elif (bCountMonth): 
                 ymd_range.append(d.year*100 + d.month)
                 bMonth = True
                 
-            elif (bForceDay):
+            elif (bCountDay):
                 ymd_range.append(d.year*10000 + d.month*100 + d.day)
                 bDay = True
                 
@@ -92,6 +93,11 @@ def prepare_date_range(params):
                     bDay = True
                 
         ymd_range = list(set(ymd_range))
+        
+    elif params['count']:
+        bYear = bCountYear
+        bMonth = bCountMonth
+        bDay = bCountDay
     
     return ymd_range, bYear, bMonth, bDay
 
@@ -125,7 +131,7 @@ def prepare_date_clause(bYear, bMonth, bDay, bNode=True, bPath=True, bWhere=True
         if len(query_str):
             query_str += " "
         
-    if bWhere:
+    if bWhere and (bYear or bMonth or bDay):
         if bAnd:
             query_str += "AND ("
         else:
