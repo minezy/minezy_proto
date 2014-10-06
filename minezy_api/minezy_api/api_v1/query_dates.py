@@ -23,6 +23,10 @@ def query_dates(params, countResults=False):
             
     params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
     
+    bWhere = False
+    if len(params['ymd']):
+        bWhere = True
+
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
@@ -33,9 +37,6 @@ def query_dates(params, countResults=False):
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(cO:Contact) WHERE cO.email IN {observer} "
 
-            bWhere = False
-            if len(params['ymd']):
-                bWhere = True
             query_str += prepare_date_clause(bYear,bMonth,bDay,bWhere=bWhere,prefix="WITH e MATCH ")
             
         elif len(params['left']):
@@ -43,14 +44,14 @@ def query_dates(params, countResults=False):
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
             query_str += "WHERE cL.email IN {left} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bAnd=True)
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bWhere,bAnd=True)
             
         else:
             query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
             query_str += "WHERE cR.email IN {right} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bAnd=True)
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bWhere,bAnd=True)
 
         if bDay:
             query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
@@ -92,10 +93,6 @@ def query_dates(params, countResults=False):
         else:
             ymd_label = 'Year'
             ymd_var = 'y'
-        
-        bWhere = False
-        if len(params['ymd']):
-            bWhere = True
         
         query_str = "MATCH (%s:%s) " % (ymd_var, ymd_label)
         query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bWhere)
