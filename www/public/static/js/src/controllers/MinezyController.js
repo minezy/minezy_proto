@@ -20,7 +20,7 @@ App.MinezyController = ( function($,document,window, U) {
 		this.API = new App.API();
 		this.colManager = new App.ColumnController();
 
-		this.API.getData('dates', {'limit':1,'order':'asc','count':'month'}, $.proxy(this.getMinDate,this) );
+		this.API.getData('dates/range', {}, $.proxy(this.getDateRange,this) );
 
 		$('.account .button').on('click',$.proxy(this.showSettings,this) );
 
@@ -53,19 +53,13 @@ App.MinezyController = ( function($,document,window, U) {
 
 		},
 
-		getMinDate: function(data) {
+		getDateRange: function(data) {
 
-			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
-			this.dateSettings.minTime = date.getTime();
+			var dateFirst = new Date(data.dates.range.first.year,data.dates.range.first.month,data.dates.range.first.day,0,0,0,0);
+			var dateLast = new Date(data.dates.range.last.year,data.dates.range.last.month,data.dates.range.last.day,0,0,0,0);
 
-			this.API.getData('dates', {'limit':1,'order':'desc','count':'month'}, $.proxy(this.getMaxDate,this) );
-
-		},
-
-		getMaxDate: function(data) {
-
-			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
-			this.dateSettings.maxTime = date.getTime();
+			this.dateSettings.minTime = dateFirst.getTime();
+			this.dateSettings.maxTime = dateLast.getTime();
 
 			this.colManager.setDates(this.dateSettings);
 			this.colManager.addColumn('contacts',{'limit':20});
@@ -77,10 +71,6 @@ App.MinezyController = ( function($,document,window, U) {
 
 
 		handleResize: function(e) {
-		},
-
-		handleMediaQueryChange: function(e,width) {
-
 		},
 
 		destroy: function() {

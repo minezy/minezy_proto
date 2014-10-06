@@ -2513,6 +2513,15 @@ App.Column = ( function($,document,window, U) {
 					}
 				}
 
+				if( params.count )
+					delete params.count;
+
+				if( !params.start )
+					delete params.end;
+
+				if( params.rel == 'any' )
+					delete params.rel;
+
 			} else if( this.action == 'emails' ) {
 
 				keyword = $( this.colName + ' .additionalOptions .keyword').val();
@@ -2522,6 +2531,8 @@ App.Column = ( function($,document,window, U) {
 				} else {
 					delete params.keyword;
 				}
+
+				params.order = 'desc';
 
 			} else if( this.action == 'dates' ) {
 
@@ -2564,11 +2575,15 @@ App.Column = ( function($,document,window, U) {
 			if( !$.isEmptyObject(params) ) {
 
 				params.limit = 20;
-				if(!params.start)
+				if(!params.start) {
 					params.start = this.params.start;
+					if(!params.start) {
+						delete params.end;
+					}
+				}
 
-				if(!params.end)
-					params.end = this.params.end;
+				//if(!params.end)
+				//	params.end = this.params.end;
 
 				if(this.page > 1) {
 					params.page = this.page;
@@ -2665,6 +2680,8 @@ App.Column = ( function($,document,window, U) {
 			var resultContainer = $(this.colName + ' .results');
 
 			resultContainer.append( this.HTMLFactory.generateEmail( email,this.params ) );
+
+			$( this.colName ).addClass('wider');
 
 		},
 
@@ -2793,6 +2810,8 @@ App.Column = ( function($,document,window, U) {
 				}
 
 			} else if( action === 'emails' ) {
+
+				new_params.order = 'desc';
 
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
@@ -3328,7 +3347,7 @@ App.MinezyController = ( function($,document,window, U) {
 		this.API = new App.API();
 		this.colManager = new App.ColumnController();
 
-		this.API.getData('dates', {'limit':1,'order':'asc','count':'month'}, $.proxy(this.getMinDate,this) );
+		this.API.getData('dates/range', {}, $.proxy(this.getDateRange,this) );
 
 		$('.account .button').on('click',$.proxy(this.showSettings,this) );
 
@@ -3361,19 +3380,13 @@ App.MinezyController = ( function($,document,window, U) {
 
 		},
 
-		getMinDate: function(data) {
+		getDateRange: function(data) {
 
-			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
-			this.dateSettings.minTime = date.getTime();
+			var dateFirst = new Date(data.dates.range.first.year,data.dates.range.first.month,data.dates.range.first.day,0,0,0,0);
+			var dateLast = new Date(data.dates.range.last.year,data.dates.range.last.month,data.dates.range.last.day,0,0,0,0);
 
-			this.API.getData('dates', {'limit':1,'order':'desc','count':'month'}, $.proxy(this.getMaxDate,this) );
-
-		},
-
-		getMaxDate: function(data) {
-
-			var date = new Date(data.dates.dates[0].year,data.dates.dates[0].month,1,0,0,0,0);
-			this.dateSettings.maxTime = date.getTime();
+			this.dateSettings.minTime = dateFirst.getTime();
+			this.dateSettings.maxTime = dateLast.getTime();
 
 			this.colManager.setDates(this.dateSettings);
 			this.colManager.addColumn('contacts',{'limit':20});
@@ -3385,10 +3398,6 @@ App.MinezyController = ( function($,document,window, U) {
 
 
 		handleResize: function(e) {
-		},
-
-		handleMediaQueryChange: function(e,width) {
-
 		},
 
 		destroy: function() {

@@ -202,6 +202,15 @@ App.Column = ( function($,document,window, U) {
 					}
 				}
 
+				if( params.count )
+					delete params.count;
+
+				if( !params.start )
+					delete params.end;
+
+				if( params.rel == 'any' )
+					delete params.rel;
+
 			} else if( this.action == 'emails' ) {
 
 				keyword = $( this.colName + ' .additionalOptions .keyword').val();
@@ -211,6 +220,8 @@ App.Column = ( function($,document,window, U) {
 				} else {
 					delete params.keyword;
 				}
+
+				params.order = 'desc';
 
 			} else if( this.action == 'dates' ) {
 
@@ -253,11 +264,15 @@ App.Column = ( function($,document,window, U) {
 			if( !$.isEmptyObject(params) ) {
 
 				params.limit = 20;
-				if(!params.start)
+				if(!params.start) {
 					params.start = this.params.start;
+					if(!params.start) {
+						delete params.end;
+					}
+				}
 
-				if(!params.end)
-					params.end = this.params.end;
+				//if(!params.end)
+				//	params.end = this.params.end;
 
 				if(this.page > 1) {
 					params.page = this.page;
@@ -354,6 +369,8 @@ App.Column = ( function($,document,window, U) {
 			var resultContainer = $(this.colName + ' .results');
 
 			resultContainer.append( this.HTMLFactory.generateEmail( email,this.params ) );
+
+			$( this.colName ).addClass('wider');
 
 		},
 
@@ -482,6 +499,8 @@ App.Column = ( function($,document,window, U) {
 				}
 
 			} else if( action === 'emails' ) {
+
+				new_params.order = 'desc';
 
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];

@@ -589,6 +589,8 @@ section.columnContainer {
     -webkit-transition: left 300ms ease-out;
     -moz-transition: left 300ms ease-out;
     transition: left 300ms ease-out; }
+    section.columnContainer div.column.wider {
+      width: 500px; }
     section.columnContainer div.column div.colHeader {
       background: #f2f2f2;
       padding: 20px;

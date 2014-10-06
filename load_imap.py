@@ -54,11 +54,11 @@ def _parse_emails(loader, q):
 
 def launch_imap(loader, q):
     folders = [
-               "INBOX",
-               "INBOX.Sent",
-               "INBOX.old-messages"
                #"INBOX",
-               #"[Gmail]/Sent Mail"
+               #"INBOX.Sent",
+               #"INBOX.old-messages"
+               "INBOX",
+               "[Gmail]/Sent Mail"
                ]
     
     threads_read = []

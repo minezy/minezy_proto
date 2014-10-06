@@ -20,6 +20,10 @@ section.columnContainer {
 
 		@include transition (left 300ms ease-out);
 
+		&.wider {
+			width: 500px;
+		}
+
 
 		div.colHeader {
 			background: #f2f2f2;
