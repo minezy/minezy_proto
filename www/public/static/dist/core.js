@@ -2775,6 +2775,7 @@ App.Column = ( function($,document,window, U) {
 					new_params.year = sd.getFullYear();
 					new_params.month = sd.getMonth()+1;
 				} else if( this.action == 'contacts' ) {
+
 					if(this.params.left && this.params.right )
 						new_params.observer = key;
 					else if( this.params.left ) {
@@ -2797,7 +2798,12 @@ App.Column = ( function($,document,window, U) {
 					new_params.start = key.split('-')[0];
 					new_params.end = key.split('-')[1];
 				} else if( this.action == 'contacts' ) {
-					new_params[lock] = key;
+					if(this.params.left && this.params.right )
+						new_params.observer = key;
+					else if( this.params.left )
+						new_params.right = key;
+					else
+						new_params.left = key;
 				}  else if( this.action == 'emails' ) {
 					new_params.id = key;
 				}
