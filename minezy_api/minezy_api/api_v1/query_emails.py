@@ -18,7 +18,11 @@ def query_emails(params, countResults=False):
         relR = 'SENT|TO|CC|BCC'
     
     params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
-    
+
+    bWhere = False
+    if len(params['ymd']):
+        bWhere = True
+            
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
@@ -27,7 +31,7 @@ def query_emails(params, countResults=False):
             query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
             
             if len(params['observer']):
-                query_str += "WITH e MATCH (e)--(n:Contact) WHERE n.email IN {observer} "
+                query_str += "WITH e MATCH (e)--(cO:Contact) WHERE cO.email IN {observer} "
             
         elif len(params['left']):
             query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
@@ -40,7 +44,7 @@ def query_emails(params, countResults=False):
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
 
         query_str += "AND has(e.subject) "
-        query_str += prepare_date_clause(bYear, bMonth, bDay, prefix="WITH e MATCH ")
+        query_str += prepare_date_clause(bYear, bMonth, bDay, bWhere=bWhere, prefix="WITH e MATCH ")
         
     else:
         if len(params['ymd']):
