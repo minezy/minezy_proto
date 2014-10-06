@@ -235,6 +235,9 @@ App.Column = ( function($,document,window, U) {
 					var ey = $( this.colName + ' .end_date_year').val();
 					var em = $( this.colName + ' .end_date_month').val();
 
+					if( !sm )
+						sm = 1;
+
 					var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
 					var ed = new Date(ey, em, 0, 0, 0, 0, 0);
 
