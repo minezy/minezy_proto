@@ -2,7 +2,5 @@
 *.pyc
 *.db
 .metadata
-www/vendor
-www/support/node_modules
-www/cache
-www/support/.sass-cache
+minezy_api/ui/ui_build/node_modules
+minezy_api/ui/ui_build/.sass-cache
