@@ -19,43 +19,50 @@ def query_emails(params, countResults=False):
     
     params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
 
-    bWhere = False
+    bDateWhere = False
     if len(params['ymd']):
-        bWhere = True
-            
+        bDateWhere = True
+    
+    bWhere = True        
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
-            query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
-            query_str += "AND (type(rL)='SENT' OR  type(rR)='SENT') "
-            
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact)"
             if len(params['observer']):
-                query_str += "WITH e MATCH (e)--(cO:Contact) WHERE cO.email IN {observer} "
+                query_str += ",(e)--(cO:Contact)"
+            query_str += " WHERE cL.email IN {left} AND cR.email IN {right} "
+            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            if len(params['observer']):
+                query_str += "AND cO.email IN {observer} "
+            if bDateWhere:
+                query_str += prepare_date_clause(bYear, bMonth, bDay, prefix="WITH e MATCH ")
             
         elif len(params['left']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {left} "
-            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
             
         else:
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
+            query_str = "MATCH (e:Email)-[rR:"+relR+"]-(cR:Contact)"
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
             query_str += "WHERE cR.email IN {right} "
-            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-
-        query_str += "AND has(e.subject) "
-        query_str += prepare_date_clause(bYear, bMonth, bDay, bWhere=bWhere, prefix="WITH e MATCH ")
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
         
     else:
+        bWhere = False
         if len(params['ymd']):
             query_str = "MATCH (e:Email),"
             query_str += prepare_date_clause(bYear, bMonth, bDay)
-            query_str += "AND has(e.subject) "
         else:
-            query_str = "MATCH (e:Email) WHERE has(e.subject) "
+            query_str = "MATCH (e:Email) "
         
     if params['keyword']:
-        query_str += "AND e.subject =~ '(?i).*"+params['keyword']+".*' "
+        if not bWhere:
+            query_str += "WHERE "
+        else:
+            query_str += "AND "
+        query_str += "e.subject =~ '(?i).*"+params['keyword']+".*' "
         
     query_str += "RETURN distinct(e) ORDER BY e.timestamp " + params['order']
     

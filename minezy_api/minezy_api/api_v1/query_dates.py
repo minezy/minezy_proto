@@ -23,9 +23,9 @@ def query_dates(params, countResults=False):
             
     params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
     
-    bWhere = False
+    bDateWhere = False
     if len(params['ymd']):
-        bWhere = True
+        bDateWhere = True
 
     if len(params['left']) or len(params['right']):
         
@@ -37,21 +37,21 @@ def query_dates(params, countResults=False):
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(cO:Contact) WHERE cO.email IN {observer} "
 
-            query_str += prepare_date_clause(bYear,bMonth,bDay,bWhere=bWhere,prefix="WITH e MATCH ")
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bWhere=bDateWhere,prefix="WITH e MATCH ")
             
         elif len(params['left']):
             query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
             query_str += "WHERE cL.email IN {left} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bWhere,bAnd=True)
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
             
         else:
             query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
             query_str += "WHERE cR.email IN {right} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bWhere,bAnd=True)
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
 
         if bDay:
             query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
@@ -95,7 +95,7 @@ def query_dates(params, countResults=False):
             ymd_var = 'y'
         
         query_str = "MATCH (%s:%s) " % (ymd_var, ymd_label)
-        query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bWhere)
+        query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere)
         
         query_str += "WITH %s ORDER BY %s.num %s" % (ymd_var, ymd_var, params['order'])
         

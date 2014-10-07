@@ -24,10 +24,10 @@ def query_contacts(params, countResults=False):
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
-            query_str += "WHERE m.email IN {left} AND n.email IN {right} "
+            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact),(e)--(n:Contact) "
+            query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-            query_str += "WITH e MATCH (e)--(n:Contact) WHERE NOT (n.email IN {right} OR n.email IN {left}) "
+            query_str += "AND NOT (n.email IN {right} OR n.email IN {left}) "
             
         elif len(params['left']):
             query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
