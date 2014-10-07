@@ -26,6 +26,8 @@ def query_params(request):
 
     query_params['keyword'] = request.args.get('keyword',default='',type=str)
     query_params['id'] = request.args.get('id',default='',type=str)
+    query_params['name'] = request.args.get('name',type=str)
+    query_params['account'] = request.args.get('account',type=str)
     
     query_params['from'] = request.args.getlist('from')
     query_params['to'] = request.args.getlist('to')

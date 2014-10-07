@@ -5,18 +5,19 @@ from flask import jsonify, request
 
 
 @app.route('/1/names/', methods=['GET'])
+@app.route('/1/<int:account>/names/', methods=['GET'])
 @support_jsonp
-def names():
+def names(account=None):
     params = query_params(request)
-    resp = query_names(params)
+    resp = query_names(account, params)
     return jsonify( { 'names' : resp } )
 
 
 @app.route('/1/names/count/', methods=['GET'])
+@app.route('/1/<int:account>/names/count/', methods=['GET'])
 @support_jsonp
-def names_count():
+def names_count(account=None):
     params = query_params(request)
-    resp = query_names(params, countResults=True)
+    resp = query_names(account, params, countResults=True)
     return jsonify( { 'names' : resp } )
-    
     

@@ -8,9 +8,13 @@ def query_accounts(params, countResults=False):
     
     query_str = "MATCH (a:Account) "
     
-    if params['id']:
+    if params.get('id'):
         query_str += "WHERE a.id = %s " % params['id']
-    elif params['keyword']:
+    elif params.get('account'):
+        query_str += "WHERE a.account = %s " % params['account']
+    elif params.get('name'):
+        query_str += "WHERE a.name = '%s' " % params['name']
+    elif params.get('keyword'):
         query_str += "WHERE a.name =~ '(?i).*"+params['keyword']+".*' "
         
     query_str += "RETURN a "
@@ -37,6 +41,7 @@ def query_accounts(params, countResults=False):
             a = record[0]
             account = {
                 '_ord': ordinal + count,
+                'account': a['account'],
                 'id': a['id'],
                 'name': a['name'],
                 'created': a['created'],
@@ -74,7 +79,7 @@ def _query_count(query_str, params):
 
 
 
-def query_accounts_create(params, name):
+def query_accounts_create(params, account):
     t0 = time.time()
 
     tx = neo4j_conn.g_session.create_transaction()
@@ -92,15 +97,16 @@ def query_accounts_create(params, name):
     tod = datetime.today()
     props = {
              'id': accountId,
-             'name': name,
+             'account' : account,
+             'name': params.get('name'),
              'created': str(tod),
              'modified': str(tod)
              }
     
-    query_str = "MERGE (a:Account {id:{id}}) SET a.name={name}, a.created={created}, a.modified={modified}"
+    query_str = "MERGE (a:Account {id:{props}.id}) SET a={props}"
     print query_str
     
-    tx.append(query_str, props)
+    tx.append(query_str, { 'props': props } )
     results = tx.commit()
     
     params['id'] = accountId

@@ -7,6 +7,7 @@ import itertools
 import neo4j_conn
 import Queue
 import threading
+from datetime import datetime
 from py2neo import cypher, node, rel
 
 class neo4jLoader:
@@ -17,15 +18,67 @@ class neo4jLoader:
     namesTarget = 1000
     names = {}
     unknownMsgId = 1
+    accountId = None
     q = None
     t = None
     
-    def __init__(self):
+    def __init__(self, account, name=None):
         self.session = neo4j_conn.connect(createConstraints=True)
+        self.accountId = self._get_account_id(account, name)
+        
         self.q = Queue.Queue(10000)
         self.t = threading.Thread(target=self._writer_thread)
         self.t.start()
         return
+    
+    def _get_account_id(self, account, name):
+        tx = self.session.create_transaction()
+        
+        cypher = "MATCH (a:Account) WHERE a.account = '%s' RETURN a.id" % account
+        tx.append(cypher)
+        results = tx.execute()
+        
+        accountId = None
+        
+        for record in results[0]:
+            if record[0] is not None:
+                accountId = int(record[0])
+                
+        if accountId is None:
+            accountId = self._create_account_id(account, name)
+            
+        return accountId
+    
+
+    def _create_account_id(self, account, name):
+        tx = self.session.create_transaction()
+        
+        cypher = "MATCH (a:Account) RETURN max(a.id)"
+        tx.append(cypher)
+        results = tx.execute()
+    
+        accountId = 100
+        for record in results[0]:
+            if record[0] is not None:
+                accountId = record[0] + 1
+        
+        tod = datetime.today()
+        props = {
+                 'id': accountId,
+                 'account' : account,
+                 'name': name,
+                 'created': str(tod),
+                 'modified': str(tod)
+                 }
+        
+        cypher = "MERGE (a:Account {id:{props}.id}) SET a={props}"
+        print cypher
+        
+        tx.append(cypher, { 'props': props } )
+        results = tx.commit()
+                    
+        return int(accountId)
+    
     
     def _writer_thread(self):
         bComplete = False
@@ -108,19 +161,29 @@ class neo4jLoader:
 
     def add(self, email_msg, emailLink=None):
         try:
-            msgSubject = _get_decoded(email_msg['Subject'])
-            msgDate = _get_decoded(email_msg['Date'])
             msgID = _get_decoded(email_msg['Message-ID'])
-            msgIDParent = _get_decoded(email_msg['In-Reply-To'])
-            date = email.utils.parsedate_tz(msgDate)
-            timestamp = email.utils.mktime_tz(date)
             
             if len(msgID) == 0 or msgID == "None":
                 msgID = "Unknown_%05d" % self.unknownMsgId
                 self.unknownMsgId += 1
+            else:
+                msgID = msgID.strip("<>")
             
-            msgID = msgID.strip("<>")
-            msgIDParent = msgIDParent.strip("<>")
+            # Check if email id exists
+            if 0:
+                tx = self.session.create_transaction()
+                tx.append("MATCH (e:Email) WHERE e.id = {msgID} RETURN count(e)", { "msgID" : msgID })
+                results = tx.commit()
+                for record in results[0]:
+                    if record[0] > 0:
+                        "Already processed msgID"
+                        return
+                        
+            msgSubject = _get_decoded(email_msg['Subject'])
+            msgDate = _get_decoded(email_msg['Date'])
+            msgIDParent = _get_decoded(email_msg['In-Reply-To']).strip("<>")
+            date = email.utils.parsedate_tz(msgDate)
+            timestamp = email.utils.mktime_tz(date)
             
             # Add From Contact
             msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
@@ -141,7 +204,8 @@ class neo4jLoader:
             
             # Add Email
             cypher = "MERGE (e:Email {id:{props}.id}) "
-            cypher += "SET e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, "
+            cypher += "SET e:`%d`, " % self.accountId
+            cypher +=   "e.subject={props}.subject, e.date={props}.date, e.timestamp={props}.timestamp, "
             cypher +=   "e.year={props}.year, e.month={props}.month, e.day={props}.day, "
             cypher +=   "e.link={props}.link "
             opCount += 2
@@ -157,12 +221,14 @@ class neo4jLoader:
             
             # Add From
             cypher += "MERGE (a:Contact {email:{props}.email}) "
+            cypher += "SET a:`%d` " % self.accountId
             cypher += "CREATE UNIQUE (a)-[:SENT]->(e) "
             opCount += 2
             
             # Email Thread Relation
             if msgIDParent != "None":
                 cypher += "MERGE (ePar:Email {id:{props}.parentId}) "
+                cypher += "SET ePar:`%d` " % self.accountId
                 cypher += "CREATE UNIQUE (e)-[:INREPLYTO]->(ePar) "
                 opCount += 2
             
@@ -174,7 +240,7 @@ class neo4jLoader:
                 refs.append(msgIDRef)
             if len(refs):
                 props['refs'] = refs
-                cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) CREATE UNIQUE (e)-[:REFS]->(eRef)) "
+                cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) SET eRef:`%d` CREATE UNIQUE (e)-[:REFS]->(eRef)) " % self.accountId
                 opCount += 2*len(refs)
         
             # Add TO relations
@@ -193,7 +259,7 @@ class neo4jLoader:
             if len(tos):
                 props['tos'] = tos
                 cypher += "FOREACH (to IN {tos} | "
-                cypher += "MERGE (aTo:Contact {email:to}) MERGE (e)-[:TO]->(aTo)) "
+                cypher += "MERGE (aTo:Contact {email:to}) SET aTo:`%d` MERGE (e)-[:TO]->(aTo)) " % self.accountId
                 opCount += 2*len(tos)
         
             # Add CC relations
@@ -211,7 +277,7 @@ class neo4jLoader:
                 self._collect_name(msg,msgX)
             if len(ccs):
                 props['ccs'] = ccs
-                cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Contact {email:cc}) CREATE UNIQUE (e)-[:CC]->(aCc)) "
+                cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Contact {email:cc}) SET aCc:`%d` CREATE UNIQUE (e)-[:CC]->(aCc)) " % self.accountId
                 opCount += 2*len(ccs)
             
             # Add BCC relations
@@ -229,7 +295,7 @@ class neo4jLoader:
                 self._collect_name(msg,msgX)
             if len(bccs):
                 props['bccs'] = bccs
-                cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Contact {email:bcc}) CREATE UNIQUE (e)-[:BCC]->(aBcc)) "
+                cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Contact {email:bcc}) SET aBcc:`%d` CREATE UNIQUE (e)-[:BCC]->(aBcc)) " % self.accountId
                 opCount += 2*len(bccs)
         
             self._append(cypher, props, opCount)
@@ -264,32 +330,40 @@ class neo4jLoader:
         _write_time(t1-t0)
         
         sys.stdout.write("Processing Sent Counts... ")
-        tx.append("MATCH (n:Contact)-[r:SENT]->() WITH n,count(r) AS rc SET n.sent=rc")
-        tx.append("MATCH (n:Contact) WHERE NOT (n)-[:SENT]->() SET n.sent=0")
+        cypher = "MATCH (n:Contact)-[r:SENT]->() WITH n,count(r) AS rc SET n.sent=rc"
+        tx.append(cypher)
+        cypher = "MATCH (n:Contact) WHERE NOT (n)-[:SENT]->() SET n.sent=0"
+        tx.append(cypher)
         t0 = time.time()
         tx.execute()
         t1 = time.time()
         _write_time(t1-t0)
     
         sys.stdout.write("Processing TO Counts... ")
-        tx.append("MATCH (n:Contact)<-[r:TO]-() WITH n,count(r) AS rc SET n.to=rc")
-        tx.append("MATCH (n:Contact) WHERE NOT (n)<-[:TO]-() SET n.to=0")
+        cypher = "MATCH (n:Contact)<-[r:TO]-() WITH n,count(r) AS rc SET n.to=rc"
+        tx.append(cypher)
+        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:TO]-() SET n.to=0"
+        tx.append(cypher)
         t0 = time.time()
         tx.execute()
         t1 = time.time()
         _write_time(t1-t0)
     
         sys.stdout.write("Processing CC Counts... ")
-        tx.append("MATCH (n:Contact)<-[r:CC]-() WITH n,count(r) AS rc SET n.cc=rc")
-        tx.append("MATCH (n:Contact) WHERE NOT (n)<-[:CC]-() SET n.cc=0")
+        cypher = "MATCH (n:Contact)<-[r:CC]-() WITH n,count(r) AS rc SET n.cc=rc"
+        tx.append(cypher)
+        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:CC]-() SET n.cc=0"
+        tx.append(cypher)
         t0 = time.time()
         tx.execute()
         t1 = time.time()
         _write_time(t1-t0)
     
         sys.stdout.write("Processing BCC Counts... ")
-        tx.append("MATCH (n:Contact)<-[r:BCC]-() WITH n,count(r) AS rc SET n.bcc=rc")
-        tx.append("MATCH (n:Contact) WHERE NOT (n)<-[:BCC]-() SET n.bcc=0")
+        cypher = "MATCH (n:Contact)<-[r:BCC]-() WITH n,count(r) AS rc SET n.bcc=rc"
+        tx.append(cypher)
+        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:BCC]-() SET n.bcc=0"
+        tx.append(cypher)
         t0 = time.time()
         tx.commit()
         t1 = time.time()
@@ -386,6 +460,7 @@ class neo4jLoader:
         
         cypher = "FOREACH (item in {props} | "
         cypher +=  "MERGE (a:Contact {email:item.email}) "
+        cypher +=  "SET a:`%d` " % self.accountId
         cypher +=  "MERGE (n:Name {name:item.name}) "
         cypher +=  "MERGE (a)-[r:NAME]->(n) ON CREATE SET r.count=item.count ON MATCH SET r.count=r.count+item.count) "
                  

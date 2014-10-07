@@ -2,11 +2,11 @@ import time
 from minezy_api import neo4j_conn
 
 
-def query_names(params, countResults=False):
+def query_names(account, params, countResults=False):
 
     t0 = time.time()
     
-    query_str = "MATCH (n:Name)-[r:NAME]-(c:Contact) "
+    query_str = "MATCH (n:Name)-[r:NAME]-(c:Contact{0}) "
     
     bWhere = False
     if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']) or len(params['left']) or len(params['right']):
@@ -14,32 +14,32 @@ def query_names(params, countResults=False):
         bWhere = True 
         bDid = False
         if len(params['from']):
-            query_str += "c.email IN {from} "
+            query_str += "c.email IN {{from}} "
         if len(params['to']):
             if not bDid:
                 query_str += "OR "
                 bDid = True
-            query_str += "c.email IN {to} "
+            query_str += "c.email IN {{to}} "
         if len(params['cc']):
             if not bDid:
                 query_str += "OR "
                 bDid = True
-            query_str += "c.email IN {cc} "
+            query_str += "c.email IN {{cc}} "
         if len(params['bcc']):
             if not bDid:
                 query_str += "OR "
                 bDid = True
-            query_str += "c.email IN {bcc} "
+            query_str += "c.email IN {{bcc}} "
         if len(params['left']):
             if not bDid:
                 query_str += "OR "
                 bDid = True
-            query_str += "c.email IN {left} "
+            query_str += "c.email IN {{left}} "
         if len(params['right']):
             if not bDid:
                 query_str += "OR "
                 bDid = True
-            query_str += "c.email IN {right} "
+            query_str += "c.email IN {{right}} "
         
     if params['keyword']:
         if not bWhere:
@@ -59,8 +59,14 @@ def query_names(params, countResults=False):
     if params['index'] or params['page'] > 1:
         query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
     if params['limit']:
-        query_str += " LIMIT {limit}"
+        query_str += " LIMIT {{limit}}"
     
+    # Apply this query to given account only
+    accLbl = ""
+    if account is not None:
+        accLbl = ":`%d`" % account
+    query_str = query_str.format(accLbl)
+
     if countResults:
         resp = _query_count(query_str, params)
     else:

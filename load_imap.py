@@ -54,11 +54,11 @@ def _parse_emails(loader, q):
 
 def launch_imap(loader, q):
     folders = [
-               #"INBOX",
-               #"INBOX.Sent",
-               #"INBOX.old-messages"
                "INBOX",
-               "[Gmail]/Sent Mail"
+               "INBOX.Sent",
+               "INBOX.old-messages"
+               #"INBOX",
+               #"[Gmail]/Sent Mail"
                ]
     
     threads_read = []
@@ -101,7 +101,7 @@ if __name__ == '__main__':
         exit(1)
 
     t0 = time.time()
-    loader = neo4jLoader()
+    loader = neo4jLoader(sys.argv[2], sys.argv[1]) # login is account for DB
     q = Queue.Queue(10000)
 
     threads_read, threads_parse = launch_imap(loader, q)

@@ -12,7 +12,7 @@ def accounts():
     return jsonify( { 'accounts' : resp } )
 
 
-@app.route('/1/accounts/count', methods=['GET'])
+@app.route('/1/accounts/count/', methods=['GET'])
 @support_jsonp
 def accounts_count():
     params = query_params(request)
@@ -20,11 +20,11 @@ def accounts_count():
     return jsonify( { 'accounts' : resp } )
 
 
-@app.route('/1/accounts/create/<name>', methods=['PUT', 'GET'])
+@app.route('/1/accounts/create/<account>', methods=['PUT', 'GET'])
 @support_jsonp
 def accounts_create(name):
     params = query_params(request)
-    resp = query_accounts_create(params, name)
+    resp = query_accounts_create(params, account)
     return jsonify( { 'accounts' : resp } )
 
 

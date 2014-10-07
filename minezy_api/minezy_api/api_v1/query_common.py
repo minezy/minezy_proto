@@ -138,17 +138,17 @@ def prepare_date_clause(bYear, bMonth, bDay, bNode=True, bPath=True, bWhere=True
             query_str += "WHERE ("
         
         if bYear:
-            query_str += "y.num IN {ymd}"
+            query_str += "y.num IN {{ymd}}"
             
         if bMonth:
             if bYear:
                 query_str += " OR "
-            query_str += "m.num IN {ymd}"
+            query_str += "m.num IN {{ymd}}"
             
         if bDay:
             if bYear or bMonth:
                 query_str += " OR "
-            query_str += "d.num IN {ymd}"
+            query_str += "d.num IN {{ymd}}"
             
         query_str += ") "
     

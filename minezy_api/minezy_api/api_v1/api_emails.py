@@ -5,26 +5,29 @@ from flask import jsonify, request
 
 
 @app.route('/1/emails/', methods=['GET'])
+@app.route('/1/<int:account>/emails/', methods=['GET'])
 @support_jsonp
-def emails():
+def emails(account=None):
     params = query_params(request)
-    resp = query_emails(params)
+    resp = query_emails(account, params)
     return jsonify( { 'emails' : resp } )
 
 
 @app.route('/1/emails/meta/', methods=['GET'])
+@app.route('/1/<int:account>/emails/meta/', methods=['GET'])
 @support_jsonp
-def emails_meta():
+def emails_meta(account=None):
     params = query_params(request)
-    resp = query_emails_meta(params)
+    resp = query_emails_meta(account, params)
     return jsonify( { 'emails' : resp } )
 
 
 @app.route('/1/emails/count/', methods=['GET'])
+@app.route('/1/<int:account>/emails/count/', methods=['GET'])
 @support_jsonp
-def emails_count():
+def emails_count(account=None):
     params = query_params(request)
-    resp = query_emails(params, countResults=True)
+    resp = query_emails(account, params, countResults=True)
     return jsonify( { 'emails' : resp } )
     
     

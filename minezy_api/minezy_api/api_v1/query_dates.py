@@ -3,7 +3,7 @@ from datetime import date, timedelta
 from minezy_api import neo4j_conn
 from query_common import prepare_date_range, prepare_date_clause
 
-def query_dates(params, countResults=False):
+def query_dates(account, params, countResults=False):
 
     t0 = time.time()
     
@@ -30,26 +30,26 @@ def query_dates(params, countResults=False):
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
-            query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
+            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(cR:Contact{0}) "
+            query_str += "WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
             if len(params['observer']):
-                query_str += "WITH e MATCH (e)--(cO:Contact) WHERE cO.email IN {observer} "
+                query_str += "WITH e MATCH (e)--(cO:Contact{0}) WHERE cO.email IN {{observer}} "
 
             query_str += prepare_date_clause(bYear,bMonth,bDay,bWhere=bDateWhere,prefix="WITH e MATCH ")
             
         elif len(params['left']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
+            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
-            query_str += "WHERE cL.email IN {left} "
+            query_str += "WHERE cL.email IN {{left}} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
             
         else:
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)"
+            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
-            query_str += "WHERE cR.email IN {right} "
+            query_str += "WHERE cR.email IN {{right}} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
 
@@ -81,7 +81,7 @@ def query_dates(params, countResults=False):
         if params['index'] or params['page'] > 1:
             query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
         if params['limit']:
-            query_str += " LIMIT {limit}"
+            query_str += " LIMIT {{limit}}"
         
     else:
         if bDay:
@@ -102,7 +102,7 @@ def query_dates(params, countResults=False):
         if params['index'] or params['page'] > 1:
             query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
         if params['limit']:
-            query_str += " LIMIT {limit}"
+            query_str += " LIMIT {{limit}}"
         
         query_str += " RETURN " 
         if bDay:
@@ -111,8 +111,13 @@ def query_dates(params, countResults=False):
             query_str += "(m.num)%100 as month, (m.num/100) as year"
         else:
             query_str += "y.num as year"
-        query_str += ", LENGTH((%s)<-[]-(:Email)) as count " % ymd_var
+        query_str += ", LENGTH((%s)<-[]-(:Email{0})) as count " % ymd_var
 
+    # Apply this query to given account only
+    accLbl = ""
+    if account is not None:
+        accLbl = ":`%d`" % account
+    query_str = query_str.format(accLbl)
             
     if countResults:
         resp = _query_count(query_str, params)
@@ -152,7 +157,7 @@ def query_dates(params, countResults=False):
     return resp
 
 
-def query_dates_range(params, countResults=False):
+def query_dates_range(account, params, countResults=False):
 
     t0 = time.time()
     
@@ -185,16 +190,16 @@ def query_dates_range(params, countResults=False):
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact) "
-            query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
+            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(cR:Contact{0}) "
+            query_str += "WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             
         elif len(params['left']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email) "
-            query_str += "WHERE cL.email IN {left} "
+            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0}) "
+            query_str += "WHERE cL.email IN {{left}} "
             
         else:
-            query_str = "MATCH (e:Email)-[rR:"+relR+"]-(cR:Contact) "
-            query_str += "WHERE cR.email IN {right} "
+            query_str = "MATCH (e:Email{0})-[rR:"+relR+"]-(cR:Contact{0}) "
+            query_str += "WHERE cR.email IN {{right}} "
     
         query_str += "WITH e MATCH (e)-->(d:"+ymd_label+") WITH MIN(d.num) AS dMin, MAX(d.num) AS dMax "
     
@@ -211,6 +216,12 @@ def query_dates_range(params, countResults=False):
     else:
         query_str += "dMin as year_min, "
         query_str += "dMax as year_max"
+        
+    # Apply this query to given account only
+    accLbl = ""
+    if account is not None:
+        accLbl = ":`%d`" % account
+    query_str = query_str.format(accLbl)
         
     if countResults:
         resp = _query_count(query_str, params)

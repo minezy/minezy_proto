@@ -3,7 +3,7 @@ from minezy_api import neo4j_conn
 from query_common import prepare_date_range, prepare_date_clause
 
 
-def query_contacts(params, countResults=False):
+def query_contacts(account, params, countResults=False):
 
     t0 = time.time()
 
@@ -24,19 +24,19 @@ def query_contacts(params, countResults=False):
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (cL:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(cR:Contact),(e)--(n:Contact) "
-            query_str += "WHERE cL.email IN {left} AND cR.email IN {right} "
+            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(cR:Contact{0}),(e)--(n:Contact{0}) "
+            query_str += "WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-            query_str += "AND NOT (n.email IN {right} OR n.email IN {left}) "
+            query_str += "AND NOT (n.email IN {{right}} OR n.email IN {{left}}) "
             
         elif len(params['left']):
-            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
-            query_str += "WHERE m.email IN {left} "
+            query_str = "MATCH (m:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(n:Contact{0}) "
+            query_str += "WHERE m.email IN {{left}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
         else:
-            query_str = "MATCH (m:Contact)-[rL:"+relL+"]-(e:Email)-[rR:"+relR+"]-(n:Contact) "
-            query_str += "WHERE m.email IN {right} "
+            query_str = "MATCH (m:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(n:Contact{0}) "
+            query_str += "WHERE m.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
         if len(params['ymd']):
@@ -44,14 +44,14 @@ def query_contacts(params, countResults=False):
             query_str += prepare_date_clause(bYear, bMonth, bDay)
             
     elif len(params['ymd']):
-        query_str = "MATCH (n:Contact)-[r:"+relL+"]-(e:Email)"
+        query_str = "MATCH (n:Contact{0})-[r:"+relL+"]-(e:Email{0})"
         query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False)
         
     else:
         bWith = True
         
         count = relL.split('|')
-        query_str = "MATCH (n:Contact) "
+        query_str = "MATCH (n:Contact{0}) "
         for i,cnt in enumerate(count):
             if i == 0:
                 query_str += "WITH n,"
@@ -78,8 +78,14 @@ def query_contacts(params, countResults=False):
     if params['index'] or params['page'] > 1:
         query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
     if params['limit']:
-        query_str += " LIMIT {limit}"
+        query_str += " LIMIT {{limit}}"
 
+    # Apply this query to given account only
+    accLbl = ""
+    if account is not None:
+        accLbl = ":`%d`" % account
+    query_str = query_str.format(accLbl)
+    
     if countResults:
         resp = _query_count(query_str, params)
     else:
