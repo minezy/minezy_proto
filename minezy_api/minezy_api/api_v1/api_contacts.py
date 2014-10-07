@@ -1,6 +1,6 @@
 from minezy_api import app
-from minezy_api.api_v1.api_common import support_jsonp, query_params
-from minezy_api.api_v1.query_contacts import query_contacts
+from api_common import support_jsonp, query_params
+from query_contacts import query_contacts
 from flask import jsonify, request, redirect, url_for
 
 
