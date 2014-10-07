@@ -90,6 +90,7 @@ def launch_imap(loader, q):
     return threads_read, threads_parse
 
     
+global g_bReadComplete
 g_bReadComplete = False
 
 if __name__ == '__main__':

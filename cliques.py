@@ -3,34 +3,40 @@ from py2neo import neo4j, node, rel
 import neo4j_conn
 
     
-def find_cliques(rootAddr):
-    query = neo4j.CypherQuery(neo4j_conn.g_graph,
-        "MATCH (n:Contact)-->(:Email)-->(m:Contact) "
-        "WHERE (m)-[:Sent]->() "
-#        "WHERE not n.email = '" + rootAddr + "' and not m.email = '" + rootAddr + "'  "
-#        "WHERE not n.email = '" + rootAddr + "' "
-        "WITH n, collect(distinct id(m)) as mc "
-        "RETURN id(n),mc as mc order by length(mc)"
-        )
+def find_cliques1(rootAddr):
+    query_str = "MATCH (n:Contact)-->(:Email)-[:TO]->(m:Contact) "
+    query_str += "WHERE (m)-[:SENT]->() "
+    query_str += "AND not n.email = '" + rootAddr + "' AND NOT m.email = '" + rootAddr + "'  "
+    #query_str += "WHERE not n.email = '" + rootAddr + "' "
+    query_str += "WITH n, collect(distinct id(m)) AS mc WHERE length(mc) > 2 and length(mc) < 11 "
+    query_str += "RETURN id(n),mc AS mc ORDER BY length(mc) ASC "
+    
+    tx = neo4j_conn.g_session.create_transaction()
+    tx.append(query_str)
+    results = tx.commit()
     
     cliques = []
+    merge_counts = []
     
     for record in results[0]:
         frm = int(record[0])
         tset = set(record[1])
             
         if len(tset) > 2:
-            for cset in cliques:
+            for i, cset in enumerate(cliques):
                 #if cset >= tset or tset >= cset:
                 overlap = len(cset.intersection(tset))
                 lentset = len(tset)
                 if overlap >= ((lentset+1)/2):
                     cset |= tset
+                    merge_counts[i] += 1
                     break
             else:
                 cliques.append(tset)
+                merge_counts.append(1)
 
-    return cliques
+    sorted_cliques = [x for (y,x) in sorted(zip(merge_counts,cliques), reverse=True)]
+    return sorted_cliques
 
 
 def find_cliques2(rootAddr):
@@ -124,7 +130,7 @@ if __name__ == '__main__':
     tx = neo4j_conn.g_session.create_transaction()
 
     print "Finding all cliques..."
-    cliques = find_cliques3(sys.argv[1])
+    cliques = find_cliques1(sys.argv[1])
     
     for i, cset in enumerate(cliques):
         print "Clique (" + str(i+1) + '/' + str(len(cliques)) + "): " + str(len(cset))
@@ -134,7 +140,7 @@ if __name__ == '__main__':
             
             for record in results[0]:
                 n = record[0]
-                print n['email'] + '\t\t' + str(n['name'])
+                print n['email'] + '\t\t' + unicode(n['name'])
         print
     print "All Done"
     
