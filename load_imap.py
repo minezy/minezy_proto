@@ -34,6 +34,7 @@ def loader_worker(folderName, headerQ,msgQ):
     mail = imaplib.IMAP4_SSL(sys.argv[1],port=993)
     mail.login(sys.argv[2], sys.argv[3])
 
+   
     # Out: list of "folders" aka labels in gmail.
     mail.select(folderName) # connect to inbox.
     result, data = mail.uid('search', None, "ALL")
@@ -62,16 +63,40 @@ if __name__ == '__main__':
         print "Usage: " + sys.argv[0] + " <mailhost> <login> <password>"
         exit(1)
 
-    t0 = time.time()
-    loader = neo4jLoader(sys.argv[2], sys.argv[1]) # login is account for DB
-
     imapFolders = [
                "INBOX",
                "INBOX.Sent",
-               #"INBOX.old-messages"
-               #"INBOX",
-               #"[Gmail]/Sent Mail"
+               "INBOX.old-messages",
+               "[Gmail]/Sent Mail"
                ]
+
+    # find folders matching desired above
+    try:
+        print("Logging into " + sys.argv[1] + ": " + sys.argv[2] + "...")
+        mail = imaplib.IMAP4_SSL(sys.argv[1],port=993)
+        mail.login(sys.argv[2], sys.argv[3])
+    except Exception, e:
+        print e
+        exit(1)
+        
+    folderList = []
+    mailboxes = mail.list();
+    if not mailboxes[0] == 'OK':
+        print "Error listing mailboxes: " + mailboxes[0]
+        exit(1)
+        
+    for mb in mailboxes[1]:
+        mbList = mb.split()
+        if len(mbList) >= 3:
+            folder = mbList[-1].strip('"')
+            if folder in imapFolders:
+                folderList.append(folder)
+    if len(folderList) == 0:
+        print "No matching IMAP Folders found"
+        exit(1)
+        
+    t0 = time.time()
+    loader = neo4jLoader(sys.argv[2], sys.argv[1]) # login is account for DB
 
     numProcs = 4
     
@@ -84,7 +109,7 @@ if __name__ == '__main__':
         loaderProcs = []
         parserProcs = []
 
-        for folderName in imapFolders:
+        for folderName in folderList:
             p = multiprocessing.Process(target=loader_worker, args=(folderName,headerQ,msgQ))
             loaderProcs.append(p)
             p.start()
