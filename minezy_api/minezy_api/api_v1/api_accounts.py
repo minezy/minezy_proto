@@ -1,6 +1,6 @@
 from minezy_api import app
 from api_common import support_jsonp, query_params
-from query_accounts import query_accounts, query_accounts_create
+from query_accounts import query_accounts, query_accounts_create, query_accounts_delete
 from flask import jsonify, request
 
 
@@ -22,15 +22,15 @@ def accounts_count():
 
 @app.route('/1/accounts/create/<account>', methods=['PUT', 'GET'])
 @support_jsonp
-def accounts_create(name):
+def accounts_create(account):
     params = query_params(request)
     resp = query_accounts_create(params, account)
     return jsonify( { 'accounts' : resp } )
 
 
-@app.route('/1/accounts/delete/<id>', methods=['PUT', 'GET'])
+@app.route('/1/accounts/delete/<int:accountId>', methods=['PUT', 'GET'])
 @support_jsonp
-def accounts_delete(id):
+def accounts_delete(accountId):
     params = query_params(request)
-    resp = query_accounts_delete(params, id)
+    resp = query_accounts_delete(params, accountId)
     return jsonify( { 'accounts' : resp } )
