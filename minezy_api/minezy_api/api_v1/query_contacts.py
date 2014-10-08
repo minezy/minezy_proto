@@ -20,6 +20,7 @@ def query_contacts(account, params, countResults=False):
     params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
 
     bWith = False
+    bWhere = True
     query_str = ''
     if len(params['left']) or len(params['right']):
         
@@ -48,27 +49,32 @@ def query_contacts(account, params, countResults=False):
         query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False)
         
     else:
-        bWith = True
-        
-        count = relL.split('|')
-        query_str = "MATCH (n:Contact{0}) "
-        for i,cnt in enumerate(count):
-            if i == 0:
-                query_str += "WITH n,"
-            else:
-                query_str += "+"
-            if cnt == 'SENT':
-                query_str += "n.sent"
-            elif cnt == 'TO':
-                query_str += "n.to"
-            elif cnt == 'CC':
-                query_str += "n.cc"
-            elif cnt == 'BCC':
-                query_str += "n.bcc"
-        query_str += " AS count WHERE count > 0 "
+        bWith = False
+        bWhere = False
+        query_str = "MATCH (n:Contact{0})-[r:"+relL+"]-(e:Email{0}) "
+        #count = relL.split('|')
+        #query_str = "MATCH (n:Contact{0}) "
+        #for i,cnt in enumerate(count):
+        #    if i == 0:
+        #        query_str += "WITH n,"
+        #    else:
+        #        query_str += "+"
+        #    if cnt == 'SENT':
+        #        query_str += "n.sent"
+        #    elif cnt == 'TO':
+        #        query_str += "n.to"
+        #    elif cnt == 'CC':
+        #        query_str += "n.cc"
+        #    elif cnt == 'BCC':
+        #        query_str += "n.bcc"
+        #query_str += " AS count WHERE count > 0 "
 
     if params['keyword']:
-        query_str += "AND n.name =~ '(?i).*"+params['keyword']+".*' "
+        if not bWhere:
+            query_str += "WHERE "
+        else:
+            query_str += "AND "
+        query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
 
     if not bWith:
         query_str += "WITH n,count(distinct(e)) as count "
