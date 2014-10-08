@@ -25,9 +25,11 @@ App.Column = ( function($,document,window, U) {
 		this.maxTime = options.maxTime;
 		this.page = 1;
 		this.scrollPos= 0;
+		this.account = 0;
 
 		this.setupColumn();
-		this.API.getData(this.action, this.params, $.proxy(this.receivedData,this) );
+
+		this.API.getData(this.account,this.action, this.params, $.proxy(this.receivedData,this) );
 
 
 	}

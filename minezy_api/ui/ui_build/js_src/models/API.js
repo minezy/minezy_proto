@@ -8,12 +8,15 @@ App.API = ( function($,document,window, U) {
 		this.api_root = 'http://localhost:5000';
 		this.api_version = 1;
 		this.current_call = null;
+		this.account = null;
 
 	}
 
 	API.prototype = {
 
-		getData: function(action,params,callback) {
+		getData: function(id,action,params,callback) {
+
+			this.account = id;
 
 			if(this.current_call) {
 				this.current_call.abort();
@@ -33,8 +36,13 @@ App.API = ( function($,document,window, U) {
 		},
 
 		constructURL: function(action,params) {
-
-			var url = this.api_root + '/' + this.api_version + '/' + action + '/';
+			var account = '';
+			
+			if( this.account ) {
+				account = this.account + '/';
+			}
+console.log(account,action);
+			var url = this.api_root + '/' + this.api_version + '/' + account + action + '/';
 
 			/*if( typeof subaction !== "string" ) {
 				params = subaction;

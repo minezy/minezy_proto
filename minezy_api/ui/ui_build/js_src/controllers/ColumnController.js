@@ -3,7 +3,7 @@
 App.ColumnController = ( function($,document,window, U) {
 
 
-	function ColumnController() {
+	function ColumnController(account_id) {
 		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
@@ -13,6 +13,7 @@ App.ColumnController = ( function($,document,window, U) {
 		this.path = ['root'];
 		this.at = new App.ActionTree();
 		this.dateSettings = {};
+		this.account = account_id;
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
@@ -53,7 +54,8 @@ App.ColumnController = ( function($,document,window, U) {
 				'columnActions':ops,
 				'nodeName':ops[0],
 				'maxTime': this.dateSettings.maxTime,
-				'minTime': this.dateSettings.minTime
+				'minTime': this.dateSettings.minTime,
+				'account': this.account
 			});
 
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );

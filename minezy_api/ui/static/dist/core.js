@@ -215,9 +215,11 @@ App.Column = ( function($,document,window, U) {
 		this.maxTime = options.maxTime;
 		this.page = 1;
 		this.scrollPos= 0;
+		this.account = 0;
 
 		this.setupColumn();
-		this.API.getData(this.action, this.params, $.proxy(this.receivedData,this) );
+
+		this.API.getData(this.account,this.action, this.params, $.proxy(this.receivedData,this) );
 
 
 	}
@@ -804,7 +806,7 @@ App.Column = ( function($,document,window, U) {
 App.ColumnController = ( function($,document,window, U) {
 
 
-	function ColumnController() {
+	function ColumnController(account_id) {
 		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
@@ -814,6 +816,7 @@ App.ColumnController = ( function($,document,window, U) {
 		this.path = ['root'];
 		this.at = new App.ActionTree();
 		this.dateSettings = {};
+		this.account = account_id;
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
@@ -854,7 +857,8 @@ App.ColumnController = ( function($,document,window, U) {
 				'columnActions':ops,
 				'nodeName':ops[0],
 				'maxTime': this.dateSettings.maxTime,
-				'minTime': this.dateSettings.minTime
+				'minTime': this.dateSettings.minTime,
+				'account': this.account
 			});
 
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
@@ -1215,6 +1219,9 @@ App.MinezyController = ( function($,document,window, U) {
 	function MinezyController(options) {
 		console.log('MINEZY INIT');
 
+		this.accounts = {};
+		this.account = undefined;
+
 		//init page based on size
 		$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
 		$(window).resize( $.proxy( this.handleResize, this ) );
@@ -1227,9 +1234,8 @@ App.MinezyController = ( function($,document,window, U) {
 
 		this.dateSettings = {};
 		this.API = new App.API();
-		this.colManager = new App.ColumnController();
 
-		this.API.getData('dates/range', {}, $.proxy(this.getDateRange,this) );
+		this.API.getData(0, 'accounts', {}, $.proxy(this.getAccounts,this) );
 
 		$('.account .button').on('click',$.proxy(this.showSettings,this) );
 
@@ -1237,6 +1243,22 @@ App.MinezyController = ( function($,document,window, U) {
 	}
 
 	MinezyController.prototype = {
+
+		initAccounts: function() {
+
+			$('#account_id').empty();
+
+			for(var i =0; i < this.accounts.length; i++ ) {
+				var selected  = '';
+
+				if( this.account != this.accounts[i].id )
+					selected = ' selected';
+
+				$('#account_id').append('<option value="'+this.accounts[i].id+'" '+selected+'>'+this.accounts[i].account+'</option>');
+			}
+
+
+		},
 
 		showSettings: function(e) {
 
@@ -1248,17 +1270,52 @@ App.MinezyController = ( function($,document,window, U) {
 			},this), 100);
 
 			$('section.admin .closeButton,section.admin .button.cancel').on('click',$.proxy(this.hideSettings,this) );
+			$('section.admin .button.ok').on('click',$.proxy(this.saveSettings,this) );
 		},
 
 		hideSettings: function() {
 
 			$('section.admin .closeButton,section.admin .button.cancel').off('click');
+			$('section.admin .button.ok').off('click');
 
 			$('section.admin').addClass('hide');
 
 			setTimeout( $.proxy(function(){
 				$('.siteOverlay').fadeOut(500);
 			},this),300);
+
+		},
+
+		saveSettings: function() {
+
+			this.account = $('#account_id').val();
+			$.cookie('account', this.account, { expires: 365, path: '/' });
+
+			this.hideSettings();
+			this.loadAccount();
+
+		},
+
+		getAccounts: function(data) {
+
+			this.accounts = data.accounts.account;
+
+			if( !$.cookie('account') ) {
+				this.showSettings();
+			} else {
+				this.account = $.cookie('account');
+				this.loadAccount();
+			}
+
+			this.initAccounts();
+
+		},
+
+		loadAccount: function() {
+
+			this.colManager = new App.ColumnController(this.account);
+
+			this.API.getData(this.account, 'dates/range', {}, $.proxy(this.getDateRange,this) );
 
 		},
 
@@ -1388,12 +1445,15 @@ App.API = ( function($,document,window, U) {
 		this.api_root = 'http://localhost:5000';
 		this.api_version = 1;
 		this.current_call = null;
+		this.account = null;
 
 	}
 
 	API.prototype = {
 
-		getData: function(action,params,callback) {
+		getData: function(id,action,params,callback) {
+
+			this.account = id;
 
 			if(this.current_call) {
 				this.current_call.abort();
@@ -1413,8 +1473,13 @@ App.API = ( function($,document,window, U) {
 		},
 
 		constructURL: function(action,params) {
-
-			var url = this.api_root + '/' + this.api_version + '/' + action + '/';
+			var account = '';
+			
+			if( this.account ) {
+				account = this.account + '/';
+			}
+console.log(account,action);
+			var url = this.api_root + '/' + this.api_version + '/' + account + action + '/';
 
 			/*if( typeof subaction !== "string" ) {
 				params = subaction;

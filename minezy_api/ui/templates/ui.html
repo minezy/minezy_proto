@@ -11,6 +11,7 @@
 	<link rel="stylesheet" href="/static/font-awesome-4.2.0/css/font-awesome.min.css">
 	<link rel="shortcut icon" href="/static/images/favicon.ico?v=2" type="image/x-icon">
 	<script type="text/javascript" src="/static/js_lib/jquery-1.11.1.min.js"></script>
+	<script type="text/javascript" src="/static/js_lib/jquery.cookie.js"></script>
 </head>
 
 <body>
@@ -42,9 +43,7 @@
 
 				<div class="dbSelect field">
 					<label>Select Database:</label>
-					<select class="databases">
-						<option value="db1">Matt@WeAregrand.com</option>
-						<option value="db2">Enron</option>
+					<select class="databases" id="account_id">
 					</select>
 				</div>
 

@@ -66,11 +66,11 @@ if __name__ == '__main__':
     loader = neo4jLoader(sys.argv[2], sys.argv[1]) # login is account for DB
 
     imapFolders = [
-               "INBOX",
-               "INBOX.Sent",
-               "INBOX.old-messages"
                #"INBOX",
-               #"[Gmail]/Sent Mail"
+               #"INBOX.Sent",
+               #"INBOX.old-messages"
+               "INBOX",
+               "[Gmail]/Sent Mail"
                ]
 
     numProcs = 4
