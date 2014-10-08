@@ -578,7 +578,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 
-			this.API.getData(this.action, this.params, $.proxy(this.receivedData,this) );
+			this.API.getData(this.account, this.action, this.params, $.proxy(this.receivedData,this) );
 
 		},
 
