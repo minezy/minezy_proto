@@ -12,6 +12,7 @@ def loader_worker(fileQ, loaderQ):
         while True:
             fileName = fileQ.get()
             if fileName is None:
+                fileQ.task_done()
                 break
             
             rootLen = len(sys.argv[1])
@@ -32,6 +33,7 @@ def loader_worker(fileQ, loaderQ):
                         "vcalendar - skip"
                     else:
                         loaderQ.put( (email_msg, eFile) )
+                        
             fileQ.task_done()
             
     except Exception, e:
@@ -50,16 +52,22 @@ def traverse_dir(folder):
 
 
 if __name__ == '__main__':
-    "Usage: [dir] [dir] ..."
+    if len(sys.argv) != 3:
+        print "Usage: " + sys.argv[0] + " <depot_dir> <depot_name>"
+        exit(1)
+    
     t0 = time.time()
-    loader = neo4jLoader()
+    
+    account = sys.argv[1].replace("\\", "/").replace("//", "/")
+    name = sys.argv[2]
+    loader = neo4jLoader(account, name)
     
     numProcs = 8
     
     if len(sys.argv) > 1:
         # using multiprocessing and generator 'traverse_dir' to speed things up
         fileQ = multiprocessing.JoinableQueue(1000)
-        loaderQ = multiprocessing.JoinableQueue(1000*numProcs)
+        loaderQ = multiprocessing.Queue(1000*numProcs)
         
         procs = []
         for i in range(numProcs):
@@ -75,26 +83,22 @@ if __name__ == '__main__':
                     while True:
                         item = loaderQ.get_nowait()
                         loader.add(item[0], item[1])
-                        loaderQ.task_done()
                 except Exception,e:
                     pass
             
         for i in range(len(procs)):
             fileQ.put(None)
         fileQ.join()
-        for p in procs:
-            p.join()
+        #for p in procs:
+        #    p.join()
 
         try:
             while True:
                 item = loaderQ.get_nowait()
-                loader.add(item)
-                loaderQ.task_done()
+                loader.add(item[0], item[1])
         except Exception,e:
             pass
 
-        loaderQ.join()
-        
 
     loader.complete()
     t1 = time.time()

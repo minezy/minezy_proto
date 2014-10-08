@@ -34,7 +34,7 @@ class neo4jLoader:
     def _get_account_id(self, account, name):
         tx = self.session.create_transaction()
         
-        cypher = "MATCH (a:Account) WHERE a.account = '%s' RETURN a.id" % account
+        cypher = "MATCH (a:Account) WHERE a.account = '{0}' RETURN a.id".format(account)
         tx.append(cypher)
         results = tx.execute()
         
@@ -43,6 +43,7 @@ class neo4jLoader:
         for record in results[0]:
             if record[0] is not None:
                 accountId = int(record[0])
+                break
                 
         if accountId is None:
             accountId = self._create_account_id(account, name)
@@ -72,8 +73,6 @@ class neo4jLoader:
                  }
         
         cypher = "MERGE (a:Account {id:{props}.id}) SET a={props}"
-        print cypher
-        
         tx.append(cypher, { 'props': props } )
         results = tx.commit()
                     

@@ -3,12 +3,37 @@ import sys
 import time
 import imaplib
 import email
-import threading
-import Queue
+import multiprocessing
 from neo4j_loader import neo4jLoader
 
 
-def _imap_load_folder(mail, folderName, loader, q):
+def parser_worker(headerQ, loaderQ):
+    try:
+        while True:
+            header = headerQ.get()
+            if header is None:
+                headerQ.task_done()
+                break
+
+            if type(header) == tuple:
+                raw_hdr = header[1]
+                email_msg = email.message_from_string(raw_hdr)
+                loaderQ.put( (email_msg, header[0]) )
+            
+            headerQ.task_done()
+            
+    except Exception, e:
+        print e
+        pass
+
+    return
+
+
+def loader_worker(folderName, headerQ,msgQ):
+    msgQ.put("Logging into " + sys.argv[1] + ": " + sys.argv[2] + "...")
+    mail = imaplib.IMAP4_SSL(sys.argv[1],port=993)
+    mail.login(sys.argv[2], sys.argv[3])
+
     # Out: list of "folders" aka labels in gmail.
     mail.select(folderName) # connect to inbox.
     result, data = mail.uid('search', None, "ALL")
@@ -24,98 +49,85 @@ def _imap_load_folder(mail, folderName, loader, q):
          
         for header in headers:
             if type(header) == tuple:
-                q.put(header)
+                headerQ.put(header)
                 count += 1
             
-        loader.msg(folderName + ": " + str(count) + " of " + str(len(id_list)))
+        msgQ.put(folderName + ": " + str(count) + " of " + str(len(id_list)))
         
     return
 
-
-def _parse_emails(loader, q):
-    global g_bReadComplete
-    
-    try:
-        while not (g_bReadComplete and q.empty()):
-            header = q.get()
-            
-            if type(header) == tuple:
-                raw_hdr = header[1]
-                email_message = email.message_from_string(raw_hdr)
-                loader.add(email_message)
-                
-            q.task_done()
-        
-    except Exception, e:
-        print e
-        pass
-    return
-
-
-def launch_imap(loader, q):
-    folders = [
-               "INBOX",
-               "INBOX.Sent",
-               "INBOX.old-messages"
-               #"INBOX",
-               #"[Gmail]/Sent Mail"
-               ]
-    
-    threads_read = []
-    threads_parse = []
-    
-    # imap reading threads
-    for folder in folders:
-        try:
-            print("Logging into " + sys.argv[1] + ": " + sys.argv[2] + "...")
-            mail = imaplib.IMAP4_SSL(sys.argv[1],port=993)
-            print("Connected. Sending login...")
-            mail.login(sys.argv[2], sys.argv[3])
-            
-            t = threading.Thread(target=_imap_load_folder, args=(mail, folder, loader, q))
-            threads_read.append(t)
-        except:
-            break
-        
-    # email parsing threads
-    for i in range(4):
-        t = threading.Thread(target=_parse_emails, args=(loader, q))
-        threads_parse.append(t)
-        
-    for t in threads_read:
-        t.start()
-    for t in threads_parse:
-        t.start()
-                
-    return threads_read, threads_parse
-
-    
-global g_bReadComplete
-g_bReadComplete = False
 
 if __name__ == '__main__':
-    global g_bReadComplete
-    
     if len(sys.argv) != 4:
         print "Usage: " + sys.argv[0] + " <mailhost> <login> <password>"
         exit(1)
 
     t0 = time.time()
     loader = neo4jLoader(sys.argv[2], sys.argv[1]) # login is account for DB
-    q = Queue.Queue(10000)
 
-    threads_read, threads_parse = launch_imap(loader, q)
-    for thread in threads_read:
-        thread.join()
+    imapFolders = [
+               "INBOX",
+               "INBOX.Sent",
+               "INBOX.old-messages"
+               #"INBOX",
+               #"[Gmail]/Sent Mail"
+               ]
 
-    g_bReadComplete = True
+    numProcs = 4
     
-    for thread in threads_parse:
-        thread.join()
+    if len(sys.argv) > 1:
+        # using multiprocessing and generator 'traverse_dir' to speed things up
+        msgQ = multiprocessing.Queue(100)
+        headerQ = multiprocessing.JoinableQueue(1000)
+        loaderQ = multiprocessing.JoinableQueue(1000*numProcs)
+        
+        loaderProcs = []
+        parserProcs = []
+
+        for folderName in imapFolders:
+            p = multiprocessing.Process(target=loader_worker, args=(folderName,headerQ,msgQ))
+            loaderProcs.append(p)
+            p.start()
             
+        for i in range(numProcs):
+            p = multiprocessing.Process(target=parser_worker, args=(headerQ,loaderQ))
+            parserProcs.append(p)
+            p.start()
+        
+        while any([p.is_alive() for p in loaderProcs]):
+            try:
+                while True:
+                    try:
+                        msg = msgQ.get_nowait()
+                        loader.msg(msg)
+                    except:
+                        pass
+                    
+                    item = loaderQ.get_nowait()
+                    loader.add(item[0], item[1])
+                    loaderQ.task_done()
+            except:
+                pass
+                
+        for p in loaderProcs:                
+            p.join()
+            
+        for i in range(len(parserProcs)):
+            headerQ.put(None)
+        headerQ.join()
+
+        try:
+            while True:
+                item = loaderQ.get_nowait()
+                loader.add(item)
+                loaderQ.task_done()
+        except Exception,e:
+            pass
+
+        loaderQ.join()
+
     loader.complete()
     t1 = time.time()
     
     print "All Done ("+str(t1-t0) + " seconds)"
-
-   
+    
