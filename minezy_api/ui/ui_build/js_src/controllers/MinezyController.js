@@ -102,7 +102,7 @@ App.MinezyController = ( function($,document,window, U) {
 
 			this.colManager = new App.ColumnController(this.account);
 
-			this.API.getData(this.account, 'dates/range', {}, $.proxy(this.getDateRange,this) );
+			this.API.getData( this.account, 'dates/range', {}, $.proxy(this.getDateRange,this) );
 
 		},
 

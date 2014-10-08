@@ -215,7 +215,7 @@ App.Column = ( function($,document,window, U) {
 		this.maxTime = options.maxTime;
 		this.page = 1;
 		this.scrollPos= 0;
-		this.account = 0;
+		this.account = options.account;
 
 		this.setupColumn();
 
@@ -1315,7 +1315,7 @@ App.MinezyController = ( function($,document,window, U) {
 
 			this.colManager = new App.ColumnController(this.account);
 
-			this.API.getData(this.account, 'dates/range', {}, $.proxy(this.getDateRange,this) );
+			this.API.getData( this.account, 'dates/range', {}, $.proxy(this.getDateRange,this) );
 
 		},
 
@@ -1445,15 +1445,12 @@ App.API = ( function($,document,window, U) {
 		this.api_root = 'http://localhost:5000';
 		this.api_version = 1;
 		this.current_call = null;
-		this.account = null;
 
 	}
 
 	API.prototype = {
 
 		getData: function(id,action,params,callback) {
-
-			this.account = id;
 
 			if(this.current_call) {
 				this.current_call.abort();
@@ -1462,7 +1459,7 @@ App.API = ( function($,document,window, U) {
 
 			this.current_call = $.ajax({
 				type: "GET",
-				url: this.constructURL(action,params),
+				url: this.constructURL(id,action,params),
 				data: params,
 				dataType: "json"
 			})
@@ -1472,15 +1469,15 @@ App.API = ( function($,document,window, U) {
 
 		},
 
-		constructURL: function(action,params) {
+		constructURL: function(id,action,params) {
 			var account = '';
 			
-			if( this.account ) {
-				account = this.account + '/';
+			if( id ) {
+				account = id + '/';
 			}
-console.log(account,action);
+console.log(id,account,action);
 			var url = this.api_root + '/' + this.api_version + '/' + account + action + '/';
-
+console.log(url);
 			/*if( typeof subaction !== "string" ) {
 				params = subaction;
 			} else {
