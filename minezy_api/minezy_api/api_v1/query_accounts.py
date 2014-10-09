@@ -131,3 +131,4 @@ def query_accounts_delete(params, id):
     t1 = time.time()
     resp['_query_time'] = t1-t0
     return resp;
+

@@ -27,9 +27,9 @@ def query_emails(account, params, countResults=False):
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(cR:Contact{0})"
+            query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact)"
             if len(params['observer']):
-                query_str += ",(e)--(cO:Contact{0})"
+                query_str += ",(e)--(cO:{0}Contact)"
             query_str += " WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             if len(params['observer']):
@@ -38,13 +38,13 @@ def query_emails(account, params, countResults=False):
                 query_str += prepare_date_clause(bYear, bMonth, bDay, prefix="WITH e MATCH ")
             
         elif len(params['left']):
-            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})"
+            query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)"
             query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {{left}} "
             query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
             
         else:
-            query_str = "MATCH (e:Email{0})-[rR:"+relR+"]-(cR:Contact{0})"
+            query_str = "MATCH (e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact)"
             query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
             query_str += "WHERE cR.email IN {{right}} "
             query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
@@ -52,10 +52,10 @@ def query_emails(account, params, countResults=False):
     else:
         bWhere = False
         if len(params['ymd']):
-            query_str = "MATCH (e:Email{0}),"
+            query_str = "MATCH (e:{0}Email),"
             query_str += prepare_date_clause(bYear, bMonth, bDay)
         else:
-            query_str = "MATCH (e:Email{0}) "
+            query_str = "MATCH (e:{0}Email) "
         
     if params['keyword']:
         if not bWhere:
@@ -74,7 +74,7 @@ def query_emails(account, params, countResults=False):
     # Apply this query to given account only
     accLbl = ""
     if account is not None:
-        accLbl = ":`%d`" % account
+        accLbl = "`%d`:" % account
     query_str = query_str.format(accLbl)
 
     if countResults:
@@ -122,12 +122,12 @@ def query_emails_meta(account, params):
 
     t0 = time.time()
     
-    query_str = "MATCH (e:Email{0})-[r]-(n) WHERE e.id={{id}} WITH e,r,n ORDER BY n.name RETURN e,type(r),collect(n)"
+    query_str = "MATCH (e:{0}Email)-[r]-(n) WHERE e.id={{id}} WITH e,r,n ORDER BY n.name RETURN e,type(r),collect(n)"
 
     # Apply this query to given account only
     accLbl = ""
     if account is not None:
-        accLbl = ":`%d`" % account
+        accLbl = "`%d`:" % account
     query_str = query_str.format(accLbl)
 
     print query_str

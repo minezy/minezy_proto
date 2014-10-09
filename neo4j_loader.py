@@ -213,6 +213,9 @@ class neo4jLoader:
             cypher += "MERGE (y:Year {num:{props}.year}) "
             cypher += "MERGE (m:Month {num:{props}.ym}) "
             cypher += "MERGE (d:Day {num:{props}.ymd}) "
+            cypher += "SET y:`%d`, " % self.accountId
+            cypher += "SET m:`%d`, " % self.accountId
+            cypher += "SET d:`%d`, " % self.accountId
             cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
             cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
             cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "

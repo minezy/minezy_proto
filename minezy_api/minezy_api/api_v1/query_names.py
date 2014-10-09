@@ -6,7 +6,7 @@ def query_names(account, params, countResults=False):
 
     t0 = time.time()
     
-    query_str = "MATCH (n:Name)-[r:NAME]-(c:Contact{0}) "
+    query_str = "MATCH (n:Name)-[r:NAME]-(c:{0}Contact) "
     
     bWhere = False
     if len(params['from']) or len(params['to']) or len(params['cc']) or len(params['bcc']) or len(params['left']) or len(params['right']):
@@ -64,7 +64,7 @@ def query_names(account, params, countResults=False):
     # Apply this query to given account only
     accLbl = ""
     if account is not None:
-        accLbl = ":`%d`" % account
+        accLbl = "`%d`:" % account
     query_str = query_str.format(accLbl)
 
     if countResults:

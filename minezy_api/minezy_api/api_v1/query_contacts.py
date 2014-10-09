@@ -25,18 +25,18 @@ def query_contacts(account, params, countResults=False):
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (cL:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(cR:Contact{0}),(e)--(n:Contact{0}) "
+            query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact),(e)--(n:{0}Contact) "
             query_str += "WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             query_str += "AND NOT (n.email IN {{right}} OR n.email IN {{left}}) "
             
         elif len(params['left']):
-            query_str = "MATCH (m:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(n:Contact{0}) "
+            query_str = "MATCH (m:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(n:{0}Contact) "
             query_str += "WHERE m.email IN {{left}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
         else:
-            query_str = "MATCH (m:Contact{0})-[rL:"+relL+"]-(e:Email{0})-[rR:"+relR+"]-(n:Contact{0}) "
+            query_str = "MATCH (m:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(n:{0}Contact) "
             query_str += "WHERE m.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             
@@ -45,15 +45,15 @@ def query_contacts(account, params, countResults=False):
             query_str += prepare_date_clause(bYear, bMonth, bDay)
             
     elif len(params['ymd']):
-        query_str = "MATCH (n:Contact{0})-[r:"+relL+"]-(e:Email{0})"
+        query_str = "MATCH (n:{0}Contact)-[r:"+relL+"]-(e:{0}Email)"
         query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False)
         
     else:
         bWith = False
         bWhere = False
-        query_str = "MATCH (n:Contact{0})-[r:"+relL+"]-(e:Email{0}) "
+        query_str = "MATCH (n:{0}Contact)-[r:"+relL+"]-(e:{0}Email) "
         #count = relL.split('|')
-        #query_str = "MATCH (n:Contact{0}) "
+        #query_str = "MATCH (n:{0}Contact) "
         #for i,cnt in enumerate(count):
         #    if i == 0:
         #        query_str += "WITH n,"
@@ -89,7 +89,7 @@ def query_contacts(account, params, countResults=False):
     # Apply this query to given account only
     accLbl = ""
     if account is not None:
-        accLbl = ":`%d`" % account
+        accLbl = "`%d`:" % account
     query_str = query_str.format(accLbl)
     
     if countResults:
