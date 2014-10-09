@@ -1,21 +1,20 @@
 minezy_proto
 ============
 
-load_db.py      
-- run script to load IMAP account data into running Neo4j
+To run Minezy:
 
-web_api.py 
-- launch this script to start a local web server. Point your browser to the URL displayed to view.
+First install Neo4j database http://www.neo4j.org/ (v2.0+)<br>
+Start Neo4j and have it running at localhost:7474<br>
+Then under ./minezy_api/ launch:
 
-contact_info.py 
-- run script to view info for a given email address from Neo4j
+<b>python ./run_ui.py<br>
+python ./run_server.py</b><br>
+(ensure Flask is installed)
 
-contact_list.py 
-- run script to list emails from Neo4j
+Open browser to: localhost:8080/
+You should see the Minezy title page, but there won't be anything to navigate until you load Neo4j with email data.
+Do that by running:
 
-query_1.py 
-query_3.py 
-- runnable scripts that output neat stuff from Neo4j     
+<b>python ./load_imap.py <mail host> <email account> <password></b>
 
-get_mailboxes.py
-- run script to get a listing of your gMail folders.
+Once complete, reload localhost:8080/ and start minezying.
