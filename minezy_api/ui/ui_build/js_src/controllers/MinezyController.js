@@ -100,6 +100,11 @@ App.MinezyController = ( function($,document,window, U) {
 
 		loadAccount: function() {
 
+			if( this.colManager ) {
+				this.colManager.destroy();
+				delete this.colManager;
+			}
+
 			this.colManager = new App.ColumnController(this.account);
 
 			this.API.getData( this.account, 'dates/range', {}, $.proxy(this.getDateRange,this) );

@@ -705,7 +705,7 @@ section.columnContainer {
     padding: 20px 0px; }
     section.columnContainer div.results div.resultContainer {
       position: relative;
-      height: 30px;
+      height: 36px;
       margin-top: 1px;
       cursor: pointer;
       color: #646464; }
@@ -726,7 +726,7 @@ section.columnContainer {
         opacity: 0.3; }
       section.columnContainer div.results div.resultContainer .title {
         font-size: 12px;
-        line-height: 30px;
+        line-height: 36px;
         padding: 0 30px;
         color: #646464;
         position: relative;
@@ -734,6 +734,8 @@ section.columnContainer {
         width: 245px;
         overflow: hidden;
         white-space: nowrap; }
+        section.columnContainer div.results div.resultContainer .title i {
+          padding-right: 6px; }
       section.columnContainer div.results div.resultContainer .bar {
         position: absolute;
         left: 20px;
@@ -749,7 +751,7 @@ section.columnContainer {
         text-align: right;
         font-size: 14px;
         color: #646464;
-        line-height: 30px;
+        line-height: 36px;
         z-index: 3; }
       section.columnContainer div.results div.resultContainer .arrow {
         position: absolute;

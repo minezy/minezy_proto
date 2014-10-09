@@ -332,10 +332,13 @@ App.Column = ( function($,document,window, U) {
 					$( this.colName + ' .additionalOptions').empty();
 					$( this.colName + ' .additionalOptions').append(options);
 
-					$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
-					$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
+					$( this.colName + ' .start_date_year').on('change',$.proxy( this.searchColumn, this ) );
+
+					//$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
+					//$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
 				} else {
 					$( this.colName + ' .additionalOptions').empty();
+					$( this.colName + ' .start_date_year').off('change');
 				}
 
 			} else if( val === 'cliques' ) {
@@ -403,6 +406,8 @@ App.Column = ( function($,document,window, U) {
 				if( params.rel == 'any' )
 					delete params.rel;
 
+				params.order = 'desc';
+
 			} else if( this.action == 'emails' ) {
 
 				keyword = $( this.colName + ' .additionalOptions .keyword').val();
@@ -413,7 +418,7 @@ App.Column = ( function($,document,window, U) {
 					delete params.keyword;
 				}
 
-				params.order = 'desc';
+				params.order = 'asc';
 
 			} else if( this.action == 'dates' ) {
 
@@ -423,36 +428,46 @@ App.Column = ( function($,document,window, U) {
 
 				if( !opParam[1] ) {
 					var sy = $( this.colName + ' .start_date_year').val();
-					var sm = $( this.colName + ' .start_date_month').val();
+					/*var sm = $( this.colName + ' .start_date_month').val();
 					var ey = $( this.colName + ' .end_date_year').val();
 					var em = $( this.colName + ' .end_date_month').val();
+					var sd,ed;
 
-					if( !sm )
-						sm = 1;
+					if( sm !== '' && sy !== '' ) {
+						sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
 
-					var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
-					var ed = new Date(ey, em, 0, 0, 0, 0, 0);
+						if( sd.getTime() < 0){
+							sd.setTime(0);
+						}
 
-					console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
-
-					if( sd.getTime() < 0){
-						sd.setTime(0);
+						params.start = sd.getTime()/1000;
 					}
 
-					console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
 
-					params.start = sd.getTime()/1000;
-					params.end = ed.getTime()/1000;
+					if( em !== '' && ey !== '' ) {
+						ed = new Date(ey, em, 0, 0, 0, 0, 0);
+
+						params.end = ed.getTime()/1000;
+					}*/
+
+					if( sy !== '' ) {
+						sd = new Date(sy, 0, 1, 0, 0, 0, 0);
+
+						params.year = sy;
+					} else {
+						delete params.year;
+					}
+
+
 					params.count = 'MONTH';
 				} else {
+					params.order = 'asc';
 					params.start = this.params.start;
 					params.end = this.params.end;
 					params.count = opParam[1];
 				}
 
 			} else if( this.action == 'observers' ) {
-
-			} else if( this.action == 'cliques' ) {
 
 			}
 
@@ -650,6 +665,7 @@ App.Column = ( function($,document,window, U) {
 			delete new_params.keyword;
 			delete new_params.count;
 			delete new_params.page;
+			delete new_params.order;
 
 			if( action === 'contacts' ) {
 
@@ -689,13 +705,14 @@ App.Column = ( function($,document,window, U) {
 				new_params.count = 'month';
 
 				if( lock == 'day' ) {
+					new_params.order = 'asc';
 					new_params.count = 'day';
 					lock = '';
 				}
 
 			} else if( action === 'emails' ) {
 
-				new_params.order = 'desc';
+				new_params.order = 'asc';
 
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
@@ -718,9 +735,7 @@ App.Column = ( function($,document,window, U) {
 
 			} else if( this.action == 'observers' ) {
 
-			} else if( this.action == 'cliques' ) {
-
-			}
+			} 
 
 
 
@@ -764,7 +779,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			if( action == 'emails/meta') {
-				this.clearData();	
+				this.clearData();
 			}
 
 
@@ -835,7 +850,7 @@ App.ColumnController = ( function($,document,window, U) {
 			var ed = new Date(dateSettings.maxTime);
 
 			$('.optionContainer.dates .year').empty();
-			$('.optionContainer.dates .year').append('<option value="--">--</option>');
+			$('.optionContainer.dates .year').append('<option value=""></option>');
 			for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
 				$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
 			}
@@ -1034,7 +1049,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 		destroy: function() {
 			//do any clean up when destroying the section
-			
+			this.removeColumns(0);
 		}
 
 	};
@@ -1080,7 +1095,8 @@ App.HTMLFactory = ( function($,document,window, U) {
 
 			if( action == 'contacts' ) {
 
-				$(newRow).children('.title').text(data.name);
+				$(newRow).find('.title span').text(data.name);
+				$(newRow).find('.title i').addClass('fa-user');
 				$(newRow).children('input').val(data.email);
 
 			} else if( action == 'dates' ) {
@@ -1090,24 +1106,26 @@ App.HTMLFactory = ( function($,document,window, U) {
 					sd = new Date(data.year, data.month-1, 1, 0, 0, 0, 0);
 					ed = new Date(data.year, data.month-1, numDaysInMonth[data.month-1], 23, 59, 59, 0);
 
-					$(newRow).children('.title').text( months[data.month-1] + ', ' + data.year);
+					$(newRow).find('.title>span').text( months[data.month-1] + ', ' + data.year);
 				} else if( params.count.toUpperCase() === 'DAY' ) {
 					sd = new Date(data.year, data.month-1, data.day, 0, 0, 0, 0);
 					ed = new Date(data.year, data.month-1, data.day, 23, 59, 59, 999);
 
-					$(newRow).children('.title').text( months[data.month-1] + ' ' + data.day +', ' + data.year);
+					$(newRow).find('.title>span').text( months[data.month-1] + ' ' + data.day +', ' + data.year);
 				}
 
+				$(newRow).find('.title>i').addClass('fa-calendar');
 				$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
 
 			} else if( action == 'emails' ) {
 
 					var date = new Date();
 					date.setTime(data.date.utc * 1000);
-					$(newRow).children('.title').text( date.toLocaleTimeString() + ' ' + data.subject );
-					$(newRow).children('.title').attr('title',data.subject );
+					$(newRow).find('.title>span').text( date.toLocaleTimeString() + ' ' + data.subject );
+					$(newRow).children('.title').attr('title', data.subject );
 
 					$(newRow).children('input').val( data.id );
+					$(newRow).find('.title i').addClass('fa-envelope');
 			}
 
 			return newRow;
@@ -1312,6 +1330,11 @@ App.MinezyController = ( function($,document,window, U) {
 		},
 
 		loadAccount: function() {
+
+			if( this.colManager ) {
+				this.colManager.destroy();
+				delete this.colManager;
+			}
 
 			this.colManager = new App.ColumnController(this.account);
 
@@ -1537,14 +1560,18 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						}
-					},
-					'cliques' : false,
+					}
 				},
 				'dates': {
 					'dates-day': {
 						'emails-list': {
 							'emails/meta' : false
 						},
+						'contacts-left' : {
+							'emails-list': {
+								'emails/meta' : false
+							}							
+						}
 					},
 					'contacts-left': {
 						'dates-day': {
@@ -1555,8 +1582,7 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
-						'cliques' : false,
-						'observers' : false
+						'contacts-right' : false
 					},
 					'emails-list': {
 						'emails/meta' : false
@@ -1564,8 +1590,7 @@ App.ActionTree = ( function($,document,window, U) {
 				},
 				'emails-list': {
 					'emails/meta' : false
-				},
-				'cliques': false
+				}
 			},
 			'dates': {
 				'contacts' : {
@@ -1578,16 +1603,14 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
-						'cliques' : false,
-						'observers' : false
+						'contacts-right' : false
 					},
 					'dates-day': {
 						'contacts-left': {
 							'emails-list': {
 								'emails/meta' : false
 							},
-							'cliques' : false,
-							'observers' : false
+							'contacts-right' : false
 						},
 						'emails-list': {
 							'emails/meta' : false
@@ -1595,8 +1618,7 @@ App.ActionTree = ( function($,document,window, U) {
 					},
 					'emails-list': {
 						'emails/meta' : false
-					},
-					'cliques': false
+					}
 				},
 				'dates-day': {
 					'contacts' : {
@@ -1604,13 +1626,11 @@ App.ActionTree = ( function($,document,window, U) {
 							'emails-list': {
 								'emails/meta' : false
 							},
-							'cliques' : false,
-							'observers' : false
+							'contacts-right' : false
 						},
 						'emails-list': {
 							'emails/meta' : false
-						},
-						'cliques' : false
+						}
 					},
 					'emails-list': {
 						'emails/meta' : false

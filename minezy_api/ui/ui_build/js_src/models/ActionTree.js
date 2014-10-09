@@ -33,14 +33,18 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						}
-					},
-					'cliques' : false,
+					}
 				},
 				'dates': {
 					'dates-day': {
 						'emails-list': {
 							'emails/meta' : false
 						},
+						'contacts-left' : {
+							'emails-list': {
+								'emails/meta' : false
+							}							
+						}
 					},
 					'contacts-left': {
 						'dates-day': {
@@ -51,8 +55,7 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
-						'cliques' : false,
-						'observers' : false
+						'contacts-right' : false
 					},
 					'emails-list': {
 						'emails/meta' : false
@@ -60,8 +63,7 @@ App.ActionTree = ( function($,document,window, U) {
 				},
 				'emails-list': {
 					'emails/meta' : false
-				},
-				'cliques': false
+				}
 			},
 			'dates': {
 				'contacts' : {
@@ -74,16 +76,14 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
-						'cliques' : false,
-						'observers' : false
+						'contacts-right' : false
 					},
 					'dates-day': {
 						'contacts-left': {
 							'emails-list': {
 								'emails/meta' : false
 							},
-							'cliques' : false,
-							'observers' : false
+							'contacts-right' : false
 						},
 						'emails-list': {
 							'emails/meta' : false
@@ -91,8 +91,7 @@ App.ActionTree = ( function($,document,window, U) {
 					},
 					'emails-list': {
 						'emails/meta' : false
-					},
-					'cliques': false
+					}
 				},
 				'dates-day': {
 					'contacts' : {
@@ -100,13 +99,11 @@ App.ActionTree = ( function($,document,window, U) {
 							'emails-list': {
 								'emails/meta' : false
 							},
-							'cliques' : false,
-							'observers' : false
+							'contacts-right' : false
 						},
 						'emails-list': {
 							'emails/meta' : false
-						},
-						'cliques' : false
+						}
 					},
 					'emails-list': {
 						'emails/meta' : false

@@ -109,12 +109,18 @@
 
 					<div class="optionContainer dates">
 						<div class="dateSelect">
+							<label>Select Year</label>
+							<select name="start_date_year" class="start_date_year year">
+								<option value=""></option>
+							</select>
+						</div>
+						<!--<div class="dateSelect">
 							<label>Start Date</label>
 							<select name="start_date_year" class="start_date_year year">
-								<option value="">--</option>
+								<option value=""></option>
 							</select>
 							<select name="start_date_month" class="start_date_month month">
-								<option value="">--</option>
+								<option value=""></option>
 								<option value="1">January</option>
 								<option value="2">February</option>
 								<option value="3">March</option>
@@ -132,8 +138,10 @@
 						<div class="dateSelect">
 							<label>End Date</label>
 							<select name="end_date_year" class="end_date_year year">
+								<option value=""></option>
 							</select>
 							<select name="end_date_month" class="end_date_month month">
+								<option value=""></option>
 								<option value="1">January</option>
 								<option value="2">February</option>
 								<option value="3">March</option>
@@ -148,7 +156,7 @@
 								<option value="12">December</option>
 							</select>
 						</div>
-						<a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>
+						<a href="javascript:;" class="button light search"><i class="fa fa-search"></i></a>-->
 
 					</div>
 
@@ -173,7 +181,7 @@
 						<div class="resultContainer">
 							<div class="bar"></div>
 							<div class="tally"></div>
-							<div class="title"></div>
+							<div class="title"><i class="fa"></i><span></span></div>
 							<div class="arrow"><i class="fa fa-caret-right"></i></div>
 							<input type="hidden" name="email" value="">
 							<div class="loading"></div>

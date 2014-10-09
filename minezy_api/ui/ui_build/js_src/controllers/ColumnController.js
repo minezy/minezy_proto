@@ -32,7 +32,7 @@ App.ColumnController = ( function($,document,window, U) {
 			var ed = new Date(dateSettings.maxTime);
 
 			$('.optionContainer.dates .year').empty();
-			$('.optionContainer.dates .year').append('<option value="--">--</option>');
+			$('.optionContainer.dates .year').append('<option value=""></option>');
 			for( var y = sd.getFullYear(); y <= ed.getFullYear(); y++ ) {
 				$('.optionContainer.dates .year').append('<option value="' + y + '">'+ y + '</option>');
 			}
@@ -231,7 +231,7 @@ App.ColumnController = ( function($,document,window, U) {
 
 		destroy: function() {
 			//do any clean up when destroying the section
-			
+			this.removeColumns(0);
 		}
 
 	};

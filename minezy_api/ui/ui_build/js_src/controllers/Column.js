@@ -142,10 +142,13 @@ App.Column = ( function($,document,window, U) {
 					$( this.colName + ' .additionalOptions').empty();
 					$( this.colName + ' .additionalOptions').append(options);
 
-					$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
-					$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
+					$( this.colName + ' .start_date_year').on('change',$.proxy( this.searchColumn, this ) );
+
+					//$( this.colName + ' .end_date_year').val( new Date().getFullYear() );
+					//$( this.colName + ' .end_date_month').val( new Date().getMonth()+1 );
 				} else {
 					$( this.colName + ' .additionalOptions').empty();
+					$( this.colName + ' .start_date_year').off('change');
 				}
 
 			} else if( val === 'cliques' ) {
@@ -213,6 +216,8 @@ App.Column = ( function($,document,window, U) {
 				if( params.rel == 'any' )
 					delete params.rel;
 
+				params.order = 'desc';
+
 			} else if( this.action == 'emails' ) {
 
 				keyword = $( this.colName + ' .additionalOptions .keyword').val();
@@ -223,7 +228,7 @@ App.Column = ( function($,document,window, U) {
 					delete params.keyword;
 				}
 
-				params.order = 'desc';
+				params.order = 'asc';
 
 			} else if( this.action == 'dates' ) {
 
@@ -233,36 +238,46 @@ App.Column = ( function($,document,window, U) {
 
 				if( !opParam[1] ) {
 					var sy = $( this.colName + ' .start_date_year').val();
-					var sm = $( this.colName + ' .start_date_month').val();
+					/*var sm = $( this.colName + ' .start_date_month').val();
 					var ey = $( this.colName + ' .end_date_year').val();
 					var em = $( this.colName + ' .end_date_month').val();
+					var sd,ed;
 
-					if( !sm )
-						sm = 1;
+					if( sm !== '' && sy !== '' ) {
+						sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
 
-					var sd = new Date(sy, sm-1, 1, 0, 0, 0, 0);
-					var ed = new Date(ey, em, 0, 0, 0, 0, 0);
+						if( sd.getTime() < 0){
+							sd.setTime(0);
+						}
 
-					console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
-
-					if( sd.getTime() < 0){
-						sd.setTime(0);
+						params.start = sd.getTime()/1000;
 					}
 
-					console.log(sm,sy,sd.getTime()/1000,ed.getTime()/1000);
 
-					params.start = sd.getTime()/1000;
-					params.end = ed.getTime()/1000;
+					if( em !== '' && ey !== '' ) {
+						ed = new Date(ey, em, 0, 0, 0, 0, 0);
+
+						params.end = ed.getTime()/1000;
+					}*/
+
+					if( sy !== '' ) {
+						sd = new Date(sy, 0, 1, 0, 0, 0, 0);
+
+						params.year = sy;
+					} else {
+						delete params.year;
+					}
+
+
 					params.count = 'MONTH';
 				} else {
+					params.order = 'asc';
 					params.start = this.params.start;
 					params.end = this.params.end;
 					params.count = opParam[1];
 				}
 
 			} else if( this.action == 'observers' ) {
-
-			} else if( this.action == 'cliques' ) {
 
 			}
 
@@ -460,6 +475,7 @@ App.Column = ( function($,document,window, U) {
 			delete new_params.keyword;
 			delete new_params.count;
 			delete new_params.page;
+			delete new_params.order;
 
 			if( action === 'contacts' ) {
 
@@ -499,13 +515,14 @@ App.Column = ( function($,document,window, U) {
 				new_params.count = 'month';
 
 				if( lock == 'day' ) {
+					new_params.order = 'asc';
 					new_params.count = 'day';
 					lock = '';
 				}
 
 			} else if( action === 'emails' ) {
 
-				new_params.order = 'desc';
+				new_params.order = 'asc';
 
 				if( this.action == 'dates' ) {
 					new_params.start = key.split('-')[0];
@@ -528,9 +545,7 @@ App.Column = ( function($,document,window, U) {
 
 			} else if( this.action == 'observers' ) {
 
-			} else if( this.action == 'cliques' ) {
-
-			}
+			} 
 
 
 
@@ -574,7 +589,7 @@ App.Column = ( function($,document,window, U) {
 			}
 
 			if( action == 'emails/meta') {
-				this.clearData();	
+				this.clearData();
 			}
 
 

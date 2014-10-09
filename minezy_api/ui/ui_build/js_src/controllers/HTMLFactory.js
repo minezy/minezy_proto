@@ -37,7 +37,8 @@ App.HTMLFactory = ( function($,document,window, U) {
 
 			if( action == 'contacts' ) {
 
-				$(newRow).children('.title').text(data.name);
+				$(newRow).find('.title span').text(data.name);
+				$(newRow).find('.title i').addClass('fa-user');
 				$(newRow).children('input').val(data.email);
 
 			} else if( action == 'dates' ) {
@@ -47,24 +48,26 @@ App.HTMLFactory = ( function($,document,window, U) {
 					sd = new Date(data.year, data.month-1, 1, 0, 0, 0, 0);
 					ed = new Date(data.year, data.month-1, numDaysInMonth[data.month-1], 23, 59, 59, 0);
 
-					$(newRow).children('.title').text( months[data.month-1] + ', ' + data.year);
+					$(newRow).find('.title>span').text( months[data.month-1] + ', ' + data.year);
 				} else if( params.count.toUpperCase() === 'DAY' ) {
 					sd = new Date(data.year, data.month-1, data.day, 0, 0, 0, 0);
 					ed = new Date(data.year, data.month-1, data.day, 23, 59, 59, 999);
 
-					$(newRow).children('.title').text( months[data.month-1] + ' ' + data.day +', ' + data.year);
+					$(newRow).find('.title>span').text( months[data.month-1] + ' ' + data.day +', ' + data.year);
 				}
 
+				$(newRow).find('.title>i').addClass('fa-calendar');
 				$(newRow).children('input').val( sd.getTime()/1000 + '-' + ed.getTime()/1000 );
 
 			} else if( action == 'emails' ) {
 
 					var date = new Date();
 					date.setTime(data.date.utc * 1000);
-					$(newRow).children('.title').text( date.toLocaleTimeString() + ' ' + data.subject );
-					$(newRow).children('.title').attr('title',data.subject );
+					$(newRow).find('.title>span').text( date.toLocaleTimeString() + ' ' + data.subject );
+					$(newRow).children('.title').attr('title', data.subject );
 
 					$(newRow).children('input').val( data.id );
+					$(newRow).find('.title i').addClass('fa-envelope');
 			}
 
 			return newRow;
