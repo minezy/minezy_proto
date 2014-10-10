@@ -4,3 +4,5 @@
 .metadata
 minezy_api/ui/ui_build/node_modules
 minezy_api/ui/ui_build/.sass-cache
+minezy_app/ui/ui_build/node_modules
+minezy_app/ui/ui_build/.sass-cache
