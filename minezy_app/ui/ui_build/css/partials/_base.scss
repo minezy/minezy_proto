@@ -195,6 +195,56 @@ section.admin {
 				width: 250px;
 				background-position: 97.5% center;
 			}
+
+			&.disabled {
+				opacity: 0.2;
+			}
+
+		}
+
+		.fileUpload {
+			position: relative;
+			overflow: hidden;
+			padding: 0px 4px;
+			border: solid 2px #646464;
+			border-radius: 3px;
+			background: #363636;		
+			width: 100px;
+			text-align: center;
+			color: white;
+			font-size: 14px;
+			line-height: 28px;
+			display: inline-block;
+
+			i {
+				padding-right:8px;
+			}
+		}
+		.fileUpload input.upload {
+			position: absolute;
+			top: 0;
+			right: 0;
+			margin: 0;
+			padding: 0;
+			font-size: 20px;
+			cursor: pointer;
+			opacity: 0;
+			filter: alpha(opacity=0);
+		}
+
+		.filename {
+			display: inline-block;
+			margin-left: 10px;
+			line-height: 32px;
+			font-size: 12px;
+			vertical-align: top;
+			overflow: hidden;
+			white-space: nowrap;
+			max-width: 228px;
+
+			i {
+				padding-right: 4px;
+			}
 		}
 
 	}
@@ -212,8 +262,16 @@ section.admin {
 
 		.button {
 			display: inline-block;
-			width: 100px;
+			width: 120px;
 			background-color: #464646;
+
+			&.disabled {
+				opacity: 0.2;
+			}
+
+			&:hover.disabled {
+				border-color: #464646;
+			}
 
 			&.ok {
 				i {
@@ -232,9 +290,11 @@ section.admin {
 				border-color:red;
 			}
 
+			span {
+				padding-left: 4px;
+			}
 
 			i {
-				padding-right: 4px;
 				vertical-align: initial;
 			}
 		}
@@ -265,10 +325,49 @@ section.admin {
 		}
 	}
 
+	.progressBar {
+		position: absolute;
+		bottom: 60px;
+		left:0px;
+		height:20px;
+		background: #c0c0c0;
+		width:100%;
+		display: none;
+
+		.bar {
+			height: 20px;
+			width: 56%;
+			background-color: #20cc90;
+		}
+
+		span {
+			font-size: 11px;
+			line-height: 20px;
+			position: absolute;
+			display: block;
+			padding: 0 10px;
+			left:0px;
+			width: 100%;
+			text-align: center;
+		}
+
+	}
+
 }
 
 
+@-webkit-keyframes rotating {
+    from{
+        -webkit-transform: rotate(0deg);
+    }
+    to{
+        -webkit-transform: rotate(360deg);
+    }
+}
 
+.rotating {
+    -webkit-animation: rotating 2s linear infinite;
+}
 
 .loader.big {
   width: 100px;

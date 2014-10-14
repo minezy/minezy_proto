@@ -47,16 +47,27 @@
 					</select>
 				</div>
 
-				<div class="dbSelect field">
-					<label>Load New Database (PST File):</label>
-					<input type="file" name="selectFile">
+				<form action="/upload" method="post" enctype="multipart/form-data" id="uploadFile">
+					<div class="uploadDB field">
+						<label>Load New Database (PST File):</label>
+						<div class="fileUpload">
+						    <span><i class="fa fa-upload"></i>Select File</span>
+						    <input type="file" class="upload" />
+						</div>
+						<div class="filename"><i class="fa fa-paperclip"></i><span>this is a filename</span></div>
+					</div>
+				</form>
+
+				<div class="progressBar">
+					<span>00%</span>
+					<div class="bar"></div>
 				</div>
 
 			</div>
 
 			<div class="buttons">
-				<a href="javascript:;" class="button ok"><i class="fa fa-check"></i></i>Ok</a>
-				<a href="javascript:;" class="button cancel"><i class="fa fa-times"></i>Cancel</a>
+				<a href="javascript:;" class="button ok"><i class="fa fa-check"></i></i><span>Ok</span></a>
+				<a href="javascript:;" class="button cancel"><i class="fa fa-times"></i><span>Cancel</span></a>
 			</div>
 
 

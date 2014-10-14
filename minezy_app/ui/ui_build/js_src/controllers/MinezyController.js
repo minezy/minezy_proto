@@ -58,6 +58,80 @@ App.MinezyController = ( function($,document,window, U) {
 
 			$('section.admin .closeButton,section.admin .button.cancel').on('click',$.proxy(this.hideSettings,this) );
 			$('section.admin .button.ok').on('click',$.proxy(this.saveSettings,this) );
+
+			$('section.admin .filename').hide();
+
+			$(':file').change($.proxy(function(e){
+				$('.filename').fadeIn();
+				$('.filename>span').text(e.currentTarget.files[0].name);
+				$('.button.ok>i').removeClass('fa-check');
+				$('.button.ok>i').addClass('fa-upload');
+				$('.button.ok>span').text('Upload');
+				$('select.databases').prop('disabled', 'disabled');
+				$('.dbSelect').addClass('disabled');
+
+				$('section.admin .button.ok').off('click');
+				$('section.admin .button.ok').on('click',$.proxy(this.uploadFile,this) );
+			},this) );
+
+
+		},
+
+		uploadFile: function(e) {
+
+			$('section.admin .button.ok').off('click');
+			$('section.admin .button.ok').addClass('disabled');
+			$('.button.ok>span').text('Uploading...');
+			$('.button.ok>i').removeClass('fa-upload');
+			$('.button.ok>i').addClass('fa-refresh');
+			$('.button.ok>i').addClass('rotating');
+
+			$('section.admin .progressBar').hide();
+			$('section.admin .progressBar').slideDown();
+			$('section.admin .progressBar>.bar').width(0);
+			$('section.admin .progressBar>span').text('0%');
+
+			var formData = new FormData($('#uploadFile')[0]);
+
+			$.ajax({
+                url: 'http://localhost:8080/upload',  //server script to process data
+                type: 'POST',
+                xhr: function() {  // custom xhr
+                    myXhr = $.ajaxSettings.xhr();
+                    if(myXhr.upload){ // if upload property exists
+                        myXhr.upload.addEventListener('progress', $.proxy(updateUploadProgress,this), false); // progressbar
+                    }
+                    return myXhr;
+                },
+                //Ajax events
+                success: completeHandler = function(data) {
+                	console.log(data);
+
+                },
+                error: errorHandler = function(error) {
+                    console.log("ERROR",error);
+                },
+                // Form data
+                data: formData,
+                //Options to tell JQuery not to process data or worry about content-type
+                cache: false,
+                contentType: false,
+                processData: false
+            }, 'json');
+
+
+
+		},
+
+		updateUploadProgress: function(e) {
+
+			var maxWidth = parseInt($('section.admin .progressBar').width());
+			var percent = e.loaded / e.total;
+			var progressVal = Math.round( percent * 1000 ) / 10;
+
+			$('section.admin .progressBar>span').text( progressVal + '%' );
+			$('section.admin .progressBar>.bar').width( Math.round( maxWidth * percent ) );
+
 		},
 
 		hideSettings: function() {
@@ -66,6 +140,8 @@ App.MinezyController = ( function($,document,window, U) {
 			$('section.admin .button.ok').off('click');
 
 			$('section.admin').addClass('hide');
+
+			$(':file').off('change');
 
 			setTimeout( $.proxy(function(){
 				$('.siteOverlay').fadeOut(500);

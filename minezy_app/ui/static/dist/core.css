@@ -378,6 +378,44 @@ section.admin {
       section.admin .settingsContainer .field select {
         width: 250px;
         background-position: 97.5% center; }
+      section.admin .settingsContainer .field.disabled {
+        opacity: 0.2; }
+    section.admin .settingsContainer .fileUpload {
+      position: relative;
+      overflow: hidden;
+      padding: 0px 4px;
+      border: solid 2px #646464;
+      border-radius: 3px;
+      background: #363636;
+      width: 100px;
+      text-align: center;
+      color: white;
+      font-size: 14px;
+      line-height: 28px;
+      display: inline-block; }
+      section.admin .settingsContainer .fileUpload i {
+        padding-right: 8px; }
+    section.admin .settingsContainer .fileUpload input.upload {
+      position: absolute;
+      top: 0;
+      right: 0;
+      margin: 0;
+      padding: 0;
+      font-size: 20px;
+      cursor: pointer;
+      opacity: 0;
+      filter: alpha(opacity=0); }
+    section.admin .settingsContainer .filename {
+      display: inline-block;
+      margin-left: 10px;
+      line-height: 32px;
+      font-size: 12px;
+      vertical-align: top;
+      overflow: hidden;
+      white-space: nowrap;
+      max-width: 228px; }
+      section.admin .settingsContainer .filename i {
+        padding-right: 4px; }
   section.admin .buttons {
     width: 100%;
     height: 60px;
@@ -390,16 +428,21 @@ section.admin {
     padding-top: 14px; }
     section.admin .buttons .button {
       display: inline-block;
-      width: 100px;
+      width: 120px;
       background-color: #464646; }
+      section.admin .buttons .button.disabled {
+        opacity: 0.2; }
+      section.admin .buttons .button:hover.disabled {
+        border-color: #464646; }
       section.admin .buttons .button.ok i {
         color: #20cc90; }
       section.admin .buttons .button.cancel i {
         color: red; }
       section.admin .buttons .button:hover.cancel {
         border-color: red; }
+      section.admin .buttons .button span {
+        padding-left: 4px; }
       section.admin .buttons .button i {
-        padding-right: 4px;
         vertical-align: initial; }
   section.admin .closeButton {
     border-radius: 50%;
@@ -420,6 +463,35 @@ section.admin {
     section.admin .closeButton i {
       line-height: 17px;
       padding-left: 3px; }
+  section.admin .progressBar {
+    position: absolute;
+    bottom: 60px;
+    left: 0px;
+    height: 20px;
+    background: #c0c0c0;
+    width: 100%;
+    display: none; }
+    section.admin .progressBar .bar {
+      height: 20px;
+      width: 56%;
+      background-color: #20cc90; }
+    section.admin .progressBar span {
+      font-size: 11px;
+      line-height: 20px;
+      position: absolute;
+      display: block;
+      padding: 0 10px;
+      left: 0px;
+      width: 100%;
+      text-align: center; }
+
+@-webkit-keyframes rotating {
+  from {
+    -webkit-transform: rotate(0deg); }
+  to {
+    -webkit-transform: rotate(360deg); } }
+.rotating {
+  -webkit-animation: rotating 2s linear infinite; }
 
 .loader.big {
   width: 100px;
