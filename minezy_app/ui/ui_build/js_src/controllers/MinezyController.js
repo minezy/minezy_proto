@@ -8,6 +8,8 @@ App.MinezyController = ( function($,document,window, U) {
 
 		this.accounts = {};
 		this.account = undefined;
+		this.progressTimer = 0;
+		this.tmpcount = 0;
 
 		//init page based on size
 		$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
@@ -81,7 +83,7 @@ App.MinezyController = ( function($,document,window, U) {
 
 			$('section.admin .button.ok').off('click');
 			$('section.admin .button.ok').addClass('disabled');
-			$('.button.ok>span').text('Uploading...');
+			$('.button.ok>span').text('Uploading');
 			$('.button.ok>i').removeClass('fa-upload');
 			$('.button.ok>i').addClass('fa-refresh');
 			$('.button.ok>i').addClass('rotating');
@@ -91,46 +93,72 @@ App.MinezyController = ( function($,document,window, U) {
 			$('section.admin .progressBar>.bar').width(0);
 			$('section.admin .progressBar>span').text('0%');
 
-			var formData = new FormData($('#uploadFile')[0]);
+			console.log($('#uploadFile').ajaxForm());
 
-			$.ajax({
-                url: 'http://localhost:8080/upload',  //server script to process data
-                type: 'POST',
-                xhr: function() {  // custom xhr
-                    myXhr = $.ajaxSettings.xhr();
-                    if(myXhr.upload){ // if upload property exists
-                        myXhr.upload.addEventListener('progress', $.proxy(updateUploadProgress,this), false); // progressbar
-                    }
-                    return myXhr;
-                },
-                //Ajax events
-                success: completeHandler = function(data) {
-                	console.log(data);
+			$('#uploadFile').ajaxSubmit({
+			    beforeSend: function() {
+			        var percentVal = '0%';
+			        $('section.admin .progressBar>.bar').width(percentVal);
+			        $('section.admin .progressBar>span').html(percentVal);
+			        console.log('BEGIN UPLOAD');
+			    },
+			    uploadProgress: function(event, position, total, percentComplete) {
+			        var percentVal = percentComplete + '%';
+			        $('section.admin .progressBar>.bar').width(percentVal);
+			        $('section.admin .progressBar>span').html(percentVal);
+			        console.log(percentComplete);
+			    },
+			    success: function() {
+			        var percentVal = '100%';
+			        $('section.admin .progressBar>.bar').width(percentVal);
+			        $('section.admin .progressBar>span').html(percentVal);
+			    },
+				complete: $.proxy(function(xhr) {
+					if( xhr.responseText ) {
 
-                },
-                error: errorHandler = function(error) {
-                    console.log("ERROR",error);
-                },
-                // Form data
-                data: formData,
-                //Options to tell JQuery not to process data or worry about content-type
-                cache: false,
-                contentType: false,
-                processData: false
-            }, 'json');
+						$('section.admin .progressBar>.bar').width(0);
+						$('section.admin .progressBar>span').text('0%');
+
+						$('.button.ok>span').text('Processing');
+
+						this.API.getData(0, 'new_account', {'file':xhr.responseText}, $.proxy(this.startProcessing,this) );
+
+					}
+				},this)
+			});
 
 
 
 		},
 
-		updateUploadProgress: function(e) {
+		startProcessing: function(data) {
 
-			var maxWidth = parseInt($('section.admin .progressBar').width());
-			var percent = e.loaded / e.total;
-			var progressVal = Math.round( percent * 1000 ) / 10;
+			$.cookie('account', data.account, { expires: 365, path: '/' });
+			this.account = data.account;
+			this.tmpcount = 0;
 
-			$('section.admin .progressBar>span').text( progressVal + '%' );
-			$('section.admin .progressBar>.bar').width( Math.round( maxWidth * percent ) );
+			this.progressTimer = setInterval( $.proxy( function() { 
+				this.API.getData(0, 'new_account/progress', {}, $.proxy(this.updateProcessingProgress,this) );
+			},this ), 1000 );
+
+		},
+
+		updateProcessingProgress: function(data) {
+
+	        var percentVal = this.tmpcount + '%';
+	        $('section.admin .progressBar>.bar').width(percentVal);
+	        $('section.admin .progressBar>span').html(percentVal);
+
+	        if( this.tmpcount == 100 ) {
+	        	clearInterval( this.progressTimer );
+
+	        	this.API.getData(0, 'accounts', {}, $.proxy(this.getAccounts,this) );
+
+	        	this.hideSettings();
+	        }
+
+			this.tmpcount += 10;
+
 
 		},
 
@@ -145,8 +173,19 @@ App.MinezyController = ( function($,document,window, U) {
 
 			setTimeout( $.proxy(function(){
 				$('.siteOverlay').fadeOut(500);
+				this.resetSettings();
 			},this),300);
 
+		},
+
+		resetSettings: function() {
+			$('section.admin .button.ok>i').removeClass();
+			$('section.admin .button.ok>i').addClass('fa fa-check');
+			$('.button.ok>span').text('OK');
+			$('section.admin .progressBar').slideUp();
+
+			$('section.admin select.databases').prop('disabled', false);
+			$('section.admin .dbSelect').removeClass('disabled');
 		},
 
 		saveSettings: function() {

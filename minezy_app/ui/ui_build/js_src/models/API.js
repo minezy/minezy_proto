@@ -40,7 +40,7 @@ App.API = ( function($,document,window, U) {
 				account = id + '/';
 			}
 console.log(id,account,action);
-			var url = this.api_root + '/' + this.api_version + '/' + account + action + '/';
+			var url = this.api_root + '/' + this.api_version + '/' + account + action ;
 console.log(url);
 			/*if( typeof subaction !== "string" ) {
 				params = subaction;

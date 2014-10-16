@@ -46,3 +46,12 @@ def get_api_v1():
     return jsonify( { 'apis' : apis_v1 } )
 
 
+@app.route('/1/new_account', methods=['GET'])
+def new_account():
+    return jsonify( { 'account' : 100 } )
+
+@app.route('/1/new_account/progress', methods=['GET'])
+def new_account_progress():
+    return jsonify( { 'progress' : 100 } )
+
+
