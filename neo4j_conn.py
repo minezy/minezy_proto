@@ -27,6 +27,10 @@ def create_constraints():
 	try:
 		tx = g_session.create_transaction()
 		
+		sys.stdout.write("accounts index... ")
+		tx.append("CREATE CONSTRAINT ON (a:Account) ASSERT a.id IS UNIQUE")
+		tx.execute()
+		
 		sys.stdout.write("contacts index... ")
 		tx.append("CREATE CONSTRAINT ON (c:Contact) ASSERT c.email IS UNIQUE")
 		tx.execute()

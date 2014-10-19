@@ -65,8 +65,8 @@ if __name__ == '__main__':
 
     imapFolders = [
                "INBOX",
-               #"INBOX.Sent",
-               #"INBOX.old-messages",
+               "INBOX.Sent",
+               "INBOX.old-messages",
                "[Gmail]/Sent Mail"
                ]
 
