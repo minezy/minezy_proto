@@ -49,25 +49,24 @@ def query_contacts(account, params, countResults=False):
         query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False)
         
     else:
-        bWith = False
-        bWhere = False
-        query_str = "MATCH (n:{0}Contact)-[r:"+relL+"]-(e:{0}Email) "
-        #count = relL.split('|')
-        #query_str = "MATCH (n:{0}Contact) "
-        #for i,cnt in enumerate(count):
-        #    if i == 0:
-        #        query_str += "WITH n,"
-        #    else:
-        #        query_str += "+"
-        #    if cnt == 'SENT':
-        #        query_str += "n.sent"
-        #    elif cnt == 'TO':
-        #        query_str += "n.to"
-        #    elif cnt == 'CC':
-        #        query_str += "n.cc"
-        #    elif cnt == 'BCC':
-        #        query_str += "n.bcc"
-        #query_str += " AS count WHERE count > 0 "
+        bWith = True
+        
+        count = relL.split('|')
+        query_str = "MATCH (n:{0}Contact) "
+        for i,cnt in enumerate(count):
+            if i == 0:
+                query_str += "WITH n,"
+            else:
+                query_str += "+"
+            if cnt == 'SENT':
+                query_str += "n.sent"
+            elif cnt == 'TO':
+                query_str += "n.to"
+            elif cnt == 'CC':
+                query_str += "n.cc"
+            elif cnt == 'BCC':
+                query_str += "n.bcc"
+        query_str += " AS count WHERE count > 0 "
 
     if params['keyword']:
         if not bWhere:
@@ -75,6 +74,8 @@ def query_contacts(account, params, countResults=False):
         else:
             query_str += "AND "
         query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
+        query_str += "OR "
+        query_str += "n.email =~ '(?i).*"+params['keyword']+".*' "
 
     if not bWith:
         query_str += "WITH n,count(distinct(e)) as count "

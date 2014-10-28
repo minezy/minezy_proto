@@ -1,4 +1,6 @@
+import os.path
 import time
+import email.parser
 from minezy_api import neo4j_conn
 from query_common import prepare_date_range, prepare_date_clause
 
@@ -198,6 +200,61 @@ def query_emails_meta(account, params):
     resp['_params'] = params
     resp['_query'] = query_str
     resp['email'] = email
+
+    t1 = time.time()
+    resp['_query_time'] = t1-t0
+    
+    return resp
+
+
+def query_emails_body(account, params):
+
+    t0 = time.time()
+    
+    query_str = "MATCH (e:{0}Email) WHERE e.id={{id}} MATCH (a:Account) WHERE a.id={1} RETURN a.account,e.link"
+
+    # Apply this query to given account only
+    accLbl = ""
+    if account is not None:
+        accLbl = "`%d`:" % account
+    query_str = query_str.format(accLbl, account)
+
+    print query_str
+    
+    tx = neo4j_conn.g_session.create_transaction()
+    tx.append(query_str, params)
+    results = tx.commit()
+    
+    ebody = { 'id': params['id'] }
+    count = -1
+    for count,record in enumerate(results[0]):
+        baseDir = record[0]
+        emailLink = record[1]
+        
+        parser = email.parser.Parser()
+        
+        fileName = os.path.join(baseDir, emailLink)
+        with open(fileName) as f:
+            email_msg = parser.parse(f, headersonly=False)
+        
+            ebody['multipart'] = email_msg.is_multipart()
+            
+            if not email_msg.is_multipart():
+                body = email_msg.get_payload(decode=True)
+                ebody['body'] = body
+                ebody['content-type'] = email_msg.get_content_type()
+            else:
+                parts = []
+                for i,part in enumerate(email_msg.walk()):
+                    body = part.get_payload(decode=True)
+                    parts.append( { "body": body, "content-type": part.get_content_type() } )
+                ebody['parts'] = parts
+        
+    resp = {}
+    resp['_count'] = count+1
+    resp['_params'] = params
+    resp['_query'] = query_str
+    resp['email'] = ebody
 
     t1 = time.time()
     resp['_query_time'] = t1-t0
