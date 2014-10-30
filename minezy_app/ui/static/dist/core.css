@@ -264,6 +264,21 @@ a {
 #pageContainer {
   overflow: hidden; }
 
+.banner {
+  position: absolute;
+  top: 0;
+  right: 0;
+  width: 117px;
+  height: 124px;
+  background: url("../images/prototype.png") no-repeat;
+  overflow: hidden;
+  z-index: 10; }
+  .banner:before {
+    content: "";
+    display: block;
+    width: 0;
+    height: 100%; }
+
 .responsive {
   max-width: 640px;
   margin: 0 auto; }
@@ -647,16 +662,20 @@ header {
     font-size: 36px;
     line-height: 76px;
     font-weight: 300; }
+    header h1 a {
+      color: #20cc90; }
+      header h1 a:hover {
+        opacity: 0.5; }
   header .info {
     position: absolute;
-    right: 30px;
+    right: 100px;
     top: 24px;
     color: white;
     font-size: 14px; }
     header .info a i {
       padding-right: 8px; }
     header .info.contact {
-      right: 126px; }
+      right: 196px; }
   header .account {
     position: absolute;
     right: 30px;

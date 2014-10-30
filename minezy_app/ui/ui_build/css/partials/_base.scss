@@ -56,6 +56,18 @@ a {
 	overflow: hidden;
 }
 
+.banner {
+	position: absolute;
+	top: 0;
+	right: 0;
+	width: 117px;
+	height: 124px;
+	background: url('../images/prototype.png') no-repeat;
+	@include hide-text;
+	z-index: 10;
+}
+
+
 .responsive {
 	max-width: 640px;
 	margin:0 auto;

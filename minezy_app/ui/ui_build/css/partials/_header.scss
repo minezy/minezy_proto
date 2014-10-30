@@ -16,11 +16,19 @@ header {
 		font-size: 36px;
 		line-height: 76px;
 		font-weight: 300;
+
+		a {
+			color:#20cc90;
+
+			&:hover {
+				opacity: 0.5;
+			}
+		}
 	}
 
 	.info {
 		position: absolute;
-		right:30px;
+		right:100px;
 		top: 24px;
 		color: white;
 		font-size: 14px;
@@ -33,7 +41,7 @@ header {
 		}
 
 		&.contact {
-			right: 126px;
+			right: 196px;
 		}
 
 	}

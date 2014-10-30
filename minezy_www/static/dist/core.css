@@ -271,7 +271,7 @@ a {
       max-width: 730px; } }
 
 .banner {
-  position: absolute;
+  position: fixed;
   top: 0;
   right: 0;
   width: 117px;
@@ -301,6 +301,9 @@ header {
   background-size: cover;
   z-index: 1;
   padding: 0 40px; }
+  @media only screen and (max-width: 640px) {
+    header {
+      background-position: 60% center; } }
   header .cover {
     width: 100%;
     height: 100%;
@@ -336,6 +339,10 @@ header {
       border-bottom: solid 2px #f1f1f1; }
       header p a:hover {
         border: none; }
+    header p em {
+      font-style: italic;
+      font-weight: 600;
+      border-bottom: solid 2px #f1f1f1; }
 
 section.contentContainer {
   padding: 40px 50px; }
