@@ -328,8 +328,8 @@ header {
     line-height: 33px;
     padding-bottom: 30px; }
   header p {
-    font-size: 14px;
-    line-height: 24px;
+    font-size: 16px;
+    line-height: 28px;
     max-width: 575px; }
     header p a {
       font-weight: 700;
@@ -390,7 +390,7 @@ section.contentContainer {
             text-align: center; } }
       section.contentContainer .point .copy p {
         font-size: 18px;
-        line-height: 24px; }
+        line-height: 28px; }
 
 section.mailinglist {
   background: #21cc93;
