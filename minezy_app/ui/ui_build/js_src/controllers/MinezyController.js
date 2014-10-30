@@ -33,7 +33,7 @@ App.MinezyController = ( function($,document,window, U) {
 		this.account = 100;
 		this.API.getData(0, 'accounts', {}, $.proxy(this.checkAccount,this) );
 
-		$('.info .button').on('click',$.proxy(this.showInfo,this) );
+		$('.info.about .button').on('click',$.proxy(this.showInfo,this) );
 
 
 	}

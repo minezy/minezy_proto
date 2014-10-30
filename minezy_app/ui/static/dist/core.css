@@ -655,6 +655,8 @@ header {
     font-size: 14px; }
     header .info a i {
       padding-right: 8px; }
+    header .info.contact {
+      right: 126px; }
   header .account {
     position: absolute;
     right: 30px;
