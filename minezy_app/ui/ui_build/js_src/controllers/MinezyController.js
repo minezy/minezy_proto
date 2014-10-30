@@ -24,14 +24,39 @@ App.MinezyController = ( function($,document,window, U) {
 		this.dateSettings = {};
 		this.API = new App.API();
 
-		this.API.getData(0, 'accounts', {}, $.proxy(this.getAccounts,this) );
+		/*if( !$.cookie('account') ) {
+			this.showSettings();
+		} else {
+			this.API.getData(0, 'accounts', {}, $.proxy(this.checkAccount,this) );
+		}*/
 
-		$('.account .button').on('click',$.proxy(this.showSettings,this) );
+		this.account = 100;
+		this.API.getData(0, 'accounts', {}, $.proxy(this.checkAccount,this) );
+
+		$('.info .button').on('click',$.proxy(this.showInfo,this) );
 
 
 	}
 
 	MinezyController.prototype = {
+
+		checkAccount: function(data) {
+			var accts = data.accounts.account;
+
+			for(var i =0; i < accts.length; i++ ) {
+				if( accts[i].id == $.cookie('account') ) {
+
+					this.account = $.cookie('account');
+				}
+			}
+
+			if( this.account > 0 ) {
+				this.loadAccount();
+			} else {
+				this.showSettings();
+			}
+
+		},
 
 		initAccounts: function() {
 
@@ -40,11 +65,26 @@ App.MinezyController = ( function($,document,window, U) {
 			for(var i =0; i < this.accounts.length; i++ ) {
 				var selected  = '';
 
-				if( this.account != this.accounts[i].id )
+				if( this.account == this.accounts[i].id )
 					selected = ' selected';
 
 				$('#account_id').append('<option value="'+this.accounts[i].id+'" '+selected+'>'+this.accounts[i].account+'</option>');
 			}
+
+
+		},
+
+		showInfo: function() {
+
+			$('.siteOverlay').fadeIn(500);
+
+			setTimeout( $.proxy(function(){
+				console.log('here');
+				$('section.admin.info').removeClass('hide');
+			},this), 100);
+
+			$('section.admin.info .closeButton').on( 'click', $.proxy(this.hideInfo,this) );
+			$('section.admin.info .button.ok').on( 'click', $.proxy(this.hideInfo,this) );
 
 
 		},
@@ -76,6 +116,7 @@ App.MinezyController = ( function($,document,window, U) {
 				$('section.admin .button.ok').on('click',$.proxy(this.uploadFile,this) );
 			},this) );
 
+			this.API.getData(0, 'accounts', {}, $.proxy(this.getAccounts,this) );
 
 		},
 
@@ -162,6 +203,20 @@ App.MinezyController = ( function($,document,window, U) {
 
 		},
 
+		hideInfo: function() {
+
+			$('section.admin.info .closeButton,section.admin .button.cancel').off('click');
+			$('section.admin.info .button.ok').off('click');
+
+			$('section.admin.info').addClass('hide');
+
+			setTimeout( $.proxy(function(){
+				$('.siteOverlay').fadeOut(500);
+				this.resetSettings();
+			},this),300);
+
+		},
+
 		hideSettings: function() {
 
 			$('section.admin .closeButton,section.admin .button.cancel').off('click');
@@ -201,13 +256,6 @@ App.MinezyController = ( function($,document,window, U) {
 		getAccounts: function(data) {
 
 			this.accounts = data.accounts.account;
-
-			if( !$.cookie('account') ) {
-				this.showSettings();
-			} else {
-				this.account = $.cookie('account');
-				this.loadAccount();
-			}
 
 			this.initAccounts();
 

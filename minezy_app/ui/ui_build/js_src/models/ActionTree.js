@@ -76,7 +76,16 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
-						'contacts-right' : false
+						'contacts-right' : {
+							'dates-day': {
+								'emails-list': {
+									'emails/meta' : false
+								},
+							},
+							'emails-list': {
+								'emails/meta' : false
+							},
+						}
 					},
 					'dates-day': {
 						'contacts-left': {

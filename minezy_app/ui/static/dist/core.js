@@ -144,12 +144,6 @@ App.Main = (function(window, document, $, App, Utils){
 
 		handleAppReady: function() {
 
-			//init the media query detector
-			this.mq = Utils.MediaQuery.getInstance();
-			this.mq.compareWidth = $('#mediaQueryDetector').width();
-
-			$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
-
 			this.navController = new App.NavController();
 
 			//avoid using the :hover pseudo class when touching elements
@@ -165,30 +159,6 @@ App.Main = (function(window, document, $, App, Utils){
 
 
 })(window, document, jQuery, App, Utils);;
-
-App.ActionTreeController = ( function($,document,window, U) {
-
-
-	function ActionTreeController(options) {
-		console.log('ACTION TREE CONTROLLER INIT');
-
-		this.at = new App.ActionTree();
-
-	}
-
-	ActionTreeController.prototype = {
-
-
-		destroy: function() {
-			//do any clean up when destroying the section
-			//delete this.homePhotos;
-		}
-
-	};
-
-	return ActionTreeController;
-
-})(jQuery,document,window, Utils);;
 
 App.Column = ( function($,document,window, U) {
 
@@ -837,6 +807,8 @@ App.ColumnController = ( function($,document,window, U) {
 
 		this.adjustColumnHeight();
 
+		$('#loader').fadeIn();
+
 	}
 
 	ColumnController.prototype = {
@@ -1255,14 +1227,39 @@ App.MinezyController = ( function($,document,window, U) {
 		this.dateSettings = {};
 		this.API = new App.API();
 
-		this.API.getData(0, 'accounts', {}, $.proxy(this.getAccounts,this) );
+		/*if( !$.cookie('account') ) {
+			this.showSettings();
+		} else {
+			this.API.getData(0, 'accounts', {}, $.proxy(this.checkAccount,this) );
+		}*/
 
-		$('.account .button').on('click',$.proxy(this.showSettings,this) );
+		this.account = 100;
+		this.API.getData(0, 'accounts', {}, $.proxy(this.checkAccount,this) );
+
+		$('.info .button').on('click',$.proxy(this.showInfo,this) );
 
 
 	}
 
 	MinezyController.prototype = {
+
+		checkAccount: function(data) {
+			var accts = data.accounts.account;
+
+			for(var i =0; i < accts.length; i++ ) {
+				if( accts[i].id == $.cookie('account') ) {
+
+					this.account = $.cookie('account');
+				}
+			}
+
+			if( this.account > 0 ) {
+				this.loadAccount();
+			} else {
+				this.showSettings();
+			}
+
+		},
 
 		initAccounts: function() {
 
@@ -1271,11 +1268,26 @@ App.MinezyController = ( function($,document,window, U) {
 			for(var i =0; i < this.accounts.length; i++ ) {
 				var selected  = '';
 
-				if( this.account != this.accounts[i].id )
+				if( this.account == this.accounts[i].id )
 					selected = ' selected';
 
 				$('#account_id').append('<option value="'+this.accounts[i].id+'" '+selected+'>'+this.accounts[i].account+'</option>');
 			}
+
+
+		},
+
+		showInfo: function() {
+
+			$('.siteOverlay').fadeIn(500);
+
+			setTimeout( $.proxy(function(){
+				console.log('here');
+				$('section.admin.info').removeClass('hide');
+			},this), 100);
+
+			$('section.admin.info .closeButton').on( 'click', $.proxy(this.hideInfo,this) );
+			$('section.admin.info .button.ok').on( 'click', $.proxy(this.hideInfo,this) );
 
 
 		},
@@ -1307,6 +1319,7 @@ App.MinezyController = ( function($,document,window, U) {
 				$('section.admin .button.ok').on('click',$.proxy(this.uploadFile,this) );
 			},this) );
 
+			this.API.getData(0, 'accounts', {}, $.proxy(this.getAccounts,this) );
 
 		},
 
@@ -1393,6 +1406,20 @@ App.MinezyController = ( function($,document,window, U) {
 
 		},
 
+		hideInfo: function() {
+
+			$('section.admin.info .closeButton,section.admin .button.cancel').off('click');
+			$('section.admin.info .button.ok').off('click');
+
+			$('section.admin.info').addClass('hide');
+
+			setTimeout( $.proxy(function(){
+				$('.siteOverlay').fadeOut(500);
+				this.resetSettings();
+			},this),300);
+
+		},
+
 		hideSettings: function() {
 
 			$('section.admin .closeButton,section.admin .button.cancel').off('click');
@@ -1432,13 +1459,6 @@ App.MinezyController = ( function($,document,window, U) {
 		getAccounts: function(data) {
 
 			this.accounts = data.accounts.account;
-
-			if( !$.cookie('account') ) {
-				this.showSettings();
-			} else {
-				this.account = $.cookie('account');
-				this.loadAccount();
-			}
 
 			this.initAccounts();
 
@@ -1504,13 +1524,6 @@ App.NavController = ( function( $, document, window, A, U ) {
 		//create the page controller
 		this.pageController = this.loadController();
 
-		//based on the page, do specific site wide transitions
-		this.handleMediaQueryChange( null,$(window).width() );
-
-		$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
-		$(window).scroll( $.proxy( this.handleScroll, this ) );
-
-		this.handleScroll();
 	}
 
 	NavController.prototype = {
@@ -1518,9 +1531,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 		createRoutes: function() {
 
 			this.router.addRoutes([
-				{ 'path' : '/', 'controller' : 'MinezyController' },
-				{ 'path' : '/ActionTree', 'controller' : 'ActionTreeController' },
-				{ 'path' : '.*', 'controller' : 'PageNotFoundController' }
+				{ 'path' : '/', 'controller' : 'MinezyController' }
 			]);
 
 
@@ -1537,8 +1548,6 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 				if( !this.pageNotFound ) {
 					route = this.router.route();
-				} else {
-					route = this.router.getManualRoute('PageNotFoundController');
 				}
 
 				if( route ) {
@@ -1549,18 +1558,6 @@ App.NavController = ( function( $, document, window, A, U ) {
 			//} catch(err) {
 			//	console.error(err);
 			//}
-
-		},
-
-		handleScroll: function(e) {
-
-
-		},
-
-		handleMediaQueryChange: function(e,width) {
-
-			//console.log("WIDTH: " + width);
-
 
 		},
 
@@ -1719,7 +1716,16 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						},
-						'contacts-right' : false
+						'contacts-right' : {
+							'dates-day': {
+								'emails-list': {
+									'emails/meta' : false
+								},
+							},
+							'emails-list': {
+								'emails/meta' : false
+							},
+						}
 					},
 					'dates-day': {
 						'contacts-left': {
@@ -1800,76 +1806,7 @@ App.ActionTree = ( function($,document,window, U) {
 
 	return ActionTree;
 
-})(jQuery,document,window, Utils);;/* MediaQuery 1.0,  Matthew Quinn, GRAND Creative Inc.  Copyright 2012
- *
- *  Description:
- *    Injects a media query detector div on the page. When the div changes size via your css media queries
- *    it will handle any javascript that needs to be executed that is geared for that view.
- *
- *
- *  Input:
- *
- *
- *
- *  Dependancies: JQuery 1.8
- *
- *  Implementation
- *    within your css file, set the dector div width for each media query you need to detect.
- *
-*/
-
-Utils.MediaQuery = (function($){
-
-  "use strict";
-
-  var instantiated;
-
-
-  function init (){
-
-    //private
-    var detector = $(document.createElement('div')),
-
-        compareWidth = 0,
-
-        handleResize = function() {
-
-          if(detector.width() != compareWidth){
-
-            //a change has occurred so update the comparison variable
-            compareWidth = detector.width();
-
-            $(window).trigger( 'mediaQueryChange', [ compareWidth ] );
-
-          }
-
-        };
-
-    detector.attr('id','mediaQueryDetector');
-    detector.css({ 'position' : 'absolute', 'top' : '-100px', 'background-color' : '#ccc',  'z-index' : 0, height: '40px' });
-
-    $('body').prepend( detector );
-
-    compareWidth = detector.width();
-
-    $(window).resize( handleResize );
-
-    //no public funcitons so return nothing
-    return true;
-  }
-
-  return {
-    getInstance :function(){
-
-      if (!instantiated){
-        instantiated = init();
-      }
-
-      return this;
-    }
-  };
-})(jQuery,document,window);
-;
+})(jQuery,document,window, Utils);;
 
 
 

@@ -16,13 +16,6 @@ App.NavController = ( function( $, document, window, A, U ) {
 		//create the page controller
 		this.pageController = this.loadController();
 
-		//based on the page, do specific site wide transitions
-		this.handleMediaQueryChange( null,$(window).width() );
-
-		$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
-		$(window).scroll( $.proxy( this.handleScroll, this ) );
-
-		this.handleScroll();
 	}
 
 	NavController.prototype = {
@@ -30,9 +23,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 		createRoutes: function() {
 
 			this.router.addRoutes([
-				{ 'path' : '/', 'controller' : 'MinezyController' },
-				{ 'path' : '/ActionTree', 'controller' : 'ActionTreeController' },
-				{ 'path' : '.*', 'controller' : 'PageNotFoundController' }
+				{ 'path' : '/', 'controller' : 'MinezyController' }
 			]);
 
 
@@ -49,8 +40,6 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 				if( !this.pageNotFound ) {
 					route = this.router.route();
-				} else {
-					route = this.router.getManualRoute('PageNotFoundController');
 				}
 
 				if( route ) {
@@ -61,18 +50,6 @@ App.NavController = ( function( $, document, window, A, U ) {
 			//} catch(err) {
 			//	console.error(err);
 			//}
-
-		},
-
-		handleScroll: function(e) {
-
-
-		},
-
-		handleMediaQueryChange: function(e,width) {
-
-			//console.log("WIDTH: " + width);
-
 
 		},
 

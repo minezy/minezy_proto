@@ -39,12 +39,6 @@ App.Main = (function(window, document, $, App, Utils){
 
 		handleAppReady: function() {
 
-			//init the media query detector
-			this.mq = Utils.MediaQuery.getInstance();
-			this.mq.compareWidth = $('#mediaQueryDetector').width();
-
-			$(window).on('mediaQueryChange', $.proxy( this.handleMediaQueryChange, this ) );
-
 			this.navController = new App.NavController();
 
 			//avoid using the :hover pseudo class when touching elements

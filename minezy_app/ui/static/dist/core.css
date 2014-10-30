@@ -485,6 +485,21 @@ section.admin {
       width: 100%;
       text-align: center; }
 
+section.admin.info {
+  width: 700px;
+  margin-left: -350px;
+  top: 50px; }
+  section.admin.info p {
+    font-size: 14px;
+    line-height: 24px;
+    margin: 10px 0;
+    padding-right: 10px; }
+  section.admin.info.hide {
+    top: -700px; }
+  section.admin.info .copyContainer {
+    height: 300px;
+    overflow-y: scroll; }
+
 @-webkit-keyframes rotating {
   from {
     -webkit-transform: rotate(0deg); }
@@ -632,12 +647,21 @@ header {
     font-size: 36px;
     line-height: 76px;
     font-weight: 300; }
-  header .account {
+  header .info {
     position: absolute;
     right: 30px;
     top: 24px;
     color: white;
     font-size: 14px; }
+    header .info a i {
+      padding-right: 8px; }
+  header .account {
+    position: absolute;
+    right: 30px;
+    top: 24px;
+    color: white;
+    font-size: 14px;
+    display: none; }
     header .account a i {
       padding-right: 8px; }
   header .accountMenu {

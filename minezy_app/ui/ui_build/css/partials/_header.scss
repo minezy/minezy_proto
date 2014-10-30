@@ -18,12 +18,29 @@ header {
 		font-weight: 300;
 	}
 
+	.info {
+		position: absolute;
+		right:30px;
+		top: 24px;
+		color: white;
+		font-size: 14px;
+
+		a {
+
+			i {
+				padding-right: 8px;
+			}
+		}
+
+	}
+
 	.account {
 		position: absolute;
 		right:30px;
 		top: 24px;
 		color: white;
 		font-size: 14px;
+		display:none;
 
 		a {
 

@@ -208,7 +208,7 @@ section.admin {
 			padding: 0px 4px;
 			border: solid 2px #646464;
 			border-radius: 3px;
-			background: #363636;		
+			background: #363636;
 			width: 100px;
 			text-align: center;
 			color: white;
@@ -354,6 +354,31 @@ section.admin {
 	}
 
 }
+
+section.admin.info {
+
+		width: 700px;
+		margin-left: -350px;
+		top: 50px;
+
+		p {
+			font-size: 14px;
+			line-height: 24px;
+			margin: 10px 0;
+			padding-right: 10px;
+		}
+
+		&.hide {
+			top: -700px;
+		}
+
+		.copyContainer {
+			height: 300px;
+			overflow-y: scroll;
+		}
+
+}
+
 
 
 @-webkit-keyframes rotating {

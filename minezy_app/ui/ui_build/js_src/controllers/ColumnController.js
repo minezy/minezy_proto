@@ -19,6 +19,8 @@ App.ColumnController = ( function($,document,window, U) {
 
 		this.adjustColumnHeight();
 
+		$('#loader').fadeIn();
+
 	}
 
 	ColumnController.prototype = {
