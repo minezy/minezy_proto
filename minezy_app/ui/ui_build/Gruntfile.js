@@ -11,7 +11,7 @@ module.exports = function(grunt) {
                 'js_src/utils/Utils_h.js',
                 'js_src/**/*.js'
         ],
-        dest: '../static/dist/core.js'
+        dest: '../static/dist/app/core.js'
       },
     },
     uglify: {
@@ -21,7 +21,7 @@ module.exports = function(grunt) {
           sourceMap: true
         },
         files: {
-          '../static/dist/core.min.js': ['<%= concat.dist.dest %>']
+          '../static/dist/app/core.min.js': ['<%= concat.dist.dest %>']
         }
       },
     },
@@ -40,7 +40,7 @@ module.exports = function(grunt) {
     sass: {
       dist: {
         files: {
-          '../static/dist/core.css' : 'css/main.scss'
+          '../static/dist/app/core.css' : 'css/main.scss'
         }
       },
     },

@@ -16,7 +16,11 @@ def allowed_file(filename):
 
 @app.route("/")
 def hello():
-    return render_template('ui.html')
+    app.logger.info(request.headers['Host']) 
+    if request.headers['Host'] == 'minezyapp.matt.wearegrand.com:8080' or request.headers['Host'] == 'proto.minzey.com':
+        return render_template('ui.html')
+    else:
+        return render_template('www.html')
 
 
 @app.route('/upload', methods=['GET','POST'])

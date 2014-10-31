@@ -1,0 +1,382 @@
+
+@import "../modules/colours";
+@import "../modules/mixins";
+
+
+body {
+	font-family: "Open Sans", sans-serif;
+	-webkit-font-smoothing: antialiased;
+	background: $lightGrey;
+	color: white;
+	box-sizing: border-box;
+}
+
+strong {
+	font-weight: bold;
+}
+
+a {
+	color:white;
+	text-decoration: none;
+}
+
+
+// Setup the MQ JS events, make sure these match your breakpoints.
+#mediaQueryDetector {
+
+	width:320px;
+
+	@include respond-to(medium) {
+		width:640px;
+	}
+
+	@include respond-to(large) {
+		width:1024px;
+	}
+
+}
+
+.noFlick {
+	-webkit-transform:translate3d(0,0,0);
+	-moz-transform:translate3d(0,0,0);
+	-o-transform:translate3d(0,0,0);
+	-ms-transform:translate3d(0,0,0);
+	transform:translate3d(0,0,0);
+}
+
+.siteContainer {
+
+}
+
+.contentContainer{
+}
+
+
+.responsive {
+	max-width: 640px;
+	margin:0 auto;
+
+	@include respond-to(medium) {
+		max-width:700px;
+	}
+
+	@include respond-to(large) {
+		max-width:730px;
+	}
+
+
+}
+
+.banner {
+	position: fixed;
+	top: 0;
+	right: 0;
+	width: 117px;
+	height: 124px;
+	background: url('../../images/www/prototype.png') no-repeat;
+	@include hide-text;
+	z-index: 10;
+}
+
+a.button {
+	display: inline-block;
+	padding: 14px 18px;
+	color: white;
+	background: $darkGrey;
+	border-radius: 4px;
+
+	&:hover {
+		background: white;
+		color: $darkGrey;
+	}
+
+}
+
+
+header {
+	position: relative;
+	background: url('../../images/www/bg.jpg') no-repeat center right;
+	background-size: cover;
+	z-index: 1;
+	padding: 0 40px;
+
+	@include respond-to(small) {
+		background-position: 60% center ;
+	}
+
+	.cover {
+		width: 100%;
+		height: 100%;
+		top:0;
+		left:0;
+		position: absolute;
+		background: $darkerGreen;
+		opacity: 0.8;
+		z-index: 4;
+	}
+
+	.hContainer {
+		padding: 100px 0;
+		position: relative;
+		z-index: 5;
+	}
+
+	h1 {
+		font-weight: 300;
+		font-size: 64px;
+		line-height: 64px;
+		text-transform: lowercase;
+		margin-left: -3px;
+		margin-bottom: 10px;
+	}
+
+	a.button {
+		margin: 30px 0;
+	}
+
+	h2 {
+		font-size: 24px;
+		line-height: 33px;
+		padding-bottom: 30px;
+	}
+
+	p {
+		font-size: 16px;
+		line-height: 28px;
+		max-width: 575px;
+
+		a {
+			font-weight: 700;
+			border-bottom: solid 2px $lightGrey;
+
+			&:hover {
+				border: none;
+			}
+		}
+
+		em {
+			font-style:  italic;
+			font-weight: 600;
+			border-bottom: solid 2px $lightGrey;
+		}
+	}
+}
+
+section.contentContainer {
+	padding: 40px 50px;
+
+	.point {
+		font-size: 0;
+		margin: 60px;
+		margin-bottom: 100px;
+
+		@include respond-to(small) {
+			margin: 20px;
+			margin-bottom: 60px;
+		}
+		
+		div {
+			display: inline-block;
+			vertical-align: top;
+
+			@include respond-to(small) {
+				display: block;
+			}
+		}
+		.icon {
+			width: 26%;
+			text-align: center;
+
+			@include respond-to(small) {
+				width: 100%;
+				text-align: center;
+				margin-bottom: 30px;
+			}
+
+			&.right {
+				float: right;
+			}
+
+			.circle {
+				font-size: 55px;
+				line-height: 99px;
+				width: 106px;
+				height: 106px;
+				background: $green;
+				border-radius: 50%;
+				text-align: center;
+				margin: 18px auto 0 auto;
+
+			}
+		}
+
+		.copy {
+			width: 74%;
+			color: $darkGrey;
+
+			@include respond-to(small) {
+				width: 100%;
+				text-align: left;
+			}
+
+			h3 {
+				font-size: 24px;
+				line-height: 33px;
+				text-transform: uppercase;
+				margin-bottom: 16px;
+				font-weight: 600;
+
+				@include respond-to(small) {
+					text-align: center;
+				}
+
+			}
+
+			p {
+				font-size: 18px;
+				line-height: 28px;
+			}
+		}
+	}
+
+}
+
+section.mailinglist {
+	background: $green;
+	color:white;
+	padding: 60px 40px;
+	text-align: center;
+
+	h2 {
+		font-size: 30px;
+		line-height: 40px;
+		padding-bottom: 10px;
+	}
+
+	p {
+		font-size: 18px;
+		line-height: 33px;
+		padding-bottom: 30px;
+
+		a {
+			font-weight: 700;
+			border-bottom: solid 2px $lightGrey;
+
+			&:hover {
+				border: none;
+			}
+		}
+	}
+
+	input[type="text"] {
+		width: 375px;
+		border-radius: 4px;
+		border: solid 2px $lightGrey;
+		padding: 10px 18px;
+		vertical-align: top;
+		margin-right: 6px;
+		font-size: 18px;
+		color: $darkGrey;
+		outline: none;
+
+		@include respond-to(small) {
+			width: 200px;
+			font-size: 14px;
+			padding: 10px 18px;
+			margin-bottom: 10px;
+		}
+
+		&.error {
+			border-color: $red;
+		}
+	}
+
+}
+
+
+footer {
+	background: $darkGrey;
+	color: white;
+	padding: 60px 40px 100px;
+
+	.responsive {
+		position: relative;
+	}
+
+	.knight {
+
+		p {
+			font-size: 12px;
+			line-height: 18px;
+			font-weight: 300;
+			padding-bottom: 8px;
+		}
+
+		a {
+			background: url('../../images/www/knight.jpg') no-repeat;
+			width: 280px;
+			height: 38px;
+			display: block;
+			@include hide-text;
+
+			@include respond-to(small) {
+				width: 240px;
+				background-size: 100%;
+			}
+
+			&:hover {
+				opacity: 0.5;
+			}
+		}
+
+	}
+
+	.social {
+		position: absolute;
+		right: 0;
+		top:0;
+
+		@include respond-to(small) {
+			position: static;
+			margin-top: 40px;
+			text-align: center;
+		}
+
+		p {
+			font-size: 12px;
+			line-height: 18px;
+			font-weight: 300;
+			padding-bottom: 8px;
+		}
+
+		a {
+			display: inline-block;
+			width: 46px;
+			height: 46px;
+			background: $green;
+			color: white;
+			text-align: center;
+			border-radius: 50%;
+			margin-left: 8px;
+			vertical-align: top;
+
+			i {
+				font-size: 22px;
+				line-height: 44px;
+
+				&.fa-envelope {
+					line-height: 44px;
+					font-size: 18px;
+				}
+
+			}
+
+
+			&:hover {
+				opacity: 0.5;
+			}
+		}
+
+	}
+
+}

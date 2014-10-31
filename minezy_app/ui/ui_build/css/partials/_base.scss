@@ -62,7 +62,7 @@ a {
 	right: 0;
 	width: 117px;
 	height: 124px;
-	background: url('../images/prototype.png') no-repeat;
+	background: url('../../images/app/prototype.png') no-repeat;
 	@include hide-text;
 	z-index: 10;
 }
@@ -99,7 +99,7 @@ select {
 	border-radius: 3px;
 	font-weight: 700;
 	font-size: 11px;
-	background: white url('../images/select_down.png' ) no-repeat 90% center ;
+	background: white url('../../images/app/select_down.png' ) no-repeat 90% center ;
 	outline: none;
 
 	&:hover {
