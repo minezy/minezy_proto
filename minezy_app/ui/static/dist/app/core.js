@@ -1531,7 +1531,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 		createRoutes: function() {
 
 			this.router.addRoutes([
-				{ 'path' : '/', 'controller' : 'MinezyController' }
+				{ 'path' : '/app/', 'controller' : 'MinezyController' }
 			]);
 
 

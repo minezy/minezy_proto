@@ -14,22 +14,26 @@ def allowed_file(filename):
            filename.rsplit('.', 1)[1] in ALLOWED_EXTENSIONS
 
 
-@app.route("/")
+@app.route("/", methods=['GET'])
 def hello():
-    app.logger.info(request.headers['Host']) 
-    if request.headers['Host'] == 'minezyapp.matt.wearegrand.com:8080' or request.headers['Host'] == 'proto.minzey.com':
-        return render_template('ui.html')
-    else:
-        return render_template('www.html')
+    #app.logger.info(request.headers['Host']) 
+    return render_template('www.html')
 
 
-@app.route('/upload', methods=['GET','POST'])
-def upload_file():
-    app.logger.info(request.method)
-    if request.method == 'POST':
-        file = request.files['file']
-        if file and allowed_file(file.filename):
-            filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
-            return UPLOAD_FOLDER + '/' + filename
-    return '0'
+@app.route("/app/", methods=['GET'])
+def appui():
+    #app.logger.info(request.headers['Host']) 
+    site = render_template('ui.html')
+    return site
+
+
+#@app.route('/upload/', methods=['GET','POST'])
+#def upload_file():
+#    app.logger.info(request.method)
+#    if request.method == 'POST':
+#        file = request.files['file']
+#        if file and allowed_file(file.filename):
+#            filename = secure_filename(file.filename)
+#            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+#            return UPLOAD_FOLDER + '/' + filename
+#    return '0'
