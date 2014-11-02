@@ -151,7 +151,7 @@ def query_emails_meta(account, params):
             emeta = {
                      'id': e['id'],
                      'subject': e['subject'],
-                     'link': e['link'],
+                     #'link': e['link'],
                      'date':  {
                                "date":  e['date'],
                                "year":  e['year'],
@@ -166,22 +166,27 @@ def query_emails_meta(account, params):
             emailLink = e['link'].replace("\\", "/")
             if len(emailLink) > 0:
                 fileName = os.path.join(baseDir, emailLink)
-                with open(fileName) as f:
-                    parser = email.parser.Parser()
-                    email_msg = parser.parse(f, headersonly=False)
-                
-                    emeta['multipart'] = email_msg.is_multipart()
+                try:
+                    with open(fileName) as f:
+                        parser = email.parser.Parser()
+                        email_msg = parser.parse(f, headersonly=False)
                     
-                    if not email_msg.is_multipart():
-                        body = email_msg.get_payload(decode=True)
-                        emeta['body'] = body
-                        emeta['content-type'] = email_msg.get_content_type()
-                    else:
-                        parts = []
-                        for i,part in enumerate(email_msg.walk()):
-                            body = part.get_payload(decode=True)
-                            parts.append( { "body": body, "content-type": part.get_content_type() } )
-                        emeta['parts'] = parts
+                        emeta['multipart'] = email_msg.is_multipart()
+                        
+                        if not email_msg.is_multipart():
+                            body = email_msg.get_payload(decode=True)
+                            emeta['body'] = body
+                            emeta['content-type'] = email_msg.get_content_type()
+                        else:
+                            parts = []
+                            for i,part in enumerate(email_msg.walk()):
+                                body = part.get_payload(decode=True)
+                                parts.append( { "body": body, "content-type": part.get_content_type() } )
+                            emeta['parts'] = parts
+                except Exception, e:
+                    print e
+                    pass
+                    
             
         if r == 'SENT' or r == 'TO' or r == 'CC' or r == 'BCC':
             if r == 'SENT':
