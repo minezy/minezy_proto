@@ -936,6 +936,12 @@ section.columnContainer {
           font-weight: 700; }
         section.columnContainer div.results div.emailContainer .contactContainer .contact div.email {
           margin-left: 3px; }
+      section.columnContainer div.results div.emailContainer .bodyContainer {
+        margin: 40px;
+        border-top: solid 1px #f0f0f0; }
+        section.columnContainer div.results div.emailContainer .bodyContainer .bodyContent {
+          padding: 30px 0;
+          font-size: 12px; }
   section.columnContainer a.showMore {
     display: block;
     width: 120px;

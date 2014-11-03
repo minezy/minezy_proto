@@ -1155,6 +1155,10 @@ App.HTMLFactory = ( function($,document,window, U) {
 				newEmail.children('.bccContainer').hide();
 			}
 
+			newEmail.find('.bodyContainer .bodyContent').html(data.body);
+
+
+
 			return newEmail;
 
 		},
@@ -1531,7 +1535,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 		createRoutes: function() {
 
 			this.router.addRoutes([
-				{ 'path' : '/app/', 'controller' : 'MinezyController' }
+				{ 'path' : '/', 'controller' : 'MinezyController' }
 			]);
 
 
@@ -1577,8 +1581,7 @@ App.API = ( function($,document,window, U) {
 
 	function API() {
 
-		this.api_root = "http://"+window.location.hostname+":5000";
-		//this.api_root = 'http://localhost:5000';
+		this.api_root = 'http://localhost:5000';
 		//this.api_root = 'http://ec2-54-69-178-96.us-west-2.compute.amazonaws.com:5000';
 		this.api_version = 1;
 		this.current_call = null;

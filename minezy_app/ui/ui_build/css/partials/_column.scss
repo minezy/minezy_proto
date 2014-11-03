@@ -360,6 +360,16 @@ section.columnContainer {
 				}
 			}
 
+			.bodyContainer {
+				margin: 40px;
+				border-top: solid 1px #f0f0f0;
+
+				.bodyContent {
+					padding: 30px 0;
+					font-size: 12px;
+				}
+			}
+
 		}
 
 	}

@@ -125,6 +125,10 @@ App.HTMLFactory = ( function($,document,window, U) {
 				newEmail.children('.bccContainer').hide();
 			}
 
+			newEmail.find('.bodyContainer .bodyContent').html(data.body);
+
+
+
 			return newEmail;
 
 		},
