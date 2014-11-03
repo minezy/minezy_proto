@@ -343,6 +343,15 @@ header {
       font-style: italic;
       font-weight: 600;
       border-bottom: solid 2px #f1f1f1; }
+  header span {
+    margin-left: 15px; }
+    header span a {
+      border-bottom: solid 2px #f1f1f1;
+      font-weight: 700; }
+      header span a span {
+        margin: 0; }
+      header span a:hover {
+        border: none; }
 
 section.contentContainer {
   padding: 40px 50px; }

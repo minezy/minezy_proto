@@ -160,6 +160,23 @@ header {
 			border-bottom: solid 2px $lightGrey;
 		}
 	}
+
+	span {
+		margin-left: 15px;
+
+		a {
+			border-bottom: solid 2px $lightGrey;
+			font-weight: 700;
+
+			span {
+				margin: 0;
+			}
+
+			&:hover {
+				border: none;
+			}
+		}
+	}
 }
 
 section.contentContainer {
