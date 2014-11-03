@@ -937,11 +937,12 @@ section.columnContainer {
         section.columnContainer div.results div.emailContainer .contactContainer .contact div.email {
           margin-left: 3px; }
       section.columnContainer div.results div.emailContainer .bodyContainer {
-        margin: 40px;
+        margin: 20px 0;
         border-top: solid 1px #f0f0f0; }
         section.columnContainer div.results div.emailContainer .bodyContainer .bodyContent {
-          padding: 30px 0;
-          font-size: 12px; }
+          padding: 20px 0;
+          font-size: 12px;
+          line-height: 18px; }
   section.columnContainer a.showMore {
     display: block;
     width: 120px;
