@@ -1158,8 +1158,6 @@ App.HTMLFactory = ( function($,document,window, U) {
 			if( data.body )
 				newEmail.find('.bodyContainer .bodyContent').html(data.body.replace(/(?:\r\n|\r|\n)/g, '<br />'));
 
-
-
 			return newEmail;
 
 		},
