@@ -1,7 +1,8 @@
 minezy_proto
 ============
+View this application at <a href="http://minezy.org">http://minezy.org</a>
 
-To run Minezy:
+To run Minezy on your own:
 
 First install Neo4j database http://www.neo4j.org/ (v2.0+)<br>
 Start Neo4j and have it running at localhost:7474<br>
