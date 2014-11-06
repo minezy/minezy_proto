@@ -1,7 +1,10 @@
 minezy_proto
 ============
-View this application at <a href="http://minezy.org">http://minezy.org</a>
+This project was made possible by the <a href="http://www.knightfoundation.org/grants/201448427/">Knight Prototype Fund</a><br>
+Try the running demo at <a href="http://minezy.org">http://minezy.org</a>
 
+
+---------------------------
 To run Minezy on your own:
 
 First install Neo4j database http://www.neo4j.org/ (v2.0+)<br>
