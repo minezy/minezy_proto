@@ -246,7 +246,7 @@ a {
 
 #mediaQueryDetector {
   width: 320px; }
-  @media only screen and (min-width: 641px) {
+  @media only screen and (min-width: 701px) {
     #mediaQueryDetector {
       width: 640px; } }
   @media only screen and (min-width: 1025px) {
@@ -263,7 +263,7 @@ a {
 .responsive {
   max-width: 640px;
   margin: 0 auto; }
-  @media only screen and (min-width: 641px) {
+  @media only screen and (min-width: 701px) {
     .responsive {
       max-width: 700px; } }
   @media only screen and (min-width: 1025px) {
@@ -301,7 +301,7 @@ header {
   background-size: cover;
   z-index: 1;
   padding: 0 40px; }
-  @media only screen and (max-width: 640px) {
+  @media only screen and (max-width: 700px) {
     header {
       background-position: 60% center; } }
   header .cover {
@@ -326,6 +326,9 @@ header {
     margin-bottom: 10px; }
   header a.button {
     margin: 30px 0; }
+    @media only screen and (max-width: 700px) {
+      header a.button {
+        margin: 30px 0 6px 0; } }
   header h2 {
     font-size: 24px;
     line-height: 33px;
@@ -344,12 +347,19 @@ header {
       font-weight: 600;
       border-bottom: solid 2px #f1f1f1; }
   header span {
-    margin-left: 15px; }
+    margin-left: 15px;
+    line-height: 24px; }
+    @media only screen and (max-width: 700px) {
+      header span {
+        display: block;
+        margin: 0px;
+        margin-bottom: 20px; } }
     header span a {
       border-bottom: solid 2px #f1f1f1;
       font-weight: 700; }
       header span a span {
-        margin: 0; }
+        margin: 0;
+        display: inline; }
       header span a:hover {
         border: none; }
 
@@ -359,20 +369,20 @@ section.contentContainer {
     font-size: 0;
     margin: 60px;
     margin-bottom: 100px; }
-    @media only screen and (max-width: 640px) {
+    @media only screen and (max-width: 700px) {
       section.contentContainer .point {
         margin: 20px;
         margin-bottom: 60px; } }
     section.contentContainer .point div {
       display: inline-block;
       vertical-align: top; }
-      @media only screen and (max-width: 640px) {
+      @media only screen and (max-width: 700px) {
         section.contentContainer .point div {
           display: block; } }
     section.contentContainer .point .icon {
       width: 26%;
       text-align: center; }
-      @media only screen and (max-width: 640px) {
+      @media only screen and (max-width: 700px) {
         section.contentContainer .point .icon {
           width: 100%;
           text-align: center;
@@ -391,7 +401,7 @@ section.contentContainer {
     section.contentContainer .point .copy {
       width: 74%;
       color: #363636; }
-      @media only screen and (max-width: 640px) {
+      @media only screen and (max-width: 700px) {
         section.contentContainer .point .copy {
           width: 100%;
           text-align: left; } }
@@ -401,7 +411,7 @@ section.contentContainer {
         text-transform: uppercase;
         margin-bottom: 16px;
         font-weight: 600; }
-        @media only screen and (max-width: 640px) {
+        @media only screen and (max-width: 700px) {
           section.contentContainer .point .copy h3 {
             text-align: center; } }
       section.contentContainer .point .copy p {
@@ -436,7 +446,7 @@ section.mailinglist {
     font-size: 18px;
     color: #363636;
     outline: none; }
-    @media only screen and (max-width: 640px) {
+    @media only screen and (max-width: 700px) {
       section.mailinglist input[type="text"] {
         width: 200px;
         font-size: 14px;
@@ -467,7 +477,7 @@ footer {
       display: block;
       width: 0;
       height: 100%; }
-    @media only screen and (max-width: 640px) {
+    @media only screen and (max-width: 700px) {
       footer .knight a {
         width: 240px;
         background-size: 100%; } }
@@ -477,7 +487,7 @@ footer {
     position: absolute;
     right: 0;
     top: 0; }
-    @media only screen and (max-width: 640px) {
+    @media only screen and (max-width: 700px) {
       footer .social {
         position: static;
         margin-top: 40px;
