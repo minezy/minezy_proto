@@ -9,11 +9,14 @@ To run Minezy on your own:
 
 First install Neo4j database http://www.neo4j.org/ (v2.0+)<br>
 Start Neo4j and have it running at localhost:7474<br>
+
+Install python modules:
+pip install flask flask-cors py2neo
+
 Then under ./minezy_api/ launch:
 
 <b>python ./run_ui.py<br>
 python ./run_server.py</b><br>
-(ensure Flask is installed)
 
 Open browser to: localhost:8080/
 You should see the Minezy title page, but there won't be anything to navigate until you load Neo4j with email data.
