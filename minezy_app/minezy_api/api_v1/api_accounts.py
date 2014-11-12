@@ -5,7 +5,6 @@ from flask import jsonify, request
 
 
 @app.route('/1/accounts/', methods=['GET'])
-@app.cache.cached(timeout=300) 
 @support_jsonp
 def accounts():
     params = query_params(request)
@@ -14,7 +13,6 @@ def accounts():
 
 
 @app.route('/1/accounts/count/', methods=['GET'])
-@app.cache.cached(timeout=300) 
 @support_jsonp
 def accounts_count():
     params = query_params(request)
@@ -23,7 +21,6 @@ def accounts_count():
 
 
 @app.route('/1/accounts/create/<account>', methods=['PUT', 'GET'])
-@app.cache.cached(timeout=300) 
 @support_jsonp
 def accounts_create(account):
     params = query_params(request)
@@ -32,7 +29,6 @@ def accounts_create(account):
 
 
 @app.route('/1/accounts/delete/<int:accountId>', methods=['PUT', 'GET'])
-@app.cache.cached(timeout=300) 
 @support_jsonp
 def accounts_delete(accountId):
     params = query_params(request)
