@@ -4,10 +4,10 @@ import sys
 import time
 import email.parser
 import multiprocessing
+import traceback
 from neo4j_loader import neo4jLoader
 
-
-def loader_worker(fileQ, loaderQ):
+def parser_worker(fileQ, loaderQ):
     try:
         while True:
             fileName = fileQ.get()
@@ -33,16 +33,15 @@ def loader_worker(fileQ, loaderQ):
                         "vcalendar - skip"
                     else:
                         loaderQ.put( (email_msg, eFile) )
-                        
             fileQ.task_done()
             
     except Exception, e:
         print e
         pass
 
+    loaderQ.put(None)
     return
 
-    
 def traverse_dir(folder):
     for root,dirs,files in os.walk(folder):
         loader.msg("Examining folder: " + root)
@@ -50,6 +49,23 @@ def traverse_dir(folder):
             yield (os.path.join(root, name))
     return
 
+def service_loader_q(loaderQ, block, numRunning):
+    try:
+        while numRunning > 0:
+            if (block):
+                item = loaderQ.get()
+            else: 
+                item = loaderQ.get_nowait()
+
+            if item == None:
+                numRunning = numRunning - 1
+            else:
+                email_msg = item[0]
+                loader.add(item[0], item[1])
+    except Exception,e:
+        pass
+
+    return numRunning
 
 if __name__ == '__main__':
     if len(sys.argv) != 3:
@@ -63,7 +79,8 @@ if __name__ == '__main__':
     loader = neo4jLoader(account, name)
     
     numProcs = 8
-    
+    numRunning = numProcs
+
     if len(sys.argv) > 1:
         # using multiprocessing and generator 'traverse_dir' to speed things up
         fileQ = multiprocessing.JoinableQueue(1000)
@@ -71,34 +88,23 @@ if __name__ == '__main__':
         
         procs = []
         for i in range(numProcs):
-            p = multiprocessing.Process(target=loader_worker, args=(fileQ,loaderQ))
+            p = multiprocessing.Process(target=parser_worker, args=(fileQ,loaderQ))
             procs.append(p)
             p.start()
         
         for fileName in traverse_dir(sys.argv[1]):
-            try:
-                fileQ.put_nowait(fileName)
-            except Exception,e:
+            while True:
                 try:
-                    while True:
-                        item = loaderQ.get_nowait()
-                        loader.add(item[0], item[1])
+                    fileQ.put(fileName, True, 1)
+                    break
                 except Exception,e:
-                    pass
-            
+                    numRunning = service_loader_q(loaderQ, False, numRunning)
+
         for i in range(len(procs)):
             fileQ.put(None)
+
+        service_loader_q(loaderQ, True, numRunning)
         fileQ.join()
-        #for p in procs:
-        #    p.join()
-
-        try:
-            while True:
-                item = loaderQ.get_nowait()
-                loader.add(item[0], item[1])
-        except Exception,e:
-            pass
-
 
     loader.complete()
     t1 = time.time()
