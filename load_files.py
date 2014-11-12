@@ -9,7 +9,6 @@ from neo4j_loader import neo4jLoader
 
 def parser_worker(fileQ, loaderQ):
     try:
-        count = 0
         while True:
             fileName = fileQ.get()
             if fileName is None:
@@ -33,7 +32,6 @@ def parser_worker(fileQ, loaderQ):
                     elif t[1] == 'VCALENDAR':
                         "vcalendar - skip"
                     else:
-                        count = count + 1
                         loaderQ.put( (email_msg, eFile) )
             fileQ.task_done()
             
