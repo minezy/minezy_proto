@@ -6,6 +6,7 @@ from flask import jsonify, request
 
 @app.route('/1/emails/', methods=['GET'])
 @app.route('/1/<int:account>/emails/', methods=['GET'])
+@app.cache.cached(timeout=300) 
 @support_jsonp
 def emails(account=None):
     params = query_params(request)
@@ -15,6 +16,7 @@ def emails(account=None):
 
 @app.route('/1/emails/meta/', methods=['GET'])
 @app.route('/1/<int:account>/emails/meta/', methods=['GET'])
+@app.cache.cached(timeout=300) 
 @support_jsonp
 def emails_meta(account=None):
     params = query_params(request)
@@ -24,6 +26,7 @@ def emails_meta(account=None):
 
 @app.route('/1/emails/count/', methods=['GET'])
 @app.route('/1/<int:account>/emails/count/', methods=['GET'])
+@app.cache.cached(timeout=300) 
 @support_jsonp
 def emails_count(account=None):
     params = query_params(request)
