@@ -2,6 +2,7 @@ from minezy_api import app
 from api_common import support_jsonp, query_params
 from query_cliques import query_cliques
 from flask import jsonify, request
+from flask.ext.cache import Cache
 
 
 @app.route('/1/cliques/', methods=['GET'])
