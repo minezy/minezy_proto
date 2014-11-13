@@ -1,5 +1,5 @@
 from minezy_api import app
-from api_common import support_jsonp, query_params
+from api_common import support_jsonp, query_params, query_cache_key
 from query_accounts import query_accounts, query_accounts_create, query_accounts_delete
 from flask import jsonify, request
 

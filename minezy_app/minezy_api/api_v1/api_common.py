@@ -14,6 +14,13 @@ def support_jsonp(f):
     return decorated_function
 
 
+def query_cache_key(*args, **kwargs):
+    path = request.path
+    args = str(hash(frozenset(request.args.items())))
+    cache_key = (path + args).encode('utf-8')
+    return cache_key
+
+            
 def query_params(request):
     query_params = {}
 

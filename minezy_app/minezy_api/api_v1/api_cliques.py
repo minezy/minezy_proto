@@ -1,12 +1,12 @@
 from minezy_api import app
-from api_common import support_jsonp, query_params
+from api_common import support_jsonp, query_params, query_cache_key
 from query_cliques import query_cliques
 from flask import jsonify, request
 from flask.ext.cache import Cache
 
 
 @app.route('/1/cliques/', methods=['GET'])
-@app.cache.cached(timeout=300) 
+@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
 @support_jsonp
 def cliques():
     params = query_params(request)
@@ -14,7 +14,7 @@ def cliques():
     return jsonify( { 'cliques' : resp } )
 
 @app.route('/1/cliques/count/', methods=['GET'])
-@app.cache.cached(timeout=300) 
+@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
 @support_jsonp
 def cliques_count():
     params = query_params(request)
