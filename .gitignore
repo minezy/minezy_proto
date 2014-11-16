@@ -9,3 +9,4 @@ minezy_app/ui/ui_build/.sass-cache
 minezy_www/static/node_modules
 minezy_www/static/.sass-cache
 minezy_www/static/css
+*.zip
