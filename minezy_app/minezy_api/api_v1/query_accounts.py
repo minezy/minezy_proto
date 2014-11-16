@@ -1,4 +1,5 @@
 import time
+from minezy_api import app
 from minezy_api import neo4j_conn
 from datetime import datetime
 
@@ -28,7 +29,8 @@ def query_accounts(params, countResults=False):
     if countResults:
         resp = _query_count(query_str, params)
     else:
-        print query_str
+        if app.debug:
+            print query_str
         
         tx = neo4j_conn.g_session.create_transaction()
         tx.append(query_str, params)
@@ -66,7 +68,8 @@ def _query_count(query_str, params):
     count_str = query_str[0:query_str.find("RETURN")]
     count_str += "RETURN count(*) AS count"
     
-    print count_str
+    if app.debug:
+        print count_str
     
     tx = neo4j_conn.g_session.create_transaction()
     tx.append(count_str, params)
@@ -104,7 +107,8 @@ def query_accounts_create(params, account):
              }
     
     query_str = "MERGE (a:Account {id:{props}.id}) SET a={props}"
-    print query_str
+    if app.debug:
+        print query_str
     
     tx.append(query_str, { 'props': props } )
     results = tx.commit()
@@ -122,7 +126,8 @@ def query_accounts_delete(params, id):
 
     query_str = "MATCH (a:Account) WHERE id = %s " % str(id)
     query_str += " DELETE a"
-    print query_str
+    if app.debug:
+        print query_str
     
     tx = neo4j_conn.g_session.create_transaction()
     tx.append(query_str)

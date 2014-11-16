@@ -1,4 +1,5 @@
 import time
+from minezy_api import app
 from minezy_api import neo4j_conn
 
 
@@ -70,7 +71,8 @@ def query_names(account, params, countResults=False):
     if countResults:
         resp = _query_count(query_str, params)
     else:
-        print query_str
+        if app.debug:
+            print query_str
         
         tx = neo4j_conn.g_session.create_transaction()
         tx.append(query_str, params)
@@ -105,7 +107,8 @@ def _query_count(query_str, params):
     count_str = query_str[0:query_str.find("RETURN")]
     count_str += "RETURN count(*) AS count"
     
-    print count_str
+    if app.debug:
+        print count_str
     
     tx = neo4j_conn.g_session.create_transaction()
     tx.append(count_str, params)
