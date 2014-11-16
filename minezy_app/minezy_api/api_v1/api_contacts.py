@@ -6,7 +6,7 @@ from flask.ext.cache import Cache
 
 @app.route('/1/contacts/', methods=['GET'])
 @app.route('/1/<int:account>/contacts/', methods=['GET'])
-@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
+@app.cache.cached(key_prefix=query_cache_key) 
 @support_jsonp
 def contacts(account=None):
     params = query_params(request)
@@ -15,7 +15,7 @@ def contacts(account=None):
 
 @app.route('/1/contacts/count/', methods=['GET'])
 @app.route('/1/<int:account>/contacts/count/', methods=['GET'])
-@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
+@app.cache.cached(key_prefix=query_cache_key) 
 @support_jsonp
 def contacts_count(account=None):
     params = query_params(request)

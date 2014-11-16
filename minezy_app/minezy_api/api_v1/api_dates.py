@@ -7,7 +7,7 @@ from flask.ext.cache import Cache
 
 @app.route('/1/dates/', methods=['GET'])
 @app.route('/1/<int:account>/dates/', methods=['GET'])
-@app.cache.cached(timeout=300, key_prefix=query_cache_key)
+@app.cache.cached(key_prefix=query_cache_key)
 @support_jsonp
 def dates(account=None):
     params = query_params(request)
@@ -17,7 +17,7 @@ def dates(account=None):
 
 @app.route('/1/dates/range/', methods=['GET'])
 @app.route('/1/<int:account>/dates/range/', methods=['GET'])
-@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
+@app.cache.cached(key_prefix=query_cache_key) 
 @support_jsonp
 def dates_range(account=None):
     params = query_params(request)
@@ -27,7 +27,7 @@ def dates_range(account=None):
 
 @app.route('/1/dates/count/', methods=['GET'])
 @app.route('/1/<int:account>/dates/count/', methods=['GET'])
-@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
+@app.cache.cached(key_prefix=query_cache_key) 
 @support_jsonp
 def dates_count(account=None):
     params = query_params(request)

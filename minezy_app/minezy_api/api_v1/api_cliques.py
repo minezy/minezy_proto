@@ -6,7 +6,7 @@ from flask.ext.cache import Cache
 
 
 @app.route('/1/cliques/', methods=['GET'])
-@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
+@app.cache.cached(key_prefix=query_cache_key) 
 @support_jsonp
 def cliques():
     params = query_params(request)
@@ -14,7 +14,7 @@ def cliques():
     return jsonify( { 'cliques' : resp } )
 
 @app.route('/1/cliques/count/', methods=['GET'])
-@app.cache.cached(timeout=300, key_prefix=query_cache_key) 
+@app.cache.cached(key_prefix=query_cache_key) 
 @support_jsonp
 def cliques_count():
     params = query_params(request)
