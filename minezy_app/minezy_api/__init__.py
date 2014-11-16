@@ -8,12 +8,12 @@ cors = CORS(app)
 
 try:
     sys.stdout.write("Flask-Cache 'memcached'... ")
-    app.cache = Cache(app,config={'CACHE_TYPE': 'memcached', 'CACHE_MEMCACHED_SERVERS': ['127.0.0.1:11211']})
+    app.cache = Cache(app,config={'CACHE_TYPE': 'memcached', 'CACHE_MEMCACHED_SERVERS': ['127.0.0.1:11211'], 'CACHE_DEFAULT_TIMEOUT':0})
     sys.stdout.write("OK\n")
 except:
     sys.stdout.write("Failed\n")
     sys.stdout.write("Flask-Cache 'simple'... ")
-    app.cache = Cache(app,config={'CACHE_TYPE': 'simple'})
+    app.cache = Cache(app,config={'CACHE_TYPE': 'simple', 'CACHE_DEFAULT_TIMEOUT':0, 'CACHE_THRESHOLD':4096})
     sys.stdout.write("OK\n")
     pass
 
