@@ -68,20 +68,20 @@ def service_loader_q(loaderQ, block, numRunning):
     return numRunning
 
 if __name__ == '__main__':
-    if len(sys.argv) != 3:
+    if len(sys.argv) < 3:
         print "Usage: " + sys.argv[0] + " <depot_dir> <depot_name>"
         exit(1)
     
     t0 = time.time()
     
     account = sys.argv[1].replace("\\", "/").replace("//", "/")
-    name = sys.argv[2]
-    loader = neo4jLoader(account, name)
+    depot_name = sys.argv[2]
+    loader = neo4jLoader(account, depot_name)
     
     numProcs = 8
     numRunning = numProcs
 
-    if len(sys.argv) > 1:
+    if len(sys.argv) < 4:
         # using multiprocessing and generator 'traverse_dir' to speed things up
         fileQ = multiprocessing.JoinableQueue(1000)
         loaderQ = multiprocessing.Queue(1000*numProcs)
