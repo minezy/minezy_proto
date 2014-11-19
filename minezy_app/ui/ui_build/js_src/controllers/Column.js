@@ -151,6 +151,8 @@ App.Column = ( function($,document,window, U) {
 					$( this.colName + ' .start_date_year').off('change');
 				}
 
+			} else if( val === 'words' ) {
+				$( this.colName + ' .additionalOptions').empty();
 			} else if( val === 'cliques' ) {
 				$( this.colName + ' .additionalOptions').empty();
 			} else if( val === 'observers' ) {
@@ -346,6 +348,8 @@ App.Column = ( function($,document,window, U) {
 				rows = data.emails.email;
 			} else if( this.action == 'emails/meta' ) {
 				rows = data.emails.email;
+			} else if( this.action == 'words' ) {
+				rows = data;
 			} else if( this.action == 'cliques' ) {
 				rows = data;
 			} else if( this.action == 'observers' ) {

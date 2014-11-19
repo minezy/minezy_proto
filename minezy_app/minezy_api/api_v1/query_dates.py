@@ -2,10 +2,9 @@ import time
 from datetime import date, timedelta
 from minezy_api import app
 from minezy_api import neo4j_conn
-from query_common import prepare_date_range, prepare_date_clause
+from query_common import prepare_date_range, prepare_date_clause, prepare_word_clause
 
 def query_dates(account, params, countResults=False):
-
     t0 = time.time()
     
     bYear = True
@@ -83,7 +82,45 @@ def query_dates(account, params, countResults=False):
             query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
         if params['limit']:
             query_str += " LIMIT {{limit}}"
+
+    elif len(params['word']):
+
+        query_str = "MATCH "
+        query_str += prepare_word_clause(params['word'], bNode=True, bWhere=False)
+        query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
+        query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True)
+        query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
+
+        if bDay:
+            query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
+        elif bMonth:
+            query_str += "WITH (m.num%100) AS month, (m.num/100) AS year, "
+        else:
+            query_str += "WITH y.num AS year, "
+
+        query_str += "sum(r.count) AS count RETURN "
+
+        if bYear or bMonth or bDay:
+            query_str += "year,"
+        if bMonth or bDay:
+            query_str += "month,"
+        if bDay:
+            query_str += "day,"
+    
+        query_str += "count ORDER BY "
         
+        if bYear or bMonth or bDay:
+            query_str += "year " + params['order']
+        if bMonth or bDay:
+            query_str += ",month " + params['order']
+        if bDay:
+            query_str += ",day " + params['order']
+            
+        if params['index'] or params['page'] > 1:
+            query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
+        if params['limit']:
+            query_str += " LIMIT {{limit}}"
+
     else:
         if bDay:
             ymd_label = 'Day'
@@ -97,7 +134,7 @@ def query_dates(account, params, countResults=False):
         
         query_str = "MATCH (%s:%s) " % (ymd_var, ymd_label)
         query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere)
-        
+
         query_str += "WITH %s ORDER BY %s.num %s" % (ymd_var, ymd_var, params['order'])
         
         if params['index'] or params['page'] > 1:
@@ -118,6 +155,7 @@ def query_dates(account, params, countResults=False):
     accLbl = ""
     if account is not None:
         accLbl = "`%d`:" % account
+    print query_str
     query_str = query_str.format(accLbl)
             
     if countResults:

@@ -67,6 +67,8 @@ def query_params(request):
     query_params['order'] = request.args.get('order',default='DESC',type=str).upper()
     if not (query_params['order'] == 'ASC' or query_params['order'] == 'DESC'):
         query_params['order'] = 'DESC' 
+
+    query_params['word'] = request.args.getlist('word')
     
     return query_params
 

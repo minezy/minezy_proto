@@ -161,3 +161,31 @@ def prepare_date_clause(bYear, bMonth, bDay, bNode=True, bPath=True, bWhere=True
         
     return query_str
 
+def prepare_word_clause(word=[], prefix='', bNode=True, bPath=True, bWhere=True, bAnd=False, default=''):
+    query_str = ''
+    
+    if (len(word)):
+        if bPath:
+            if bNode:
+                query_str += "(w:Word)"
+            else:
+                query_str += ",(w:Word)"
+
+            query_str += "-[r:`WORDS`]-(e:{0}Email)  "
+        if bWhere:
+            if bAnd:
+                query_str += "AND "
+            else:
+                query_str += "WHERE "
+
+            query_str += "w.id IN {{word}} "
+
+    if len(query_str):
+        if len(prefix):
+            query_str = prefix + query_str
+    else:
+        query_str = default
+        
+    print query_str
+
+    return query_str

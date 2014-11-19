@@ -310,7 +310,8 @@ App.Column = ( function($,document,window, U) {
 					$( this.colName + ' .additionalOptions').empty();
 					$( this.colName + ' .start_date_year').off('change');
 				}
-
+			} else if( val === 'words' ) {
+				$( this.colName + ' .additionalOptions').empty();
 			} else if( val === 'cliques' ) {
 				$( this.colName + ' .additionalOptions').empty();
 			} else if( val === 'observers' ) {
@@ -506,6 +507,8 @@ App.Column = ( function($,document,window, U) {
 				rows = data.emails.email;
 			} else if( this.action == 'emails/meta' ) {
 				rows = data.emails.email;
+			} else if( this.action == 'words' ) {
+				rows = data.words.word;
 			} else if( this.action == 'cliques' ) {
 				rows = data;
 			} else if( this.action == 'observers' ) {
@@ -670,6 +673,9 @@ App.Column = ( function($,document,window, U) {
 					}
 
 					//new_params.count = 'to';
+				} else if( this.action == 'words' ) {
+					new_params.word = key;
+					//new_params.count = 'to';
 				}
 
 				new_params.count = 'month';
@@ -705,9 +711,26 @@ App.Column = ( function($,document,window, U) {
 
 			} else if( this.action == 'observers' ) {
 
-			} 
+			} else if( action === 'words' ) {
+				if( this.action == 'dates' ) {
+					new_params.start = key.split('-')[0];
+					new_params.end = key.split('-')[1];
+					//new_params.count = 'to|cc|bcc|sent';
+				} else if( this.action == 'contacts' ) {
+					if(this.params.left && this.params.right )
+						new_params.observer = key;
+					else if( this.params.left ) {
+						new_params.right = key;
+					}
+				} else {
+					new_params[lock] = key;
+					new_params.count = 'to';
 
-
+					if( !new_params.rel ) {
+						new_params.rel = relationship;
+					}
+				}
+			}
 
 			console.log(this.index,'P-A:',new_params,action);
 
@@ -1098,6 +1121,10 @@ App.HTMLFactory = ( function($,document,window, U) {
 
 					$(newRow).children('input').val( data.id );
 					$(newRow).find('.title i').addClass('fa-envelope');
+			} else if( action == 'words' ) {
+				$(newRow).find('.title span').text(data.word);
+				$(newRow).find('.title i').addClass('fa-file-word-o');
+				$(newRow).children('input').val(data.word);
 			}
 
 			return newRow;
@@ -1677,6 +1704,11 @@ App.ActionTree = ( function($,document,window, U) {
 						}
 					}
 				},
+				'words': {
+					'emails-list': {
+						'emails/meta' : false
+					}
+				},
 				'dates': {
 					'dates-day': {
 						'emails-list': {
@@ -1760,7 +1792,38 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails/meta' : false
 					},
 				}
-			}
+			},
+			'words' : {
+				'dates': {
+					'dates-day': {
+						'emails-list': {
+							'emails/meta' : false
+						},
+						'contacts-left' : {
+							'emails-list': {
+								'emails/meta' : false
+							}							
+						}
+					},
+					'contacts-left': {
+						'dates-day': {
+							'emails-list': {
+								'emails/meta' : false
+							},
+						},
+						'emails-list': {
+							'emails/meta' : false
+						},
+						'contacts-right' : false
+					},
+					'emails-list': {
+						'emails/meta' : false
+					},
+				},
+				'emails-list': {
+					'emails/meta' : false
+				}
+			},
 		}
 	};
 

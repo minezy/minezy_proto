@@ -3,7 +3,7 @@ import time
 import email.parser
 from minezy_api import app
 from minezy_api import neo4j_conn
-from query_common import prepare_date_range, prepare_date_clause
+from query_common import prepare_date_range, prepare_date_clause, prepare_word_clause
 
 
 def query_emails(account, params, countResults=False):
@@ -55,10 +55,15 @@ def query_emails(account, params, countResults=False):
     else:
         bWhere = False
         if len(params['ymd']):
-            query_str = "MATCH (e:{0}Email),"
-            query_str += prepare_date_clause(bYear, bMonth, bDay)
+            query_str = "MATCH (e:{0}Email) "
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
         else:
             query_str = "MATCH (e:{0}Email) "
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, default=' ')
         
     if params['keyword']:
         if not bWhere:
@@ -66,6 +71,7 @@ def query_emails(account, params, countResults=False):
         else:
             query_str += "AND "
         query_str += "e.subject =~ '(?i).*"+params['keyword']+".*' "
+
         
     query_str += "RETURN distinct(e) ORDER BY e.timestamp " + params['order']
     
