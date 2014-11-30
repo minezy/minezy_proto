@@ -6,7 +6,7 @@ import email.parser
 import multiprocessing
 import traceback
 import nltk
-from email_msg import emailMsg
+from message_decorator import MessageDecorator
 from neo4j_loader import neo4jLoader
 from word_counter import wordCounter
 
@@ -27,7 +27,7 @@ def parser_worker(fileQ, loaderQ):
             if fileName[rootLen] == '/' or fileName[rootLen] == '\\':
                 rootLen += 1
             
-            email_msg = emailMsg.from_file(fileName)
+            email_msg = MessageDecorator.from_file(fileName)
             eFile = fileName[rootLen:]
             if len(email_msg.message._headers) > 0:
                 t = email_msg.message._headers[0]

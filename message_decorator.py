@@ -3,7 +3,7 @@ import email.parser
 from bs4 import BeautifulSoup
 from email_reply_parser import EmailReplyParser
 
-class emailMsg:
+class MessageDecorator:
     message=None
     word_counts=[]
 
@@ -13,11 +13,11 @@ class emailMsg:
     @classmethod
     def from_file(cls, fielname):
     	message = email.parser.Parser().parse(open(fielname), headersonly=False)
-    	return emailMsg(message)
+    	return MessageDecorator(message)
 
     def text_reply(self):
         """
-        >>> email_msg = emailMsg.from_file('test/test_single.eml')
+        >>> email_msg = MessageDecorator.from_file('test/test_single.eml')
         >>> email_msg.text_reply()
         'plain word1, word2, word2, word3, word3, word3'
         """
@@ -26,19 +26,19 @@ class emailMsg:
 
     def text(self):
         """
-        >>> email_msg = emailMsg.from_file('test/test_single.eml')
+        >>> email_msg = MessageDecorator.from_file('test/test_single.eml')
         >>> email_msg.text()
         'plain word1, word2, word2, word3, word3, word3'
         >>>
-        >>> email_msg = emailMsg.from_file('test/test_multi.eml')
+        >>> email_msg = MessageDecorator.from_file('test/test_multi.eml')
         >>> email_msg.text()
         'plain word1, word2, word2, word3, word3, word3'
         >>>
-        >>> email_msg = emailMsg.from_file('test/test_html.eml')
+        >>> email_msg = MessageDecorator.from_file('test/test_html.eml')
         >>> email_msg.text()
         u'\\n\\n\\nhtml word1, word2, word2, word3, word3, word3\\n\\n\\n'
         >>>
-        >>> email_msg = emailMsg(email.message.Message())
+        >>> email_msg = MessageDecorator(email.message.Message())
         >>> email_msg.text()
         ''
         """
