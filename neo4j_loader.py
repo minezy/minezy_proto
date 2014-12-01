@@ -37,7 +37,7 @@ class neo4jLoader:
     
     @classmethod
     def options(cls):
-        return ['dates', 'froms', 'threads', 'tos', 'ccs']
+        return ['dates', 'froms', 'threads', 'froms', 'tos', 'ccs', 'words']
 
     def _get_account_id(self, account, name):
         tx = self.session.create_transaction()
@@ -227,7 +227,7 @@ class neo4jLoader:
                 cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
                 cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
                 opCount += 6
-
+            
             # Add From
             if 'froms' in self.options:
                 cypher += "MERGE (a:Contact {email:{props}.email}) "
@@ -235,34 +235,42 @@ class neo4jLoader:
                 cypher += "CREATE UNIQUE (a)-[:SENT]->(e) "
                 opCount += 2
             
-            # Email Thread References
-            refs = []
-            msgRefs = email.utils.getaddresses(email_msg.message.get_all('References', []))
-            for msgIDRef in msgRefs:
-                msgIDRef = msgIDRef[1].strip("<>")
-                refs.append(msgIDRef)
-            if len(refs):
-                props['refs'] = refs
-                cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) SET eRef:`%d` CREATE UNIQUE (e)-[:REFS]->(eRef)) " % self.accountId
-                opCount += 2*len(refs)
+            # Email Thread Relation
+            if 'threads' in self.options:
+                if msgIDParent != "None":
+                    cypher += "MERGE (ePar:Email {id:{props}.parentId}) "
+                    cypher += "SET ePar:`%d` " % self.accountId
+                    cypher += "CREATE UNIQUE (e)-[:INREPLYTO]->(ePar) "
+                    opCount += 2
+                
+                # Email Thread References
+                refs = []
+                msgRefs = email.utils.getaddresses(email_msg.message.get_all('References', []))
+                for msgIDRef in msgRefs:
+                    msgIDRef = msgIDRef[1].strip("<>")
+                    refs.append(msgIDRef)
+                if len(refs):
+                    props['refs'] = refs
+                    cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) SET eRef:`%d` CREATE UNIQUE (e)-[:REFS]->(eRef)) " % self.accountId
+                    opCount += 2*len(refs)
 
             # Word Counts
-            word_counts_prop = []
-            for word_count in email_msg.word_counts:
-                word_counts_prop.append({'word':word_count[0], 'count':word_count[1]})
-            if len(word_counts_prop):
-                props['word_counts'] = word_counts_prop
-                cypher += "FOREACH (word_count in {word_counts} | MERGE (eWord:Word {id:word_count.word}) SET eWord:`%d` CREATE UNIQUE (e)-[:WORDS {count:word_count.count}]->(eWord)) " % self.accountId
-                opCount += 2*len(word_counts_prop)
-        
+            if 'words' in self.options:
+                word_counts_prop = []
+                for word_count in email_msg.word_counts:
+                    word_counts_prop.append({'word':word_count[0], 'count':word_count[1]})
+                if len(word_counts_prop):
+                    props['word_counts'] = word_counts_prop
+                    cypher += "FOREACH (word_count in {word_counts} | MERGE (eWord:Word {id:word_count.word}) SET eWord:`%d` CREATE UNIQUE (e)-[:WORDS {count:word_count.count}]->(eWord)) " % self.accountId
+                    opCount += 2*len(word_counts_prop)
+
             # Add TO relations
-            tos = []
-            msgTo = email.utils.getaddresses(email_msg.message.get_all('To', ['']))
-            msgToX = email_msg.message.get('X-To','').split('>,')
-            if len(msgToX) != len(msgTo):
-                msgToX = email_msg.message.get('X-To','').split(',')
+            if 'tos' in self.options:
+                tos = []
+                msgTo = email.utils.getaddresses(email_msg.message.get_all('To', ['']))
+                msgToX = email_msg.message.get('X-To','').split('>,')
                 if len(msgToX) != len(msgTo):
-                    msgToX = email_msg.get('X-To','').split(',')
+                    msgToX = email_msg.message.get('X-To','').split(',')
                     if len(msgToX) != len(msgTo):
                         msgToX = []
                     
@@ -277,13 +285,12 @@ class neo4jLoader:
                     opCount += 2*len(tos)
 
             # Add CC relations
-            ccs = []
-            msgCc = email.utils.getaddresses(email_msg.message.get_all('Cc', ['']))
-            msgCcX = email_msg.message.get('X-cc','').split('>,')
-            if len(msgCcX) != len(msgCc):
-                msgCcX = email_msg.message.get('X-cc','').split(',')
+            if 'ccs' in self.options:
+                ccs = []
+                msgCc = email.utils.getaddresses(email_msg.message.get_all('Cc', ['']))
+                msgCcX = email_msg.message.get('X-cc','').split('>,')
                 if len(msgCcX) != len(msgCc):
-                    msgCcX = email_msg.get('X-cc','').split(',')
+                    msgCcX = email_msg.message.get('X-cc','').split(',')
                     if len(msgCcX) != len(msgCc):
                         msgCcX = []
                         
@@ -295,15 +302,13 @@ class neo4jLoader:
                     props['ccs'] = ccs
                     cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Contact {email:cc}) SET aCc:`%d` CREATE UNIQUE (e)-[:CC]->(aCc)) " % self.accountId
                     opCount += 2*len(ccs)
-            
-            # Add BCC relations
-            bccs = []
-            msgBcc = email.utils.getaddresses(email_msg.message.get_all('bcc', []))
-            msgBccX = email_msg.message.get('X-bcc','').split('>,')
-            if len(msgBccX) != len(msgBcc):
-                msgBccX = email_msg.message.get('X-bcc','').split(',')
+                
+                # Add BCC relations
+                bccs = []
+                msgBcc = email.utils.getaddresses(email_msg.message.get_all('bcc', []))
+                msgBccX = email_msg.message.get('X-bcc','').split('>,')
                 if len(msgBccX) != len(msgBcc):
-                    msgBccX = email_msg.get('X-bcc','').split(',')
+                    msgBccX = email_msg.message.get('X-bcc','').split(',')
                     if len(msgBccX) != len(msgBcc):
                         msgBccX = []
 

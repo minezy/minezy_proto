@@ -6,11 +6,13 @@ import email.parser
 import multiprocessing
 import traceback
 import nltk
+import argparse
 from message_decorator import MessageDecorator
 from neo4j_loader import neo4jLoader
 from word_counter import wordCounter
 
-def parser_worker(fileQ, loaderQ):
+
+def parser_worker(fileQ, loaderQ, debug):
     parser = email.parser.Parser()
     counter = wordCounter()
 
@@ -67,6 +69,8 @@ def service_loader_q(loaderQ, block, numRunning, debug):
             if item == None:
                 numRunning = numRunning - 1
             else:
+                if debug:
+                    print "ADDING: " + item[1]
                 loader.add(item[0], item[1])
     except Exception,e:
         pass
@@ -86,6 +90,7 @@ def process_args():
     opts = neo4jLoader.options()
     parser.add_argument('-l', '--load_options', nargs='*', choices=opts, default=opts, help="Select which email elements to load.")
     parser.add_argument('-s', '--sample', default=1, type=int, help="Use every n-th email from the depot (used for debugging).")
+
 
     return parser.parse_args()
 

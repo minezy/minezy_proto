@@ -11,7 +11,7 @@ First install Neo4j database http://www.neo4j.org/ (v2.0+)<br>
 Start Neo4j and have it running at localhost:7474<br>
 
 Install python modules:
-pip install flask flask-cors flask-Cache py2neo beautifulsoup4 nltk email-reply-parser
+pip install flask flask-cors flask-Cache py2neo beautifulsoup4 nltk email-reply-parser argparse
 
 Then under ./minezy_api/ launch:
 
