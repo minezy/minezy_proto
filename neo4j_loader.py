@@ -11,6 +11,8 @@ from datetime import datetime
 from py2neo import cypher, node, rel
 
 class neo4jLoader:
+    debug = False
+    options = None
     session = None
     tx = None
     opCount = 0
@@ -22,7 +24,9 @@ class neo4jLoader:
     q = None
     t = None
     
-    def __init__(self, account, name=None):
+    def __init__(self, account, options, name=None, debug=False):
+        self.debug = debug
+        self.options = options
         self.session = neo4j_conn.connect(createConstraints=True)
         self.accountId = self._get_account_id(account, name)
         
@@ -31,6 +35,10 @@ class neo4jLoader:
         self.t.start()
         return
     
+    @classmethod
+    def options(cls):
+        return ['dates', 'froms', 'threads', 'tos', 'ccs']
+
     def _get_account_id(self, account, name):
         tx = self.session.create_transaction()
         
@@ -210,93 +218,98 @@ class neo4jLoader:
             opCount += 2
             
             # Add Dates
-            cypher += "MERGE (y:Year {num:{props}.year}) "
-            cypher += "MERGE (m:Month {num:{props}.ym}) "
-            cypher += "MERGE (d:Day {num:{props}.ymd}) "
-            cypher += "SET y:`%d`,m:`%d`,d:`%d` " % (self.accountId,self.accountId,self.accountId)
-            cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
-            cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
-            cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
-            opCount += 6
-            
+            if 'dates' in self.options:
+                cypher += "MERGE (y:Year {num:{props}.year}) "
+                cypher += "MERGE (m:Month {num:{props}.ym}) "
+                cypher += "MERGE (d:Day {num:{props}.ymd}) "
+                cypher += "SET y:`%d`,m:`%d`,d:`%d` " % (self.accountId,self.accountId,self.accountId)
+                cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
+                cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
+                cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
+                opCount += 6
+
             # Add From
-            cypher += "MERGE (a:Contact {email:{props}.email}) "
-            cypher += "SET a:`%d` " % self.accountId
-            cypher += "CREATE UNIQUE (a)-[:SENT]->(e) "
-            opCount += 2
-            
-            # Email Thread Relation
-            if msgIDParent != "None":
-                cypher += "MERGE (ePar:Email {id:{props}.parentId}) "
-                cypher += "SET ePar:`%d` " % self.accountId
-                cypher += "CREATE UNIQUE (e)-[:INREPLYTO]->(ePar) "
+            if 'froms' in self.options:
+                cypher += "MERGE (a:Contact {email:{props}.email}) "
+                cypher += "SET a:`%d` " % self.accountId
+                cypher += "CREATE UNIQUE (a)-[:SENT]->(e) "
                 opCount += 2
             
-            # Email Thread References
-            refs = []
-            msgRefs = email.utils.getaddresses(email_msg.get_all('References', []))
-            for msgIDRef in msgRefs:
-                msgIDRef = msgIDRef[1].strip("<>")
-                refs.append(msgIDRef)
-            if len(refs):
-                props['refs'] = refs
-                cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) SET eRef:`%d` CREATE UNIQUE (e)-[:REFS]->(eRef)) " % self.accountId
-                opCount += 2*len(refs)
-        
-            # Add TO relations
-            tos = []
-            msgTo = email.utils.getaddresses(email_msg.get_all('To', ['']))
-            msgToX = email_msg.get('X-To','').split('>,')
-            if len(msgToX) != len(msgTo):
-                msgToX = email_msg.get('X-To','').split(',')
-                if len(msgToX) != len(msgTo):
-                    msgToX = []
-                
-            for msg,msgX in itertools.izip_longest(msgTo,msgToX,fillvalue=''):
-                if len(msg) > 0:
-                    tos.append(str.lower(msg[1]))
-                self._collect_name(msg, msgX)
-            if len(tos):
-                props['tos'] = tos
-                cypher += "FOREACH (to IN {tos} | "
-                cypher += "MERGE (aTo:Contact {email:to}) SET aTo:`%d` MERGE (e)-[:TO]->(aTo)) " % self.accountId
-                opCount += 2*len(tos)
-        
-            # Add CC relations
-            ccs = []
-            msgCc = email.utils.getaddresses(email_msg.get_all('Cc', ['']))
-            msgCcX = email_msg.get('X-cc','').split('>,')
-            if len(msgCcX) != len(msgCc):
-                msgCcX = email_msg.get('X-cc','').split(',')
-                if len(msgCcX) != len(msgCc):
-                    msgCcX = []
-                    
-            for msg,msgX in itertools.izip_longest(msgCc,msgCcX,fillvalue=''):
-                if len(msg) > 0:
-                    ccs.append(str.lower(msg[1]))
-                self._collect_name(msg,msgX)
-            if len(ccs):
-                props['ccs'] = ccs
-                cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Contact {email:cc}) SET aCc:`%d` CREATE UNIQUE (e)-[:CC]->(aCc)) " % self.accountId
-                opCount += 2*len(ccs)
-            
-            # Add BCC relations
-            bccs = []
-            msgBcc = email.utils.getaddresses(email_msg.get_all('bcc', []))
-            msgBccX = email_msg.get('X-bcc','').split('>,')
-            if len(msgBccX) != len(msgBcc):
-                msgBccX = email_msg.get('X-bcc','').split(',')
-                if len(msgBccX) != len(msgBcc):
-                    msgBccX = []
+            # Email Thread Relation
+            if 'threads' in self.options:
+                if msgIDParent != "None":
+                    cypher += "MERGE (ePar:Email {id:{props}.parentId}) "
+                    cypher += "SET ePar:`%d` " % self.accountId
+                    cypher += "CREATE UNIQUE (e)-[:INREPLYTO]->(ePar) "
+                    opCount += 2
 
-            for msg,msgX in itertools.izip_longest(msgBcc,msgBccX,fillvalue=''):
-                if len(msg) > 0:
-                    bccs.append(str.lower(msg[1]))
-                self._collect_name(msg,msgX)
-            if len(bccs):
-                props['bccs'] = bccs
-                cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Contact {email:bcc}) SET aBcc:`%d` CREATE UNIQUE (e)-[:BCC]->(aBcc)) " % self.accountId
-                opCount += 2*len(bccs)
+                # Email Thread References
+                refs = []
+                msgRefs = email.utils.getaddresses(email_msg.get_all('References', []))
+                for msgIDRef in msgRefs:
+                    msgIDRef = msgIDRef[1].strip("<>")
+                    refs.append(msgIDRef)
+                if len(refs):
+                    props['refs'] = refs
+                    cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) SET eRef:`%d` CREATE UNIQUE (e)-[:REFS]->(eRef)) " % self.accountId
+                    opCount += 2*len(refs)
+
+            # Add TO relations
+            if 'tos' in self.options:
+                tos = []
+                msgTo = email.utils.getaddresses(email_msg.get_all('To', ['']))
+                msgToX = email_msg.get('X-To','').split('>,')
+                if len(msgToX) != len(msgTo):
+                    msgToX = email_msg.get('X-To','').split(',')
+                    if len(msgToX) != len(msgTo):
+                        msgToX = []
+                    
+                for msg,msgX in itertools.izip_longest(msgTo,msgToX,fillvalue=''):
+                    if len(msg) > 0:
+                        tos.append(str.lower(msg[1]))
+                    self._collect_name(msg, msgX)
+                if len(tos):
+                    props['tos'] = tos
+                    cypher += "FOREACH (to IN {tos} | "
+                    cypher += "MERGE (aTo:Contact {email:to}) SET aTo:`%d` MERGE (e)-[:TO]->(aTo)) " % self.accountId
+                    opCount += 2*len(tos)
+
+            # Add CC relations
+            if 'ccs' in self.options:
+                ccs = []
+                msgCc = email.utils.getaddresses(email_msg.get_all('Cc', ['']))
+                msgCcX = email_msg.get('X-cc','').split('>,')
+                if len(msgCcX) != len(msgCc):
+                    msgCcX = email_msg.get('X-cc','').split(',')
+                    if len(msgCcX) != len(msgCc):
+                        msgCcX = []
+                        
+                for msg,msgX in itertools.izip_longest(msgCc,msgCcX,fillvalue=''):
+                    if len(msg) > 0:
+                        ccs.append(str.lower(msg[1]))
+                    self._collect_name(msg,msgX)
+                if len(ccs):
+                    props['ccs'] = ccs
+                    cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Contact {email:cc}) SET aCc:`%d` CREATE UNIQUE (e)-[:CC]->(aCc)) " % self.accountId
+                    opCount += 2*len(ccs)
+            
+                # Add BCC relations
+                bccs = []
+                msgBcc = email.utils.getaddresses(email_msg.get_all('bcc', []))
+                msgBccX = email_msg.get('X-bcc','').split('>,')
+                if len(msgBccX) != len(msgBcc):
+                    msgBccX = email_msg.get('X-bcc','').split(',')
+                    if len(msgBccX) != len(msgBcc):
+                        msgBccX = []
+
+                for msg,msgX in itertools.izip_longest(msgBcc,msgBccX,fillvalue=''):
+                    if len(msg) > 0:
+                        bccs.append(str.lower(msg[1]))
+                    self._collect_name(msg,msgX)
+                if len(bccs):
+                    props['bccs'] = bccs
+                    cypher += "FOREACH (bcc in {bccs} | MERGE (aBcc:Contact {email:bcc}) SET aBcc:`%d` CREATE UNIQUE (e)-[:BCC]->(aBcc)) " % self.accountId
+                    opCount += 2*len(bccs)
         
             self._append(cypher, props, opCount)
             
