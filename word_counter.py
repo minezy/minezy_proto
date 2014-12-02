@@ -35,7 +35,8 @@ class wordCounter:
         """
         email_regex = r'[A-Za-z0-9\._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,4}'
         http_url_regex = r'[a-zA-Z]{2,10}\://[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?'
-        word_regex = r'[\w\+\-=%&^~`#]+'
+        word_regex = r'[\s.,:;][\w]+[\s.,:;]'
+        blob_regex = r'[\w\+\-=%&^~`#]+'
 
         tokenizer = RegexpTokenizer(email_regex + '|' + http_url_regex + '|' + word_regex)
         #tokenizer = RegexpTokenizer(r'[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]+|\w+')
@@ -46,7 +47,7 @@ class wordCounter:
             try: 
                 t.decode("utf-8")
                 if (t not in stop and len(t) > 1 and len(t) < 60):
-                    normal.append(t)
+                    normal.append(t.lower())
             except Exception,e:
                 pass 
         return normal
