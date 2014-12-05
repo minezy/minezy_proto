@@ -11,15 +11,16 @@ from message_decorator import MessageDecorator
 from neo4j_loader import neo4jLoader
 from word_counter import wordCounter
 
+args = {}
+
 def parser_worker(fileQ, loaderQ, args):
-    debug=args.verbose
     parser = email.parser.Parser()
-    counter = wordCounter()
+    counter = wordCounter(word_types=args.word_types, subject_only=args.words_subject_only, words_per_message=args.words_max_per_message, debug=args.verbose)
 
     try:
         while True:
             fileName = fileQ.get()
-            if debug and fileName is not None:
+            if args.verbose and fileName is not None:
                 print "PARSING: " + fileName
             if fileName is None:
                 fileQ.task_done()
@@ -51,15 +52,15 @@ def parser_worker(fileQ, loaderQ, args):
     loaderQ.put(None)
     return
 
-def traverse_dir(folder, debug):
+def traverse_dir(folder):
     for root,dirs,files in os.walk(folder):
-        if debug:
+        if args.verbose:
             loader.msg("Examining folder: " + root)
         for name in files:
             yield (os.path.join(root, name))
     return
 
-def service_loader_q(loaderQ, block, numRunning, debug):
+def service_loader_q(loaderQ, block, numRunning):
     try:
         while numRunning > 0:
             if (block):
@@ -70,7 +71,7 @@ def service_loader_q(loaderQ, block, numRunning, debug):
             if item == None:
                 numRunning = numRunning - 1
             else:
-                if debug:
+                if args.verbose:
                     print "ADDING: " + item[1]
                 loader.add(item[0], item[1])
     except Exception,e:
@@ -86,20 +87,24 @@ def process_args():
     parser.add_argument('-n', '--depot_name',  default="Un-named", help='Name of the account')
     parser.add_argument('-p', '--processes', default=8, type=int, help="Number of parallel processes to use to parse emails ")
     parser.add_argument('-v', '--verbose', nargs='?', const=True, default=False, type=bool, help="Print additional progress output")
-    opts = neo4jLoader.options()
-    parser.add_argument('-l', '--load_options', nargs='*', choices=opts, default=opts, help="Select which email elements to load.")
+    loader_opts = neo4jLoader.options()
+    parser.add_argument('-l', '--load_options', nargs='*', choices=loader_opts, default=loader_opts, help="Select which email elements to load.")
     parser.add_argument('-s', '--sample', default=1, type=int, help="Use every n-th email from the depot (used for debugging).")
-    parser.add_argument('-w', '--word_options', nargs='*', choices=opts, default=opts, help="Select which types of words to scan.")
+    word_types = wordCounter.word_types()
+    parser.add_argument('-w', '--word_types', nargs='*', choices=word_types, default=word_types, help="Select which types of words to count.")
+    parser.add_argument('-m', '--words_max_per_message', default=1, type=int, help="How many word counts to save from each email message. (-1 for all)")
+    parser.add_argument('-j', '--words_subject_only', nargs='?', const=True, default=False, type=bool, help="Only scan email subject for word counts")
 
-    return parser.parse_args()
+    global args
+    args = parser.parse_args()
 
-def num_files_in_dir(dir, debug):
+def num_files_in_dir(dir):
     numFiles = 0
-    for fileName in traverse_dir(args.depot_dir, debug):
+    for fileName in traverse_dir(args.depot_dir):
         numFiles = numFiles + 1
     return numFiles
 
-def process_dir(dir, loader, numProcs, debug):
+def process_dir(dir, loader, numProcs):
     numRunning = numProcs
 
     # using multiprocessing and generator 'traverse_dir' to speed things up
@@ -112,9 +117,9 @@ def process_dir(dir, loader, numProcs, debug):
         procs.append(p)
         p.start()
     
-    numFiles = num_files_in_dir(args.depot_dir, debug)
+    numFiles = num_files_in_dir(args.depot_dir)
     fileNum = 0
-    for fileName in traverse_dir(args.depot_dir, debug):
+    for fileName in traverse_dir(args.depot_dir):
         if (fileNum % args.sample) != 0:
             fileNum = fileNum + 1
             continue
@@ -123,27 +128,27 @@ def process_dir(dir, loader, numProcs, debug):
             try:
                 fileQ.put(fileName, True, 1)
                 fileNum = fileNum + 1
-                if debug:
+                if args.verbose:
                     print "QUEUED: " + str(fileNum) + " of " + str(numFiles)
                 break
             except Exception,e:
                 print e
-                numRunning = service_loader_q(loaderQ, False, numRunning, debug)
+                numRunning = service_loader_q(loaderQ, False, numRunning)
 
     for i in range(len(procs)):
         fileQ.put(None)
 
-    service_loader_q(loaderQ, True, numRunning, debug)
+    service_loader_q(loaderQ, True, numRunning)
     fileQ.join()
 
 if __name__ == '__main__':
     t0 = time.time()
-    args = process_args();
+    process_args();
 
     account = args.depot_dir.replace("\\", "/").replace("//", "/")
     loader = neo4jLoader(account, args.load_options, args.depot_name, args.verbose)
     
-    process_dir(args.depot_dir, loader, args.processes, args.verbose)
+    process_dir(args.depot_dir, loader, args.processes)
 
     loader.complete()
     t1 = time.time()
