@@ -388,6 +388,14 @@ class neo4jLoader:
         cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:BCC]-() SET n.bcc=0"
         tx.append(cypher)
         t0 = time.time()
+        tx.execute()
+        t1 = time.time()
+        _write_time(t1-t0)
+
+        sys.stdout.write("Processing Word Counts... ")
+        cypher = "MATCH (n:`Word`)-[r]-(e) WITH n, sum(r.count) as sum SET n.count=sum"
+        tx.append(cypher)
+        t0 = time.time()
         tx.commit()
         t1 = time.time()
         _write_time(t1-t0)

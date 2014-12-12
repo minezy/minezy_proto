@@ -92,7 +92,7 @@ def process_args():
     parser.add_argument('-s', '--sample', default=1, type=int, help="Use every n-th email from the depot (used for debugging).")
     word_types = wordCounter.word_types()
     parser.add_argument('-w', '--word_types', nargs='*', choices=word_types, default=word_types, help="Select which types of words to count.")
-    parser.add_argument('-m', '--words_max_per_message', default=1, type=int, help="How many word counts to save from each email message. (-1 for all)")
+    parser.add_argument('-m', '--words_max_per_message', default=-1, type=int, help="How many word counts to save from each email message. (-1 for all)")
     parser.add_argument('-j', '--words_subject_only', nargs='?', const=True, default=False, type=bool, help="Only scan email subject for word counts")
 
     global args

@@ -62,7 +62,7 @@ class wordCounter:
         elif word_type == 'urls':
             return r'[a-zA-Z]{2,10}\://[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?'
         elif word_type == 'words':
-            #return r'(?![^\s.,:;])[\w]+(?=[$\s.,:;])' 
+            #return r'(?![^\s.,:;=])[\w]+(?=[$\s.,:;=])' 
             return r'\A(?=\w)\D+\Z' 
         elif word_type == 'blobs':
             return r'[\w\+\-=%&^~`#]+';
