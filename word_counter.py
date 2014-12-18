@@ -45,8 +45,10 @@ class wordCounter:
         >>> wordCounter().common_word_counts(email_msg)
         [('holiday', 3), ('mighty', 2), ('party', 2), ('we', 2), ('club', 2), ('bars', 1), ('feedback', 1), ('finalized', 1), ('throwing', 1), ('hosted', 1)]
         """
-        text = message.text_reply()
-        words = self._normal_words(text)
+        words = []
+        if (self.subject_only is False):
+            text = message.text_reply()
+            words = self._normal_words(text)
         subject = message.message['Subject']
         if subject is not None:
             words.extend(self._normal_words(subject))
@@ -63,18 +65,14 @@ class wordCounter:
             return r'[a-zA-Z]{2,10}\://[a-zA-Z0-9\-\.]+\.[a-zA-Z]{2,3}(/\S*)?'
         elif word_type == 'words':
             #return r'(?![^\s.,:;=])[\w]+(?=[$\s.,:;=])' 
-            return r'\A(?=\w)\D+\Z' 
+            return r'\A(?=\w)\D+\Z'
         elif word_type == 'blobs':
             return r'[\w\+\-=%&^~`#]+';
         else:
             raise "Unrecognized word type " + str(word_type)
 
     def _tokenizer_regex(self):
-        word_types = ['urls', 'emails', 'blobs']
-        regex = self._type_regex(word_types[0])
-        for word_type in word_types[1:]:
-            regex = regex + '|'+ self._type_regex(word_type)
-        return regex
+        return self._type_regex('urls') + '|' +self._type_regex('emails') + '|' + self._type_regex('blobs')
 
     def _word_type(self, word):
         """
@@ -93,6 +91,8 @@ class wordCounter:
         >>> wordCounter()._word_type("test1234")
         'blobs'
         >>> wordCounter()._word_type("wor&400d@")
+        'blobs'
+        >>> wordCounter()._word_type("test&")
         'blobs'
         """        
         for word_type in wordCounter.word_types():

@@ -20,8 +20,7 @@ def query_words(account, params, countResults=False):
 
     params['ymd'],bYear,bMonth,bDay = prepare_date_range(params)
 
-    bWith = False
-    bWhere = True
+    bPreCountedSum = False
     query_str = ''
     if len(params['left']) or len(params['right']):
         
@@ -46,20 +45,21 @@ def query_words(account, params, countResults=False):
         query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False)
         
     else:
-        query_str = "MATCH (e:Email)-[r:`WORDS`]-(w:Word)"
+        query_str = "MATCH (w:Word)"
+        bPreCountedSum = True
 
     if params['keyword']:
         if not bWhere:
             query_str += "WHERE "
         else:
             query_str += "AND "
-        query_str += "n.name =~ '(?i).*"+params['keyword']+".*' "
-        query_str += "OR "
-        query_str += "n.email =~ '(?i).*"+params['keyword']+".*' "
+        query_str += "w.id =~ '(?i).*"+params['keyword']+".*' "
 
-    if not bWith:
+    if bPreCountedSum:
+        query_str += "WITH w,w.count as sum "
+    else:    
         query_str += "WITH w,sum(r.count) as sum "
-        
+
     query_str += "RETURN w.id,sum ORDER BY sum " + params['order'] + ", w.id ASC"
 
     if params['index'] or params['page'] > 1:
