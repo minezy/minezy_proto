@@ -675,7 +675,6 @@ App.Column = ( function($,document,window, U) {
 					//new_params.count = 'to';
 				} else if( this.action == 'words' ) {
 					new_params.word = key;
-					//new_params.count = 'to';
 				}
 
 				new_params.count = 'month';
@@ -700,8 +699,10 @@ App.Column = ( function($,document,window, U) {
 						new_params.right = key;
 					else
 						new_params.left = key;
-				}  else if( this.action == 'emails' ) {
+				} else if( this.action == 'emails' ) {
 					new_params.id = key;
+				} else if( this.action == 'words' ) {
+					new_params.word = key;
 				}
 
 			} else if( action === 'emails/meta' ) {
@@ -1699,6 +1700,11 @@ App.ActionTree = ( function($,document,window, U) {
 								'emails/meta' : false
 							},
 						},
+						'emails-list': {
+							'emails/meta' : false
+						}
+					},
+					'words': {
 						'emails-list': {
 							'emails/meta' : false
 						}
