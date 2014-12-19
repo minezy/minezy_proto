@@ -68,6 +68,10 @@ App.HTMLFactory = ( function($,document,window, U) {
 
 					$(newRow).children('input').val( data.id );
 					$(newRow).find('.title i').addClass('fa-envelope');
+			} else if( action == 'words' ) {
+				$(newRow).find('.title span').text(data.word);
+				$(newRow).find('.title i').addClass('fa-file-word-o');
+				$(newRow).children('input').val(data.word);
 			}
 
 			return newRow;

@@ -58,7 +58,7 @@ def query_words(account, params, countResults=False):
     if bPreCountedSum:
         query_str += "WITH w,w.count as sum "
     else:    
-        query_str += "WITH w,sum(r.count) as sum "
+        query_str += "WITH distinct(w) as w,sum(distinct(r).count) as sum "
 
     query_str += "RETURN w.id,sum ORDER BY sum " + params['order'] + ", w.id ASC"
 
