@@ -35,12 +35,32 @@ App.ActionTree = ( function($,document,window, U) {
 						}
 					},
 					'words': {
+						'dates-day': {
+							'emails-list': {
+								'emails/meta' : false
+							},
+							'contacts-left' : {
+								'emails-list': {
+									'emails/meta' : false
+								}							
+							}
+						},
 						'emails-list': {
 							'emails/meta' : false
 						}
 					}
 				},
 				'words': {
+					'dates-day': {
+						'emails-list': {
+							'emails/meta' : false
+						},
+						'contacts-left' : {
+							'emails-list': {
+								'emails/meta' : false
+							}							
+						}
+					},
 					'emails-list': {
 						'emails/meta' : false
 					}
@@ -140,17 +160,6 @@ App.ActionTree = ( function($,document,window, U) {
 								'emails/meta' : false
 							}							
 						}
-					},
-					'contacts-left': {
-						'dates-day': {
-							'emails-list': {
-								'emails/meta' : false
-							},
-						},
-						'emails-list': {
-							'emails/meta' : false
-						},
-						'contacts-right' : false
 					},
 					'emails-list': {
 						'emails/meta' : false
