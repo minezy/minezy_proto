@@ -25,11 +25,11 @@ def query_words(account, params, countResults=False):
     if len(params['left']) or len(params['right']):
         
         if len(params['left']) and len(params['right']):
-            query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact),(e)-[r:`WORDS`]-(w:{0}Word)"
-            query_str += " WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
-            query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "            
+            query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact),(e)-[rW:`WORDS`]-(wm:WordMonth)-[rM:WORD_MONTH]-(w:{0}Word)"
+            query_str += " WHERE cL.email IN {{left}} AND cR.email IN {{right}}"
+            query_str += " AND (type(rL)='SENT' OR type(rR)='SENT') "            
         elif len(params['left']):
-            query_str = "MATCH (m:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[r:WORDS]-(w:{0}Word) "
+            query_str = "MATCH (m:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rW:`WORDS`]-(wm:WordMonth)-[rM:WORD_MONTH]-(w:{0}Word) "
             query_str += "WHERE m.email IN {{left}} "
         else:
             query_str = "MATCH (m:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(n:{0}Contact) "
@@ -41,11 +41,11 @@ def query_words(account, params, countResults=False):
             query_str += prepare_date_clause(bYear, bMonth, bDay)
             
     elif len(params['ymd']):
-        query_str = "MATCH (w:{0}Word)-[r:WORDS]-(e:{0}Email)"
+        query_str = "MATCH (w:{0}Word)-[rM:WORD_MONTH]-(wm:WordMonth)-[rW:WORDS]-(e:{0}Email) "
         query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False)
         
     else:
-        query_str = "MATCH (w:Word)"
+        query_str = "MATCH (w:Word) "
         bPreCountedSum = True
 
     if params['keyword']:
@@ -56,9 +56,9 @@ def query_words(account, params, countResults=False):
         query_str += "w.id =~ '(?i).*"+params['keyword']+".*' "
 
     if bPreCountedSum:
-        query_str += "WITH w,w.count as sum "
+        query_str += "WITH w,w.word_count as sum "
     else:    
-        query_str += "WITH distinct(w) as w,sum(distinct(r).count) as sum "
+        query_str += "WITH w,sum(distinct(rW).word_count) as sum "
 
     query_str += "RETURN w.id,sum ORDER BY sum " + params['order'] + ", w.id ASC"
 

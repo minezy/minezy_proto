@@ -171,7 +171,7 @@ def prepare_word_clause(word=[], prefix='', bNode=True, bPath=True, bWhere=True,
             else:
                 query_str += ",(w:Word)"
 
-            query_str += "-[r:`WORDS`]-(e:{0}Email)  "
+            query_str += "-[rM:WORD_MONTH]-(wm:WordMonth)-[rW:WORDS]-(e:{0}Email) "
         if bWhere:
             if bAnd:
                 query_str += "AND "

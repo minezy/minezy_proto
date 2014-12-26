@@ -37,7 +37,7 @@ class neo4jLoader:
     
     @classmethod
     def options(cls):
-        return ['dates', 'froms', 'threads', 'froms', 'tos', 'ccs', 'words']
+        return ['froms', 'threads', 'froms', 'tos', 'ccs', 'words']
 
     def _get_account_id(self, account, name):
         tx = self.session.create_transaction()
@@ -217,17 +217,15 @@ class neo4jLoader:
             cypher +=   "e.link={props}.link "
             opCount += 2
             
-            # Add Dates
-            if 'dates' in self.options:
-                cypher += "MERGE (y:Year {num:{props}.year}) "
-                cypher += "MERGE (m:Month {num:{props}.ym}) "
-                cypher += "MERGE (d:Day {num:{props}.ymd}) "
-                cypher += "SET y:`%d`,m:`%d`,d:`%d` " % (self.accountId,self.accountId,self.accountId)
-                cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
-                cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
-                cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
-                opCount += 6
-            
+            cypher += "MERGE (y:Year {num:{props}.year}) "
+            cypher += "MERGE (m:Month {num:{props}.ym}) "
+            cypher += "MERGE (d:Day {num:{props}.ymd}) "
+            cypher += "SET y:`%d`,m:`%d`,d:`%d` " % (self.accountId,self.accountId,self.accountId)
+            cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
+            cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
+            cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
+            opCount += 6
+        
             # Add From
             if 'froms' in self.options:
                 cypher += "MERGE (a:Contact {email:{props}.email}) "
@@ -261,8 +259,14 @@ class neo4jLoader:
                     word_counts_prop.append({'word':word_count[0], 'count':word_count[1]})
                 if len(word_counts_prop):
                     props['word_counts'] = word_counts_prop
-                    cypher += "FOREACH (word_count in {word_counts} | MERGE (eWord:Word {id:word_count.word}) SET eWord:`%d` CREATE UNIQUE (e)-[:WORDS {count:word_count.count}]->(eWord)) " % self.accountId
-                    opCount += 2*len(word_counts_prop)
+                    cypher += "FOREACH (word_count in {word_counts}"
+                    cypher += " | MERGE (w:Word {id:word_count.word}) "
+                    cypher += " MERGE (wm:WordMonth {num:{props}.ym})-[:WORD_MONTH]->(w)"
+                    cypher += " CREATE UNIQUE (e)-[:WORDS {word_count:word_count.count}]->(wm)"
+                    cypher += " SET wm:`%d` " % self.accountId
+                    cypher += " SET w:`%d` " % self.accountId
+                    cypher += ")"
+                    opCount += 4*len(word_counts_prop)
 
             # Add TO relations
             if 'tos' in self.options:
@@ -388,17 +392,44 @@ class neo4jLoader:
         cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:BCC]-() SET n.bcc=0"
         tx.append(cypher)
         t0 = time.time()
-        tx.execute()
+        tx.commit()
         t1 = time.time()
         _write_time(t1-t0)
 
-        sys.stdout.write("Processing Word Counts... ")
-        cypher = "MATCH (n:`Word`)-[r]-(e) WITH n, sum(r.count) as sum SET n.count=sum"
+        sys.stdout.write("Processing Word Counts / Month")
+        t0 = time.time()
+        processed = 1
+        while processed != 0:
+            tx = self.session.create_transaction()
+            cypher = "MATCH (wm:WordMonth) WHERE wm.word_count IS NOT NULL WITH wm LIMIT 10000"
+            cypher += " REMOVE wm.word_count"
+            cypher += " RETURN count(wm) as count"
+            tx.append(cypher)
+            processed = tx.commit()[0][0]['count']
+            sys.stdout.write(".")
+            sys.stdout.flush()
+        processed = 1
+        while processed != 0:
+            tx = self.session.create_transaction()
+            cypher = "MATCH (wm:WordMonth) WHERE wm.word_count IS NULL WITH wm LIMIT 10000"
+            cypher += " MATCH (wm)-[r:WORDS]-() WITH wm,sum(r.word_count) as sum"
+            cypher += " SET wm.word_count=sum"
+            cypher += " RETURN count(wm) as count"
+            tx.append(cypher)
+            processed = tx.commit()[0][0]['count']
+            sys.stdout.write(".")
+            sys.stdout.flush()
+        _write_time(time.time()-t0)
+
+        tx = self.session.create_transaction()
+        sys.stdout.write("Processing Word Counts...")
+        cypher = "MATCH (w)-[:WORD_MONTH]-(wm:WordMonth) WITH w,sum(wm.word_count) as sum SET w.word_count=sum "
         tx.append(cypher)
         t0 = time.time()
         tx.commit()
         t1 = time.time()
         _write_time(t1-t0)
+
         return
     
     def _collect_name(self, msgAddr, msgXAddr):

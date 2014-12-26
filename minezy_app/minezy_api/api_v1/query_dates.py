@@ -31,27 +31,34 @@ def query_dates(account, params, countResults=False):
         
         if len(params['left']) and len(params['right']):
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact) "
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            #query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, bAnd=True, default=' ')
             
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(cO:{0}Contact) WHERE cO.email IN {{observer}} "
 
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
             query_str += prepare_date_clause(bYear,bMonth,bDay,bWhere=bDateWhere,prefix="WITH e MATCH ")
             
         elif len(params['left']):
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {{left}} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
             
         else:
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cR.email IN {{right}} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
 
         if bDay:
             query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
@@ -60,8 +67,10 @@ def query_dates(account, params, countResults=False):
         else:
             query_str += "WITH y.num AS year, "
 
-        query_str += "count(distinct(e)) AS count RETURN "
-    
+        if len(params['word']):
+            query_str += "sum(distinct(rW).word_count) AS count RETURN "
+        else:
+            query_str += "count(distinct(e)) AS count RETURN "
         if bYear or bMonth or bDay:
             query_str += "year,"
         if bMonth or bDay:
@@ -86,10 +95,15 @@ def query_dates(account, params, countResults=False):
     elif len(params['word']):
 
         query_str = "MATCH "
-        query_str += prepare_word_clause(params['word'], bNode=True, bWhere=False)
-        query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
-        query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True)
-        query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
+        if bMonth:
+            query_str += "(w:Word)-[rM:WORD_MONTH]-(m:WordMonth) "
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True)
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
+        else:
+            query_str += prepare_word_clause(params['word'], bNode=True, bWhere=False)
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True)
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
 
         if bDay:
             query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
@@ -98,7 +112,12 @@ def query_dates(account, params, countResults=False):
         else:
             query_str += "WITH y.num AS year, "
 
-        query_str += "sum(r.count) AS count RETURN "
+        if bDay:
+            query_str += "sum(distinct(rW).word_count) AS count RETURN "
+        elif bMonth:
+            query_str += "m.word_count AS count RETURN "
+        else:
+            query_str += "sum(distinct(wm).word_count) AS count RETURN "
 
         if bYear or bMonth or bDay:
             query_str += "year,"
