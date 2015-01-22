@@ -34,7 +34,7 @@ def query_dates(account, params, countResults=False):
             query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
-            #query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, bAnd=True, default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, bAnd=True, default=' ')
             
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(cO:{0}Contact) WHERE cO.email IN {{observer}} "
