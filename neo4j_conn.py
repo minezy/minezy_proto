@@ -1,6 +1,6 @@
 import sys
 import traceback
-from py2neo import cypher
+from py2neo import Graph
 
 g_session = None
 
@@ -9,7 +9,7 @@ def connect(createConstraints=False):
 	
 	try:
 		sys.stdout.write("Connect to Neo4j... ")
-		g_session = cypher.Session("http://localhost:7474")
+		g_session = Graph()
 		sys.stdout.write("OK\n")
 		
 		if createConstraints:
@@ -26,35 +26,35 @@ def connect(createConstraints=False):
 
 def create_constraints():
 	try:
-		tx = g_session.create_transaction()
+		tx = g_session.cypher.begin()
 		
 		sys.stdout.write("accounts index... ")
 		tx.append("CREATE CONSTRAINT ON (a:Account) ASSERT a.id IS UNIQUE")
-		tx.execute()
+		tx.process()
 		
 		sys.stdout.write("contacts index... ")
 		tx.append("CREATE CONSTRAINT ON (c:Contact) ASSERT c.email IS UNIQUE")
-		tx.execute()
+		tx.process()
 		
 		sys.stdout.write("email index... ")
 		tx.append("CREATE CONSTRAINT ON (e:Email) ASSERT e.id IS UNIQUE")
-		tx.execute()
+		tx.process()
 		
 		sys.stdout.write("names index... ")
 		tx.append("CREATE CONSTRAINT ON (n:Name) ASSERT n.name IS UNIQUE")
-		tx.execute()
+		tx.process()
 		
 		sys.stdout.write("years index... ")
 		tx.append("CREATE CONSTRAINT ON (y:Year) ASSERT y.num IS UNIQUE")
-		tx.execute()
+		tx.process()
 		
 		sys.stdout.write("months index... ")
 		tx.append("CREATE CONSTRAINT ON (m:Month) ASSERT m.num IS UNIQUE")
-		tx.execute()
+		tx.process()
 		
 		sys.stdout.write("days index... ")
 		tx.append("CREATE CONSTRAINT ON (d:Day) ASSERT d.num IS UNIQUE")
-		tx.execute()
+		tx.process()
 		
 		sys.stdout.write("word index... ")
 		tx.append("CREATE CONSTRAINT ON (w:Word) ASSERT w.id IS UNIQUE")

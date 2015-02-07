@@ -40,11 +40,11 @@ class neo4jLoader:
         return ['froms', 'threads', 'froms', 'tos', 'ccs', 'words']
 
     def _get_account_id(self, account, name):
-        tx = self.session.create_transaction()
+        tx = self.session.cypher.begin()
         
         cypher = "MATCH (a:Account) WHERE a.account = '{0}' RETURN a.id".format(account)
         tx.append(cypher)
-        results = tx.execute()
+        results = tx.process()
         
         accountId = None
         
@@ -60,11 +60,11 @@ class neo4jLoader:
     
 
     def _create_account_id(self, account, name):
-        tx = self.session.create_transaction()
+        tx = self.session.cypher.begin()
         
         cypher = "MATCH (a:Account) RETURN max(a.id)"
         tx.append(cypher)
-        results = tx.execute()
+        results = tx.process()
     
         accountId = 100
         for record in results[0]:
@@ -113,7 +113,7 @@ class neo4jLoader:
                 
             else:
                 if self.tx is None:
-                    self.tx = self.session.create_transaction()
+                    self.tx = self.session.cypher.begin()
                     
                 self.tx.append(item[0], item[1])
                 self.opCount += item[2]
@@ -144,7 +144,7 @@ class neo4jLoader:
         sys.stdout.write("Writing batch ("+str(self.opCount)+")... ")
         t0 = time.time()
         try:
-            self.tx.execute()
+            self.tx.process()
         except Exception, e:
             print e
             pass
@@ -168,7 +168,7 @@ class neo4jLoader:
 
     def add(self, email_msg, emailLink=None):
         try:
-            msgID = _get_decoded(email_msg.message['Message-ID'])
+            msgID = _get_decoded(email_msg['Message-ID'])
             
             if len(msgID) == 0 or msgID == "None":
                 msgID = "Unknown_%05d" % self.unknownMsgId
@@ -178,7 +178,7 @@ class neo4jLoader:
             
             # Check if email id exists
             if 0:
-                tx = self.session.create_transaction()
+                tx = self.session.cypher.begin()
                 tx.append("MATCH (e:Email) WHERE e.id = {msgID} RETURN count(e)", { "msgID" : msgID })
                 results = tx.commit()
                 for record in results[0]:
@@ -186,15 +186,15 @@ class neo4jLoader:
                         "Already processed msgID"
                         return
                         
-            msgSubject = _get_decoded(email_msg.message['Subject'])
-            msgDate = _get_decoded(email_msg.message['Date'])
-            msgIDParent = _get_decoded(email_msg.message['In-Reply-To']).strip("<>")
+            msgSubject = _get_decoded(email_msg['Subject'])
+            msgDate = _get_decoded(email_msg['Date'])
+            msgIDParent = _get_decoded(email_msg['In-Reply-To']).strip("<>")
             date = email.utils.parsedate_tz(msgDate)
             timestamp = email.utils.mktime_tz(date)
             
             # Add From Contact
-            msgFrom = email.utils.getaddresses(email_msg.message.get_all('From', ['']))
-            msgFromX = email_msg.message.get_all('X-From', [''])
+            msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
+            msgFromX = email_msg.get_all('X-From', [''])
             self._collect_name(msgFrom[0], msgFromX[0])
         
             msgEmail = str.lower(msgFrom[0][1])
@@ -243,7 +243,7 @@ class neo4jLoader:
                 
                 # Email Thread References
                 refs = []
-                msgRefs = email.utils.getaddresses(email_msg.message.get_all('References', []))
+                msgRefs = email.utils.getaddresses(email_msg.get_all('References', []))
                 for msgIDRef in msgRefs:
                     msgIDRef = msgIDRef[1].strip("<>")
                     refs.append(msgIDRef)
@@ -271,10 +271,10 @@ class neo4jLoader:
             # Add TO relations
             if 'tos' in self.options:
                 tos = []
-                msgTo = email.utils.getaddresses(email_msg.message.get_all('To', ['']))
-                msgToX = email_msg.message.get('X-To','').split('>,')
+                msgTo = email.utils.getaddresses(email_msg.get_all('To', ['']))
+                msgToX = email_msg.get('X-To','').split('>,')
                 if len(msgToX) != len(msgTo):
-                    msgToX = email_msg.message.get('X-To','').split(',')
+                    msgToX = email_msg.get('X-To','').split(',')
                     if len(msgToX) != len(msgTo):
                         msgToX = []
                     
@@ -291,10 +291,10 @@ class neo4jLoader:
             # Add CC relations
             if 'ccs' in self.options:
                 ccs = []
-                msgCc = email.utils.getaddresses(email_msg.message.get_all('Cc', ['']))
-                msgCcX = email_msg.message.get('X-cc','').split('>,')
+                msgCc = email.utils.getaddresses(email_msg.get_all('Cc', ['']))
+                msgCcX = email_msg.get('X-cc','').split('>,')
                 if len(msgCcX) != len(msgCc):
-                    msgCcX = email_msg.message.get('X-cc','').split(',')
+                    msgCcX = email_msg.get('X-cc','').split(',')
                     if len(msgCcX) != len(msgCc):
                         msgCcX = []
                         
@@ -309,10 +309,10 @@ class neo4jLoader:
                 
                 # Add BCC relations
                 bccs = []
-                msgBcc = email.utils.getaddresses(email_msg.message.get_all('bcc', []))
-                msgBccX = email_msg.message.get('X-bcc','').split('>,')
+                msgBcc = email.utils.getaddresses(email_msg.get_all('bcc', []))
+                msgBccX = email_msg.get('X-bcc','').split('>,')
                 if len(msgBccX) != len(msgBcc):
-                    msgBccX = email_msg.message.get('X-bcc','').split(',')
+                    msgBccX = email_msg.get('X-bcc','').split(',')
                     if len(msgBccX) != len(msgBcc):
                         msgBccX = []
 
@@ -343,7 +343,7 @@ class neo4jLoader:
         self.q.put( ('complete',None,0) )
         self.q.join()
         
-        tx = self.session.create_transaction()
+        tx = self.session.cypher.begin()
         
         sys.stdout.write("Processing Names... ")
         cypher =  "MATCH (a:Contact) WITH a "
@@ -352,7 +352,7 @@ class neo4jLoader:
         cypher += "SET a.name=n.name"
         tx.append(cypher)
         t0 = time.time()
-        tx.execute()
+        tx.process()
         t1 = time.time()
         _write_time(t1-t0)
         
@@ -362,7 +362,7 @@ class neo4jLoader:
         cypher = "MATCH (n:Contact) WHERE NOT (n)-[:SENT]->() SET n.sent=0"
         tx.append(cypher)
         t0 = time.time()
-        tx.execute()
+        tx.process()
         t1 = time.time()
         _write_time(t1-t0)
     
@@ -372,7 +372,7 @@ class neo4jLoader:
         cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:TO]-() SET n.to=0"
         tx.append(cypher)
         t0 = time.time()
-        tx.execute()
+        tx.process()
         t1 = time.time()
         _write_time(t1-t0)
     
@@ -382,7 +382,7 @@ class neo4jLoader:
         cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:CC]-() SET n.cc=0"
         tx.append(cypher)
         t0 = time.time()
-        tx.execute()
+        tx.process()
         t1 = time.time()
         _write_time(t1-t0)
     
@@ -400,7 +400,7 @@ class neo4jLoader:
         t0 = time.time()
         processed = 1
         while processed != 0:
-            tx = self.session.create_transaction()
+            tx = self.session.cypher.begin()
             cypher = "MATCH (wm:WordMonth) WHERE wm.word_count IS NOT NULL WITH wm LIMIT 10000"
             cypher += " REMOVE wm.word_count"
             cypher += " RETURN count(wm) as count"
@@ -410,7 +410,7 @@ class neo4jLoader:
             sys.stdout.flush()
         processed = 1
         while processed != 0:
-            tx = self.session.create_transaction()
+            tx = self.session.cypher.begin()
             cypher = "MATCH (wm:WordMonth) WHERE wm.word_count IS NULL WITH wm LIMIT 10000"
             cypher += " MATCH (wm)-[r:WORDS]-() WITH wm,sum(r.word_count) as sum"
             cypher += " SET wm.word_count=sum"
@@ -421,7 +421,7 @@ class neo4jLoader:
             sys.stdout.flush()
         _write_time(time.time()-t0)
 
-        tx = self.session.create_transaction()
+        tx = self.session.cypher.begin()
         sys.stdout.write("Processing Word Counts...")
         cypher = "MATCH (w)-[:WORD_MONTH]-(wm:WordMonth) WITH w,sum(wm.word_count) as sum SET w.word_count=sum "
         tx.append(cypher)
@@ -528,7 +528,7 @@ class neo4jLoader:
                  
         try:
             self.tx.append(cypher, { "props" : props })
-            self.tx.execute()
+            self.tx.process()
             self.names.clear()
         except Exception, e:
             print e

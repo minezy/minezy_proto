@@ -74,7 +74,7 @@ def query_names(account, params, countResults=False):
         if app.debug:
             print query_str
         
-        tx = neo4j_conn.g_session.create_transaction()
+        tx = neo4j_conn.g_session.cypher.begin()
         tx.append(query_str, params)
         results = tx.commit()
         
@@ -110,7 +110,7 @@ def _query_count(query_str, params):
     if app.debug:
         print count_str
     
-    tx = neo4j_conn.g_session.create_transaction()
+    tx = neo4j_conn.g_session.cypher.begin()
     tx.append(count_str, params)
     results = tx.commit()
     
