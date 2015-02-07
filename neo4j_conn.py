@@ -1,4 +1,5 @@
 import sys
+import traceback
 from py2neo import cypher
 
 g_session = None
@@ -53,10 +54,16 @@ def create_constraints():
 		
 		sys.stdout.write("days index... ")
 		tx.append("CREATE CONSTRAINT ON (d:Day) ASSERT d.num IS UNIQUE")
-		tx.commit()
+		tx.execute()
 		
+		sys.stdout.write("word index... ")
+		tx.append("CREATE CONSTRAINT ON (w:Word) ASSERT w.id IS UNIQUE")
+		tx.commit()
+
 		sys.stdout.write("OK\n")
 	except:
 		print
 		print "Error:", sys.exc_info()[1]
+		traceback.print_exc()
+
 	

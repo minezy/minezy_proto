@@ -2,10 +2,9 @@ import time
 from datetime import date, timedelta
 from minezy_api import app
 from minezy_api import neo4j_conn
-from query_common import prepare_date_range, prepare_date_clause
+from query_common import prepare_date_range, prepare_date_clause, prepare_word_clause
 
 def query_dates(account, params, countResults=False):
-
     t0 = time.time()
     
     bYear = True
@@ -32,27 +31,34 @@ def query_dates(account, params, countResults=False):
         
         if len(params['left']) and len(params['right']):
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact) "
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, bAnd=True, default=' ')
             
             if len(params['observer']):
                 query_str += "WITH e MATCH (e)--(cO:{0}Contact) WHERE cO.email IN {{observer}} "
 
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
             query_str += prepare_date_clause(bYear,bMonth,bDay,bWhere=bDateWhere,prefix="WITH e MATCH ")
             
         elif len(params['left']):
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {{left}} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
             
         else:
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)"
             query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cR.email IN {{right}} "
             #query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere,bAnd=True)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
 
         if bDay:
             query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
@@ -61,8 +67,10 @@ def query_dates(account, params, countResults=False):
         else:
             query_str += "WITH y.num AS year, "
 
-        query_str += "count(distinct(e)) AS count RETURN "
-    
+        if len(params['word']):
+            query_str += "sum(distinct(rW).word_count) AS count RETURN "
+        else:
+            query_str += "count(distinct(e)) AS count RETURN "
         if bYear or bMonth or bDay:
             query_str += "year,"
         if bMonth or bDay:
@@ -83,7 +91,55 @@ def query_dates(account, params, countResults=False):
             query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
         if params['limit']:
             query_str += " LIMIT {{limit}}"
+
+    elif len(params['word']):
+
+        query_str = "MATCH "
+        if bMonth:
+            query_str += "(w:Word)-[rM:WORD_MONTH]-(m:WordMonth) "
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True)
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
+        else:
+            query_str += prepare_word_clause(params['word'], bNode=True, bWhere=False)
+            query_str += prepare_date_clause(bYear,bMonth,bDay,bNode=False,bWhere=False,default=' ')
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True)
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
+
+        if bDay:
+            query_str += "WITH (d.num%100) AS day, ((d.num/100)%100) AS month, ((d.num/100)/100) as year, "
+        elif bMonth:
+            query_str += "WITH (m.num%100) AS month, (m.num/100) AS year, "
+        else:
+            query_str += "WITH y.num AS year, "
+
+        if bDay:
+            query_str += "sum(distinct(rW).word_count) AS count RETURN "
+        elif bMonth:
+            query_str += "m.word_count AS count RETURN "
+        else:
+            query_str += "sum(distinct(wm).word_count) AS count RETURN "
+
+        if bYear or bMonth or bDay:
+            query_str += "year,"
+        if bMonth or bDay:
+            query_str += "month,"
+        if bDay:
+            query_str += "day,"
+    
+        query_str += "count ORDER BY "
         
+        if bYear or bMonth or bDay:
+            query_str += "year " + params['order']
+        if bMonth or bDay:
+            query_str += ",month " + params['order']
+        if bDay:
+            query_str += ",day " + params['order']
+            
+        if params['index'] or params['page'] > 1:
+            query_str += " SKIP "+ str(params['index'] + ((params['page']-1)*params['limit']))
+        if params['limit']:
+            query_str += " LIMIT {{limit}}"
+
     else:
         if bDay:
             ymd_label = 'Day'
@@ -97,7 +153,7 @@ def query_dates(account, params, countResults=False):
         
         query_str = "MATCH (%s:%s) " % (ymd_var, ymd_label)
         query_str += prepare_date_clause(bYear,bMonth,bDay,bPath=False,bWhere=bDateWhere)
-        
+
         query_str += "WITH %s ORDER BY %s.num %s" % (ymd_var, ymd_var, params['order'])
         
         if params['index'] or params['page'] > 1:
@@ -118,6 +174,7 @@ def query_dates(account, params, countResults=False):
     accLbl = ""
     if account is not None:
         accLbl = "`%d`:" % account
+    print query_str
     query_str = query_str.format(accLbl)
             
     if countResults:

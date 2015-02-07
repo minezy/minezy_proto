@@ -37,7 +37,7 @@ class neo4jLoader:
     
     @classmethod
     def options(cls):
-        return ['dates', 'froms', 'threads', 'tos', 'ccs']
+        return ['froms', 'threads', 'froms', 'tos', 'ccs', 'words']
 
     def _get_account_id(self, account, name):
         tx = self.session.create_transaction()
@@ -168,7 +168,7 @@ class neo4jLoader:
 
     def add(self, email_msg, emailLink=None):
         try:
-            msgID = _get_decoded(email_msg['Message-ID'])
+            msgID = _get_decoded(email_msg.message['Message-ID'])
             
             if len(msgID) == 0 or msgID == "None":
                 msgID = "Unknown_%05d" % self.unknownMsgId
@@ -186,15 +186,15 @@ class neo4jLoader:
                         "Already processed msgID"
                         return
                         
-            msgSubject = _get_decoded(email_msg['Subject'])
-            msgDate = _get_decoded(email_msg['Date'])
-            msgIDParent = _get_decoded(email_msg['In-Reply-To']).strip("<>")
+            msgSubject = _get_decoded(email_msg.message['Subject'])
+            msgDate = _get_decoded(email_msg.message['Date'])
+            msgIDParent = _get_decoded(email_msg.message['In-Reply-To']).strip("<>")
             date = email.utils.parsedate_tz(msgDate)
             timestamp = email.utils.mktime_tz(date)
             
             # Add From Contact
-            msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
-            msgFromX = email_msg.get_all('X-From', [''])
+            msgFrom = email.utils.getaddresses(email_msg.message.get_all('From', ['']))
+            msgFromX = email_msg.message.get_all('X-From', [''])
             self._collect_name(msgFrom[0], msgFromX[0])
         
             msgEmail = str.lower(msgFrom[0][1])
@@ -217,17 +217,15 @@ class neo4jLoader:
             cypher +=   "e.link={props}.link "
             opCount += 2
             
-            # Add Dates
-            if 'dates' in self.options:
-                cypher += "MERGE (y:Year {num:{props}.year}) "
-                cypher += "MERGE (m:Month {num:{props}.ym}) "
-                cypher += "MERGE (d:Day {num:{props}.ymd}) "
-                cypher += "SET y:`%d`,m:`%d`,d:`%d` " % (self.accountId,self.accountId,self.accountId)
-                cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
-                cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
-                cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
-                opCount += 6
-
+            cypher += "MERGE (y:Year {num:{props}.year}) "
+            cypher += "MERGE (m:Month {num:{props}.ym}) "
+            cypher += "MERGE (d:Day {num:{props}.ymd}) "
+            cypher += "SET y:`%d`,m:`%d`,d:`%d` " % (self.accountId,self.accountId,self.accountId)
+            cypher += "CREATE UNIQUE (e)-[:YEAR]->(y) "
+            cypher += "CREATE UNIQUE (e)-[:MONTH]->(m) "
+            cypher += "CREATE UNIQUE (e)-[:DAY]->(d) "
+            opCount += 6
+        
             # Add From
             if 'froms' in self.options:
                 cypher += "MERGE (a:Contact {email:{props}.email}) "
@@ -242,10 +240,10 @@ class neo4jLoader:
                     cypher += "SET ePar:`%d` " % self.accountId
                     cypher += "CREATE UNIQUE (e)-[:INREPLYTO]->(ePar) "
                     opCount += 2
-
+                
                 # Email Thread References
                 refs = []
-                msgRefs = email.utils.getaddresses(email_msg.get_all('References', []))
+                msgRefs = email.utils.getaddresses(email_msg.message.get_all('References', []))
                 for msgIDRef in msgRefs:
                     msgIDRef = msgIDRef[1].strip("<>")
                     refs.append(msgIDRef)
@@ -254,13 +252,29 @@ class neo4jLoader:
                     cypher += "FOREACH (ref in {refs} | MERGE (eRef:Email {id:ref}) SET eRef:`%d` CREATE UNIQUE (e)-[:REFS]->(eRef)) " % self.accountId
                     opCount += 2*len(refs)
 
+            # Word Counts
+            if 'words' in self.options:
+                word_counts_prop = []
+                for word_count in email_msg.word_counts:
+                    word_counts_prop.append({'word':word_count[0], 'count':word_count[1]})
+                if len(word_counts_prop):
+                    props['word_counts'] = word_counts_prop
+                    cypher += "FOREACH (word_count in {word_counts}"
+                    cypher += " | MERGE (w:Word {id:word_count.word}) "
+                    cypher += " MERGE (wm:WordMonth {num:{props}.ym})-[:WORD_MONTH]->(w)"
+                    cypher += " CREATE UNIQUE (e)-[:WORDS {word_count:word_count.count}]->(wm)"
+                    cypher += " SET wm:`%d` " % self.accountId
+                    cypher += " SET w:`%d` " % self.accountId
+                    cypher += ")"
+                    opCount += 4*len(word_counts_prop)
+
             # Add TO relations
             if 'tos' in self.options:
                 tos = []
-                msgTo = email.utils.getaddresses(email_msg.get_all('To', ['']))
-                msgToX = email_msg.get('X-To','').split('>,')
+                msgTo = email.utils.getaddresses(email_msg.message.get_all('To', ['']))
+                msgToX = email_msg.message.get('X-To','').split('>,')
                 if len(msgToX) != len(msgTo):
-                    msgToX = email_msg.get('X-To','').split(',')
+                    msgToX = email_msg.message.get('X-To','').split(',')
                     if len(msgToX) != len(msgTo):
                         msgToX = []
                     
@@ -277,10 +291,10 @@ class neo4jLoader:
             # Add CC relations
             if 'ccs' in self.options:
                 ccs = []
-                msgCc = email.utils.getaddresses(email_msg.get_all('Cc', ['']))
-                msgCcX = email_msg.get('X-cc','').split('>,')
+                msgCc = email.utils.getaddresses(email_msg.message.get_all('Cc', ['']))
+                msgCcX = email_msg.message.get('X-cc','').split('>,')
                 if len(msgCcX) != len(msgCc):
-                    msgCcX = email_msg.get('X-cc','').split(',')
+                    msgCcX = email_msg.message.get('X-cc','').split(',')
                     if len(msgCcX) != len(msgCc):
                         msgCcX = []
                         
@@ -292,13 +306,13 @@ class neo4jLoader:
                     props['ccs'] = ccs
                     cypher += "FOREACH (cc in {ccs} | MERGE (aCc:Contact {email:cc}) SET aCc:`%d` CREATE UNIQUE (e)-[:CC]->(aCc)) " % self.accountId
                     opCount += 2*len(ccs)
-            
+                
                 # Add BCC relations
                 bccs = []
-                msgBcc = email.utils.getaddresses(email_msg.get_all('bcc', []))
-                msgBccX = email_msg.get('X-bcc','').split('>,')
+                msgBcc = email.utils.getaddresses(email_msg.message.get_all('bcc', []))
+                msgBccX = email_msg.message.get('X-bcc','').split('>,')
                 if len(msgBccX) != len(msgBcc):
-                    msgBccX = email_msg.get('X-bcc','').split(',')
+                    msgBccX = email_msg.message.get('X-bcc','').split(',')
                     if len(msgBccX) != len(msgBcc):
                         msgBccX = []
 
@@ -381,6 +395,41 @@ class neo4jLoader:
         tx.commit()
         t1 = time.time()
         _write_time(t1-t0)
+
+        sys.stdout.write("Processing Word Counts / Month")
+        t0 = time.time()
+        processed = 1
+        while processed != 0:
+            tx = self.session.create_transaction()
+            cypher = "MATCH (wm:WordMonth) WHERE wm.word_count IS NOT NULL WITH wm LIMIT 10000"
+            cypher += " REMOVE wm.word_count"
+            cypher += " RETURN count(wm) as count"
+            tx.append(cypher)
+            processed = tx.commit()[0][0]['count']
+            sys.stdout.write(".")
+            sys.stdout.flush()
+        processed = 1
+        while processed != 0:
+            tx = self.session.create_transaction()
+            cypher = "MATCH (wm:WordMonth) WHERE wm.word_count IS NULL WITH wm LIMIT 10000"
+            cypher += " MATCH (wm)-[r:WORDS]-() WITH wm,sum(r.word_count) as sum"
+            cypher += " SET wm.word_count=sum"
+            cypher += " RETURN count(wm) as count"
+            tx.append(cypher)
+            processed = tx.commit()[0][0]['count']
+            sys.stdout.write(".")
+            sys.stdout.flush()
+        _write_time(time.time()-t0)
+
+        tx = self.session.create_transaction()
+        sys.stdout.write("Processing Word Counts...")
+        cypher = "MATCH (w)-[:WORD_MONTH]-(wm:WordMonth) WITH w,sum(wm.word_count) as sum SET w.word_count=sum "
+        tx.append(cypher)
+        t0 = time.time()
+        tx.commit()
+        t1 = time.time()
+        _write_time(t1-t0)
+
         return
     
     def _collect_name(self, msgAddr, msgXAddr):

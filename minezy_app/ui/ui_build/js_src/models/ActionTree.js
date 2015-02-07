@@ -33,6 +33,36 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails-list': {
 							'emails/meta' : false
 						}
+					},
+					'words': {
+						'dates-day': {
+							'emails-list': {
+								'emails/meta' : false
+							},
+							'contacts-left' : {
+								'emails-list': {
+									'emails/meta' : false
+								}							
+							}
+						},
+						'emails-list': {
+							'emails/meta' : false
+						}
+					}
+				},
+				'words': {
+					'dates-day': {
+						'emails-list': {
+							'emails/meta' : false
+						},
+						'contacts-left' : {
+							'emails-list': {
+								'emails/meta' : false
+							}							
+						}
+					},
+					'emails-list': {
+						'emails/meta' : false
 					}
 				},
 				'dates': {
@@ -118,10 +148,29 @@ App.ActionTree = ( function($,document,window, U) {
 						'emails/meta' : false
 					},
 				}
-			}
+			},
+			'words' : {
+				'dates': {
+					'dates-day': {
+						'emails-list': {
+							'emails/meta' : false
+						},
+						'contacts-left' : {
+							'emails-list': {
+								'emails/meta' : false
+							}							
+						}
+					},
+					'emails-list': {
+						'emails/meta' : false
+					},
+				},
+				'emails-list': {
+					'emails/meta' : false
+				}
+			},
 		}
 	};
-
 
 	function ActionTree() {
 		//console.log('ACTION TREE INIT');

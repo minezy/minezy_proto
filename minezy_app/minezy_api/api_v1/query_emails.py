@@ -3,7 +3,7 @@ import time
 import email.parser
 from minezy_api import app
 from minezy_api import neo4j_conn
-from query_common import prepare_date_range, prepare_date_clause
+from query_common import prepare_date_range, prepare_date_clause, prepare_word_clause
 
 
 def query_emails(account, params, countResults=False):
@@ -33,32 +33,44 @@ def query_emails(account, params, countResults=False):
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact)"
             if len(params['observer']):
                 query_str += ",(e)--(cO:{0}Contact)"
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
+
             query_str += " WHERE cL.email IN {{left}} AND cR.email IN {{right}} "
             query_str += "AND (type(rL)='SENT' OR type(rR)='SENT') "
             if len(params['observer']):
                 query_str += "AND cO.email IN {{observer}} "
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
             if bDateWhere:
                 query_str += prepare_date_clause(bYear, bMonth, bDay, prefix="WITH e MATCH ")
             
         elif len(params['left']):
             query_str = "MATCH (cL:{0}Contact)-[rL:"+relL+"]-(e:{0}Email)"
             query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cL.email IN {{left}} "
             query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
             
         else:
             query_str = "MATCH (e:{0}Email)-[rR:"+relR+"]-(cR:{0}Contact)"
             query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
             query_str += "WHERE cR.email IN {{right}} "
             query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere, bAnd=True)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
         
     else:
         bWhere = False
         if len(params['ymd']):
-            query_str = "MATCH (e:{0}Email),"
-            query_str += prepare_date_clause(bYear, bMonth, bDay)
+            query_str = "MATCH (e:{0}Email) "
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bNode=False, bPath=bDateWhere, bWhere=False, default=' ')
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
+            query_str += prepare_date_clause(bYear, bMonth, bDay, bPath=False, bWhere=bDateWhere)
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, bAnd=True, default=' ')
         else:
             query_str = "MATCH (e:{0}Email) "
+            query_str += prepare_word_clause(params['word'], bNode=False, bWhere=False, default=' ')
+            query_str += prepare_word_clause(params['word'], bPath=False, bWhere=True, default=' ')
         
     if params['keyword']:
         if not bWhere:
@@ -66,6 +78,7 @@ def query_emails(account, params, countResults=False):
         else:
             query_str += "AND "
         query_str += "e.subject =~ '(?i).*"+params['keyword']+".*' "
+
         
     query_str += "RETURN distinct(e) ORDER BY e.timestamp " + params['order']
     
