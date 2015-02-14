@@ -1,11 +1,14 @@
 import sys
 import traceback
 from py2neo import Graph
+from py2neo.packages.httpstream import http
 
 g_session = None
 
 def connect(createConstraints=False):
 	global g_session
+	
+	http.socket_timeout = 9999
 	
 	try:
 		sys.stdout.write("Connect to Neo4j... ")

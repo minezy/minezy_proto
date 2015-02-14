@@ -11,8 +11,8 @@ class MessageDecorator:
         self.message = message
 
     @classmethod
-    def from_file(cls, fielname):
-    	message = email.parser.Parser().parse(open(fielname), headersonly=False)
+    def from_file(cls, filename):
+    	message = email.parser.Parser().parse(open(filename), headersonly=False)
     	return MessageDecorator(message)
 
     def text_reply(self):

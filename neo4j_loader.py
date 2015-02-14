@@ -187,10 +187,33 @@ class neo4jLoader:
                         return
                         
             msgSubject = _get_decoded(email_msg['Subject'])
-            msgDate = _get_decoded(email_msg['Date'])
             msgIDParent = _get_decoded(email_msg['In-Reply-To']).strip("<>")
+            
+            msgDate = _get_decoded(email_msg['Date']).strip()
+            if msgDate is None:
+                "Skipping email with no date"
+                return
+                
             date = email.utils.parsedate_tz(msgDate)
-            timestamp = email.utils.mktime_tz(date)
+            if date is None:
+                try:
+                    date = datetime.strptime(msgDate, "%m/%d/%Y %I:%M:%S %p")
+                except Exception, e:
+                    print e
+                    try:
+                        date = datetime.strptime(msgDate, "%m/%d/%Y %H:%M")
+                    except Exception, e:
+                        print e
+                        pass
+                if date is None:
+                    "No date determined from email"
+                    return
+
+                date = date.timetuple()
+                timestamp = time.mktime(date)
+            else:
+                timestamp = email.utils.mktime_tz(date)
+                
             
             # Add From Contact
             msgFrom = email.utils.getaddresses(email_msg.get_all('From', ['']))
@@ -344,7 +367,6 @@ class neo4jLoader:
         self.q.join()
         
         tx = self.session.cypher.begin()
-        
         sys.stdout.write("Processing Names... ")
         cypher =  "MATCH (a:Contact) WITH a "
         cypher += "MATCH (a)-[r:NAME]->() WITH a,MAX(r.count) as nmax " 
@@ -352,40 +374,44 @@ class neo4jLoader:
         cypher += "SET a.name=n.name"
         tx.append(cypher)
         t0 = time.time()
-        tx.process()
+        tx.commit()
         t1 = time.time()
         _write_time(t1-t0)
         
+        tx = self.session.cypher.begin()
         sys.stdout.write("Processing Sent Counts... ")
         cypher = "MATCH (n:Contact)-[r:SENT]->() WITH n,count(r) AS rc SET n.sent=rc"
         tx.append(cypher)
         cypher = "MATCH (n:Contact) WHERE NOT (n)-[:SENT]->() SET n.sent=0"
         tx.append(cypher)
         t0 = time.time()
-        tx.process()
+        tx.commit()
         t1 = time.time()
         _write_time(t1-t0)
     
+        tx = self.session.cypher.begin()
         sys.stdout.write("Processing TO Counts... ")
         cypher = "MATCH (n:Contact)<-[r:TO]-() WITH n,count(r) AS rc SET n.to=rc"
         tx.append(cypher)
         cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:TO]-() SET n.to=0"
         tx.append(cypher)
         t0 = time.time()
-        tx.process()
+        tx.commit()
         t1 = time.time()
         _write_time(t1-t0)
     
+        tx = self.session.cypher.begin()
         sys.stdout.write("Processing CC Counts... ")
         cypher = "MATCH (n:Contact)<-[r:CC]-() WITH n,count(r) AS rc SET n.cc=rc"
         tx.append(cypher)
         cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:CC]-() SET n.cc=0"
         tx.append(cypher)
         t0 = time.time()
-        tx.process()
+        tx.commit()
         t1 = time.time()
         _write_time(t1-t0)
     
+        tx = self.session.cypher.begin()
         sys.stdout.write("Processing BCC Counts... ")
         cypher = "MATCH (n:Contact)<-[r:BCC]-() WITH n,count(r) AS rc SET n.bcc=rc"
         tx.append(cypher)
