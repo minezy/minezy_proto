@@ -12,7 +12,7 @@ def connect(createConstraints=False):
 	
 	try:
 		sys.stdout.write("Connect to Neo4j... ")
-		g_session = Graph()
+		g_session = Graph("http://neo4j:admin@localhost:7474/db/data")
 		sys.stdout.write("OK\n")
 		
 		if createConstraints:

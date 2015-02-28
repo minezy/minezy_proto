@@ -393,7 +393,7 @@ class neo4jLoader:
         sys.stdout.write("Processing TO Counts... ")
         cypher = "MATCH (n:Contact)<-[r:TO]-() WITH n,count(r) AS rc SET n.to=rc"
         tx.append(cypher)
-        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:TO]-() SET n.to=0"
+        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:TO]-() WITH collect(n) AS nodes FOREACH (node in nodes | SET node.to=0)"
         tx.append(cypher)
         t0 = time.time()
         tx.commit()
@@ -404,7 +404,7 @@ class neo4jLoader:
         sys.stdout.write("Processing CC Counts... ")
         cypher = "MATCH (n:Contact)<-[r:CC]-() WITH n,count(r) AS rc SET n.cc=rc"
         tx.append(cypher)
-        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:CC]-() SET n.cc=0"
+        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:CC]-() WITH collect(n) AS nodes FOREACH (node in nodes | SET node.cc=0)"
         tx.append(cypher)
         t0 = time.time()
         tx.commit()
@@ -415,7 +415,7 @@ class neo4jLoader:
         sys.stdout.write("Processing BCC Counts... ")
         cypher = "MATCH (n:Contact)<-[r:BCC]-() WITH n,count(r) AS rc SET n.bcc=rc"
         tx.append(cypher)
-        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:BCC]-() SET n.bcc=0"
+        cypher = "MATCH (n:Contact) WHERE NOT (n)<-[:BCC]-() WITH collect(n) AS nodes FOREACH (node in nodes | SET node.bcc=0)"
         tx.append(cypher)
         t0 = time.time()
         tx.commit()
