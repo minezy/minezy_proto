@@ -16,15 +16,25 @@ def allowed_file(filename):
 
 @app.route("/", methods=['GET'])
 def hello():
-    #app.logger.info(request.headers['Host']) 
+    #app.logger.info(request.headers['Host'])
     return render_template('www.html')
 
 
-@app.route("/app/", methods=['GET'])
+@app.route("/enron/", methods=['GET'])
 def appui():
-    #app.logger.info(request.headers['Host']) 
-    site = render_template('ui.html')
+    #app.logger.info(request.headers['Host'])
+    site = render_template('ui.html',port=5001)
     return site
+
+@app.route("/jebbush/", methods=['GET'])
+def appuibush():
+    #app.logger.info(request.headers['Host'])
+    site = render_template('ui.html',port=5002)
+    return site
+
+
+
+
 
 
 #@app.route('/upload/', methods=['GET','POST'])

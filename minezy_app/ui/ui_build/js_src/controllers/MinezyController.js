@@ -22,7 +22,7 @@ App.MinezyController = ( function($,document,window, U) {
 		}
 
 		this.dateSettings = {};
-		this.API = new App.API();
+		this.API = new App.API(options.port);
 
 		/*if( !$.cookie('account') ) {
 			this.showSettings();

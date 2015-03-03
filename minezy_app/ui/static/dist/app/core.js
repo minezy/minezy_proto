@@ -120,9 +120,14 @@ App.Main = (function(window, document, $, App, Utils){
 
 	"use strict";
 
-	function Main() {
+	function Main(options) {
 
 		this.navController = {};
+		this.options = options;
+
+		if(!this.options.port) {
+			this.options.port = 5001;
+		}
 
 		$('document').ready( $.proxy( this.handleAppReady, this ) );
 
@@ -144,7 +149,7 @@ App.Main = (function(window, document, $, App, Utils){
 
 		handleAppReady: function() {
 
-			this.navController = new App.NavController();
+			this.navController = new App.NavController(this.options.port);
 
 			//avoid using the :hover pseudo class when touching elements
 			if ('ontouchstart' in document) {
@@ -310,8 +315,11 @@ App.Column = ( function($,document,window, U) {
 					$( this.colName + ' .additionalOptions').empty();
 					$( this.colName + ' .start_date_year').off('change');
 				}
+
 			} else if( val === 'words' ) {
 				$( this.colName + ' .additionalOptions').empty();
+				$( this.colName + ' .keyword').on('focus',$.proxy( this.searchFocus, this ) );
+				$( this.colName + ' .keyword').on('blur',$.proxy( this.searchBlur, this ) );
 			} else if( val === 'cliques' ) {
 				$( this.colName + ' .additionalOptions').empty();
 			} else if( val === 'observers' ) {
@@ -676,7 +684,6 @@ App.Column = ( function($,document,window, U) {
 				} else if( this.action == 'words' ) {
 					new_params.word = key;
 				}
-
 				new_params.count = 'month';
 
 				if( lock == 'day' ) {
@@ -701,7 +708,7 @@ App.Column = ( function($,document,window, U) {
 						new_params.left = key;
 				} else if( this.action == 'emails' ) {
 					new_params.id = key;
-				} else if( this.action == 'words' ) {
+				} else if( action === 'words' ) {
 					new_params.word = key;
 				}
 
@@ -732,6 +739,7 @@ App.Column = ( function($,document,window, U) {
 					}
 				}
 			}
+
 
 			console.log(this.index,'P-A:',new_params,action);
 
@@ -1256,7 +1264,7 @@ App.MinezyController = ( function($,document,window, U) {
 		}
 
 		this.dateSettings = {};
-		this.API = new App.API();
+		this.API = new App.API(options.port);
 
 		/*if( !$.cookie('account') ) {
 			this.showSettings();
@@ -1543,12 +1551,13 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 	"use strict";
 
-	function NavController(pageName, data) {
+	function NavController(port) {
 		console.log('NAV CONTROLLER INIT');
 
 		this.currentPage = '';
 		this.router = new U.Router();
 		this.pageNotFound = false;
+		this.port = port;
 
 		this.createRoutes();
 
@@ -1562,7 +1571,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 		createRoutes: function() {
 
 			this.router.addRoutes([
-				{ 'path' : '/app', 'controller' : 'MinezyController' }
+				{ 'path' : '/enron|jebbush', 'controller' : 'MinezyController' }
 			]);
 
 
@@ -1582,7 +1591,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 				}
 
 				if( route ) {
-					return route.createController();
+					return route.createController({port:this.port});
 				} else {
 					throw new Error("Undefined route: " + window.location.pathname);
 				}
@@ -1606,9 +1615,11 @@ App.NavController = ( function( $, document, window, A, U ) {
 App.API = ( function($,document,window, U) {
 
 
-	function API() {
+	function API(port) {
 
-        this.api_root = "http://"+window.location.hostname+":5000";
+		this.api_root = 'http://localhost:' + port;
+
+		//this.api_root = 'http://ec2-54-69-178-96.us-west-2.compute.amazonaws.com:5000';
 		this.api_version = 1;
 		this.current_call = null;
 
@@ -1637,7 +1648,7 @@ App.API = ( function($,document,window, U) {
 
 		constructURL: function(id,action,params) {
 			var account = '';
-			
+
 			if( id ) {
 				account = id + '/';
 			}
@@ -1841,7 +1852,6 @@ App.ActionTree = ( function($,document,window, U) {
 			},
 		}
 	};
-
 
 	function ActionTree() {
 		//console.log('ACTION TREE INIT');

@@ -15,9 +15,14 @@ App.Main = (function(window, document, $, App, Utils){
 
 	"use strict";
 
-	function Main() {
+	function Main(options) {
 
 		this.navController = {};
+		this.options = options;
+
+		if(!this.options.port) {
+			this.options.port = 5001;
+		}
 
 		$('document').ready( $.proxy( this.handleAppReady, this ) );
 
@@ -39,7 +44,7 @@ App.Main = (function(window, document, $, App, Utils){
 
 		handleAppReady: function() {
 
-			this.navController = new App.NavController();
+			this.navController = new App.NavController(this.options.port);
 
 			//avoid using the :hover pseudo class when touching elements
 			if ('ontouchstart' in document) {

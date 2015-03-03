@@ -3,9 +3,10 @@
 App.API = ( function($,document,window, U) {
 
 
-	function API() {
+	function API(port) {
 
-		this.api_root = 'http://localhost:5000';
+		this.api_root = 'http://localhost:' + port;
+
 		//this.api_root = 'http://ec2-54-69-178-96.us-west-2.compute.amazonaws.com:5000';
 		this.api_version = 1;
 		this.current_call = null;
@@ -35,7 +36,7 @@ App.API = ( function($,document,window, U) {
 
 		constructURL: function(id,action,params) {
 			var account = '';
-			
+
 			if( id ) {
 				account = id + '/';
 			}

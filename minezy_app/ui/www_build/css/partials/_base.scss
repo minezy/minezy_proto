@@ -78,6 +78,57 @@ a {
 	z-index: 10;
 }
 
+.buttonContainer {
+	text-align: center;
+}
+
+a.buttonCTA {
+	display: inline-block;
+	padding: 14px;
+	color: white;
+	background: $darkGrey;
+	border-radius: 50%;
+	width: 140px;
+	height: 140px;
+	text-align: center;
+	margin: 30px 20px;
+	position: relative;
+	box-shadow:  0px 3px 5px rgba(0,0,0,0.5);
+
+	span{
+		padding-top: 44px;
+		text-align: center;
+		display: block;
+		margin: 0;
+
+		strong {
+			font-weight: bold;
+		}
+
+	}
+
+	i {
+		position: absolute;
+		bottom: 0px;
+		width: 50px;
+		height: 50px;
+		margin-left: -25px;
+		left: 50%;
+	}
+
+	@include respond-to(small) {
+		margin: 30px 20px 6px;
+	}
+
+
+	&:hover {
+		background: white;
+		color: $darkGrey;
+	}
+
+}
+
+
 a.button {
 	display: inline-block;
 	padding: 14px 18px;
@@ -128,6 +179,7 @@ header {
 		text-transform: lowercase;
 		margin-left: -3px;
 		margin-bottom: 10px;
+		text-align: center;
 	}
 
 	a.button {
@@ -143,16 +195,27 @@ header {
 		font-size: 24px;
 		line-height: 33px;
 		padding-bottom: 30px;
+		text-align: center;
+	}
+
+	h3 {
+		font-size: 20px;
+		line-height: 30px;
+		text-align: center;
+		margin-top: 50px;
 	}
 
 	p {
 		font-size: 16px;
 		line-height: 28px;
-		max-width: 575px;
+		max-width: 445px;
+		text-align: center;
+		margin: 0 auto;
 
 		a {
 			font-weight: 700;
 			border-bottom: solid 2px $lightGrey;
+			text-align: center;
 
 			&:hover {
 				border: none;

@@ -4,12 +4,13 @@ App.NavController = ( function( $, document, window, A, U ) {
 
 	"use strict";
 
-	function NavController(pageName, data) {
+	function NavController(port) {
 		console.log('NAV CONTROLLER INIT');
 
 		this.currentPage = '';
 		this.router = new U.Router();
 		this.pageNotFound = false;
+		this.port = port;
 
 		this.createRoutes();
 
@@ -23,7 +24,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 		createRoutes: function() {
 
 			this.router.addRoutes([
-				{ 'path' : '/app', 'controller' : 'MinezyController' }
+				{ 'path' : '/enron|jebbush', 'controller' : 'MinezyController' }
 			]);
 
 
@@ -43,7 +44,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 				}
 
 				if( route ) {
-					return route.createController();
+					return route.createController({port:this.port});
 				} else {
 					throw new Error("Undefined route: " + window.location.pathname);
 				}
