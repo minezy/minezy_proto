@@ -10,7 +10,7 @@ if __name__ == '__main__':
     neo4j_conn.connect()
 
     host = "127.0.0.1"
-    port = 5000
+    port = 5001
     bDebug = True
     
     if len(sys.argv) > 1:

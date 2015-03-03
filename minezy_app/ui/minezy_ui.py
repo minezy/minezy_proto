@@ -23,13 +23,13 @@ def hello():
 @app.route("/enron/", methods=['GET'])
 def appui():
     #app.logger.info(request.headers['Host'])
-    site = render_template('ui.html',port=5001)
+    site = render_template('ui.html',port=5001,page='enron')
     return site
 
 @app.route("/jebbush/", methods=['GET'])
 def appuibush():
     #app.logger.info(request.headers['Host'])
-    site = render_template('ui.html',port=5002)
+    site = render_template('ui.html',port=5002,page='bush')
     return site
 
 

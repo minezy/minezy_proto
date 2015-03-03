@@ -11,11 +11,36 @@ header {
 	box-sizing: border-box;
 	box-shadow: 0px 2px 2px rgba(0,0,0,0.3);
 
+	.plogo {
+		display: inline-block;
+		width: 50px;
+		height: 50px;
+		background-color: white;
+		border-radius: 50%;
+		background-position: center center;
+		background-repeat: no-repeat;
+		vertical-align: middle;
+		background-size: 70%;
+
+		&.enron {
+			background-image: url('../../images/app/enron.png');
+		}
+
+		&.bush {
+			background-image: url('../../images/app/bush.png');
+		}
+
+	}
+
 	h1 {
 		text-transform: lowercase;
 		font-size: 36px;
 		line-height: 76px;
 		font-weight: 300;
+		display: inline-block;
+		width: 100px;
+		vertical-align: middle;
+		margin-left: 14px;
 
 		a {
 			color:#20cc90;
