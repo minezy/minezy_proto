@@ -15,7 +15,7 @@ def support_jsonp(f):
 
 
 def query_cache_key(*args, **kwargs):
-    path = request.path
+    path = request.host + request.path
     args = str(hash(frozenset(request.args.items())))
     cache_key = (path + args).encode('utf-8')
     return cache_key
