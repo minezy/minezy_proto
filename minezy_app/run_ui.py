@@ -1,20 +1,15 @@
 #!/usr/bin/python
 import sys
+import argparse
 from ui import app
 
 if __name__ == '__main__':
-    host = "127.0.0.1"
-    port = 8080
-    bDebug = True
     
-    if len(sys.argv) > 1:
-        host = str(sys.argv[1])
-        bDebug = False
-    if len(sys.argv) > 2:
-        port = int(sys.argv[2])
-    if len(sys.argv) > 3:
-        if int(sys.argv[3]):
-            bDebug = True
-        
-    app.run(host=host, port=port, debug=bDebug, use_reloader=bDebug, threaded=True)
+    parser = argparse.ArgumentParser(description='Minezy API Server')
+    parser.add_argument("-host", nargs=1, default="127.0.0.1")
+    parser.add_argument("-port", nargs=1, default="8080", type=int)
+    parser.add_argument("-debug", action='store_true')
+    args = parser.parse_args()
+    
+    app.run(host=args.host, port=args.port, debug=args.debug, use_reloader=args.debug, threaded=True)
 

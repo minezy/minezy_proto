@@ -5,14 +5,15 @@ from py2neo.packages.httpstream import http
 
 g_session = None
 
-def connect(createConstraints=False):
+def connect(createConstraints=False, port=7474):
 	global g_session
 
 	http.socket_timeout = 9999
+	graph_path = "http://neo4j:admin@localhost:" + str(port) + "/db/data"
 
 	try:
 		sys.stdout.write("Connect to Neo4j... ")
-		g_session = Graph("http://neo4j:admin@localhost:7474/db/data")
+		g_session = Graph(graph_path)
 		sys.stdout.write("OK\n")
 
 		if createConstraints:

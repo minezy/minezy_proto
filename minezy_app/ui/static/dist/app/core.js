@@ -170,7 +170,7 @@ App.Column = ( function($,document,window, U) {
 	function Column(options) {
 		//console.log('COLUMN INIT > ', options);
 
-		this.API = new App.API();
+		this.API = new App.API(options.api_port);
 		this.at = new App.ActionTree();
 		this.HTMLFactory = new App.HTMLFactory();
 		this.index = options.index;
@@ -823,7 +823,7 @@ App.Column = ( function($,document,window, U) {
 App.ColumnController = ( function($,document,window, U) {
 
 
-	function ColumnController(account_id) {
+	function ColumnController(account_id, api_port) {
 		//console.log('COLUMN MANAGER INIT');
 
 		this.columns = [];
@@ -834,6 +834,7 @@ App.ColumnController = ( function($,document,window, U) {
 		this.at = new App.ActionTree();
 		this.dateSettings = {};
 		this.account = account_id;
+		this.api_port = api_port;
 
 		$(window).resize( $.proxy( this.handleResize, this ) );
 
@@ -877,7 +878,8 @@ App.ColumnController = ( function($,document,window, U) {
 				'nodeName':ops[0],
 				'maxTime': this.dateSettings.maxTime,
 				'minTime': this.dateSettings.minTime,
-				'account': this.account
+				'account': this.account,
+				'api_port': this.api_port
 			});
 
 			$(new_col).on('Ready', $.proxy( this.displayColumn, this, [this.columns.length] ) );
@@ -1265,7 +1267,8 @@ App.MinezyController = ( function($,document,window, U) {
 
 		this.dateSettings = {};
 		this.API = new App.API(options.port);
-
+		this.APIport = options.port
+		
 		/*if( !$.cookie('account') ) {
 			this.showSettings();
 		} else {
@@ -1510,7 +1513,7 @@ App.MinezyController = ( function($,document,window, U) {
 				delete this.colManager;
 			}
 
-			this.colManager = new App.ColumnController(this.account);
+			this.colManager = new App.ColumnController(this.account, this.APIport);
 
 			this.API.getData( this.account, 'dates/range', {}, $.proxy(this.getDateRange,this) );
 
@@ -1617,7 +1620,8 @@ App.API = ( function($,document,window, U) {
 
 	function API(port) {
 
-		this.api_root = 'http://localhost:' + port;
+		this.api_root = "http://"+window.location.hostname+":" + port;
+		//this.api_root = 'http://localhost:' + port;
 
 		//this.api_root = 'http://ec2-54-69-178-96.us-west-2.compute.amazonaws.com:5000';
 		this.api_version = 1;
