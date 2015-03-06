@@ -24,7 +24,7 @@ App.NavController = ( function( $, document, window, A, U ) {
 		createRoutes: function() {
 
 			this.router.addRoutes([
-				{ 'path' : '/enron|jebbush', 'controller' : 'MinezyController' }
+				{ 'path' : '/enron|jebbush|pge', 'controller' : 'MinezyController' }
 			]);
 
 
