@@ -32,6 +32,11 @@ def appuibush():
     site = render_template('ui.html',port=5002,page='bush')
     return site
 
+@app.route("/pge/", methods=['GET'])
+def appuipge():
+    #app.logger.info(request.headers['Host'])
+    site = render_template('ui.html',port=5003,page='pge')
+    return site
 
 
 
