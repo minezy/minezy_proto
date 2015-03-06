@@ -197,7 +197,11 @@ def query_emails_meta(account, params):
                             parts = []
                             for i,part in enumerate(email_msg.walk()):
                                 body = part.get_payload(decode=True)
-                                parts.append( { "body": body, "content-type": part.get_content_type() } )
+                                if body is not None:
+                                    emeta['body'] = body
+                                    emeta['content-type'] = email_msg.get_content_type()
+                                    #parts.append( { "body": body, "content-type": part.get_content_type() } )
+                                    break
                             emeta['parts'] = parts
                 except Exception, e:
                     print e
